@@ -1,0 +1,111 @@
+// =============================================================================
+// Prisma Schema — ADQPAL Backend
+// Banco de dados: PostgreSQL (Supabase)
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Role ─────────────────────────────────────────────────────────────────────
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+
+  @@map("roles")
+}
+
+// ─── User ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  roleId       Int      @map("role_id")
+  role         Role     @relation(fields: [roleId], references: [id])
+  cpf          String?  @unique
+  cnpj         String?  @unique
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  appointments Appointment[]
+
+  @@map("users")
+}
+
+// ─── Patient ──────────────────────────────────────────────────────────────────
+
+model Patient {
+  id             String    @id @default(uuid())
+  name           String
+  email          String?   @unique
+  phone          String?
+  cpf            String?   @unique
+  dateOfBirth    DateTime? @map("date_of_birth")
+  street         String?
+  gender         String?
+  agreement      String?
+  streetNumber   String?   @map("street_number")
+  city           String?
+  state          String?
+  zipCode        String?   @map("zip_code")
+  additionalInfo String?   @map("additional_info")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+
+  @@map("patients")
+}
+
+// ─── Appointment ──────────────────────────────────────────────────────────────
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model Appointment {
+  id          String            @id @default(uuid())
+  userId      String            @map("user_id")
+  patientId   String            @map("patient_id")
+  user        User              @relation(fields: [userId], references: [id])
+  patient     Patient           @relation(fields: [patientId], references: [id])
+  scheduledAt DateTime          @map("scheduled_at")
+  medico      String?
+  status      AppointmentStatus @default(SCHEDULED)
+  notes       String?
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  medicalRecord MedicalRecord?
+
+  @@map("appointments")
+}
+
+// ─── MedicalRecord ────────────────────────────────────────────────────────────
+
+model MedicalRecord {
+  id            String      @id @default(uuid())
+  appointmentId String      @unique @map("appointment_id")
+  patientId     String      @map("patient_id")
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  diagnosis     String?
+  prescription  String?
+  notes         String?
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  @@map("medical_records")
+}
