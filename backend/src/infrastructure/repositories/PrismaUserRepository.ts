@@ -40,7 +40,8 @@ export class PrismaUserRepository implements IUserRepository {
       const row = await this.prisma.user.findUnique({ where: { id } });
       return row ? toDomain(row) : null;
     } catch (err) {
-      throw new DomainError(`Erro ao buscar usuário: ${String(err)}`, 500);
+      // throw new DomainError(`Erro ao buscar usuário: ${String(err)}`, 500);
+      throw new DomainError(`Erro ao buscar usuário`, 500);
     }
   }
 
@@ -49,7 +50,8 @@ export class PrismaUserRepository implements IUserRepository {
       const row = await this.prisma.user.findUnique({ where: { email } });
       return row ? toDomain(row) : null;
     } catch (err) {
-      throw new DomainError(`Erro ao buscar usuário: ${String(err)}`, 500);
+      // throw new DomainError(`Erro ao buscar usuário: ${String(err)}`, 500);
+      throw new DomainError(`Erro ao buscar usuário`, 500);
     }
   }
 
@@ -58,6 +60,7 @@ export class PrismaUserRepository implements IUserRepository {
       const row = await this.prisma.user.findUnique({ where: { username } });
       return row ? toDomain(row) : null;
     } catch (err) {
+      throw new DomainError(`Erro ao buscar usuário`, 500);
       throw new DomainError(`Erro ao buscar usuário: ${String(err)}`, 500);
     }
   }
