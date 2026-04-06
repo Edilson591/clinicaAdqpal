@@ -47,23 +47,47 @@ export const ListAppointmentsQuerySchema = z.object({
   userId:    z.string().uuid("userId deve ser UUID").optional(),
   patientId: z.string().uuid("patientId deve ser UUID").optional(),
   status:    z.enum(["SCHEDULED", "COMPLETED", "CANCELLED"]).optional(),
+  /** Dia exato — ex: 2026-04-06. O repositório converte para range 00:00–23:59 */
+  date:      z.coerce.date().optional(),
+  /** Hora de início HH:MM — exige date */
+  timeStart: z.string().regex(/^\d{2}:\d{2}$/, "timeStart deve ser HH:MM").optional(),
+  /** Hora de fim HH:MM — exige date */
+  timeEnd:   z.string().regex(/^\d{2}:\d{2}$/, "timeEnd deve ser HH:MM").optional(),
   dateStart: z.coerce.date().optional(),
   dateEnd:   z.coerce.date().optional(),
   search:    z.string().max(100).optional(),
 }).refine(
   (d) => !d.dateStart || !d.dateEnd || d.dateStart <= d.dateEnd,
   { message: "dateStart deve ser anterior a dateEnd", path: ["dateStart"] },
+).refine(
+  (d) => !d.timeStart || !!d.date,
+  { message: "timeStart exige que date seja informado", path: ["timeStart"] },
+).refine(
+  (d) => !d.timeEnd || !!d.date,
+  { message: "timeEnd exige que date seja informado", path: ["timeEnd"] },
 );
 
 export type ListAppointmentsQuery = z.infer<typeof ListAppointmentsQuerySchema>;
 
 export const ListByPartyQuerySchema = z.object({
   status:    z.enum(["SCHEDULED", "COMPLETED", "CANCELLED"]).optional(),
+  /** Dia exato — ex: 2026-04-06. O repositório converte para range 00:00–23:59 */
+  date:      z.coerce.date().optional(),
+  /** Hora de início HH:MM — exige date */
+  timeStart: z.string().regex(/^\d{2}:\d{2}$/, "timeStart deve ser HH:MM").optional(),
+  /** Hora de fim HH:MM — exige date */
+  timeEnd:   z.string().regex(/^\d{2}:\d{2}$/, "timeEnd deve ser HH:MM").optional(),
   dateStart: z.coerce.date().optional(),
   dateEnd:   z.coerce.date().optional(),
 }).refine(
   (d) => !d.dateStart || !d.dateEnd || d.dateStart <= d.dateEnd,
   { message: "dateStart deve ser anterior a dateEnd", path: ["dateStart"] },
+).refine(
+  (d) => !d.timeStart || !!d.date,
+  { message: "timeStart exige que date seja informado", path: ["timeStart"] },
+).refine(
+  (d) => !d.timeEnd || !!d.date,
+  { message: "timeEnd exige que date seja informado", path: ["timeEnd"] },
 );
 
 export type ListByPartyQuery = z.infer<typeof ListByPartyQuerySchema>;

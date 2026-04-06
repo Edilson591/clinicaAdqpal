@@ -52,6 +52,12 @@ export interface AppointmentFilters {
   userId?: string;
   patientId?: string;
   status?: AppointmentStatus;
+  /** Dia específico — o repositório converte para gte início do dia / lte fim do dia */
+  date?: Date;
+  /** Hora de início dentro do dia (HH:MM) — exige `date` */
+  timeStart?: string;
+  /** Hora de fim dentro do dia (HH:MM) — exige `date` */
+  timeEnd?: string;
   dateStart?: Date;
   dateEnd?: Date;
   /** Busca por nome do paciente ou campo medico (case-insensitive) */

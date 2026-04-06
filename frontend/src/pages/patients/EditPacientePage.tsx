@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Save } from "lucide-react";
+import { Save, ClipboardList } from "lucide-react";
 import { Header } from "../../components/Dashboard/Header";
 import { Button } from "../../components/ui/Button";
 import ErrorAlert from "../../components/ui/ErrorAlert";
@@ -93,6 +93,15 @@ function EditPacienteContent() {
               >
                 <Save size={16} />
                 {isSaving ? "Salvando..." : "Salvar alterações"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 px-5 rounded-lg text-sm font-medium border border-[#38A169] bg-white text-[#38A169] hover:bg-[#F0FDF4] transition-all cursor-pointer flex items-center gap-2"
+                onClick={() => navigate(`/pacientes/${id}/historico`)}
+              >
+                <ClipboardList size={16} />
+                Ver Histórico
               </Button>
               <Button
                 type="button"

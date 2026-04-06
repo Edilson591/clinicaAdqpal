@@ -1,6 +1,6 @@
-import { Menu, Calendar, Plus } from "lucide-react";
+import { Calendar, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useSidebarContext } from "../../context/useSidebarContext";
+// import { useSidebarContext } from "../../context/useSidebarContext";
 import { Header } from "../Dashboard/Header";
 
 interface AgendaHeaderProps {
@@ -8,7 +8,7 @@ interface AgendaHeaderProps {
 }
 
 export function AgendaHeader({ totalHoje }: AgendaHeaderProps) {
-  const { toggleMobile } = useSidebarContext();
+  // const { toggleMobile } = useSidebarContext();
 
   return (
     <div>
@@ -17,13 +17,13 @@ export function AgendaHeader({ totalHoje }: AgendaHeaderProps) {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <button
+            {/* <button
               onClick={toggleMobile}
               className="lg:hidden cursor-pointer p-1 rounded text-[#94A3B8] dark:text-[#64748B] hover:opacity-70 transition-colors"
               aria-label="Abrir menu"
             >
               <Menu size={20} />
-            </button>
+            </button> */}
             <Calendar size={20} className="text-[#38A169]" />
             <h1 className="text-2xl font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
               Agenda

@@ -4,6 +4,8 @@ import userRoutes from "../routes/userRoutes";
 import patientRoutes from "../routes/patientRoutes";
 import appointmentRoutes from "../routes/appointmentRoutes";
 import medicalRecordRoutes from "../routes/medicalRecordRoutes";
+import patientHistoryRoutes from "../routes/patientHistoryRoutes";
+import historyRoutes from "../routes/historyRoutes";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import cors from "cors";
 
@@ -41,6 +43,8 @@ app.use("/users", userRoutes);
 app.use("/patients", patientRoutes);
 app.use("/appointments", appointmentRoutes);
 app.use("/medical-records", medicalRecordRoutes);
+app.use("/patients/:patientId/history", patientHistoryRoutes);
+app.use("/history", historyRoutes);
 
 app.use(errorMiddleware);
 

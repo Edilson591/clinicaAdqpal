@@ -9,16 +9,18 @@ import { MenuSidebar } from "../Sidebar/MenuSidebar";
 
 type propsHeader = {
   isSearchAvaliable?: boolean;
+  search?: string;
+  onSearchChange?: (value: string) => void;
 };
 
-export function Header({ isSearchAvaliable }: propsHeader) {
+export function Header({ isSearchAvaliable, search, onSearchChange }: propsHeader) {
   const { user } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const greeting = user ? `Olá, Dr. ${user.username}` : "Olá!";
 
   return (
-    <div className="flex items-center justify-between mb-6 shrink-0">
+    <div className="flex items-center justify-between shrink-0 mb-6">
       {/* Left: toggle + greeting */}
       <div className="flex items-center gap-3 min-w-0">
         <MenuSidebar />
@@ -46,6 +48,8 @@ export function Header({ isSearchAvaliable }: propsHeader) {
             <input
               type="text"
               placeholder="Buscar (PX, CPF, ...)"
+              value={search ?? ""}
+              onChange={(e) => onSearchChange?.(e.target.value)}
               className="w-70 lg:w-[320px] h-10 pl-9 pr-4 bg-white dark:bg-[#1E293B] border border-[#E5E7EB] dark:border-[#334155] rounded-lg text-sm text-[#374151] dark:text-[#F1F5F9] placeholder:text-[#9CA3AF] dark:placeholder:text-[#64748B] focus:outline-none focus:border-[#38A169] focus:ring-1 focus:ring-[#38A169] transition-colors"
             />
           </div>

@@ -62,7 +62,7 @@ export function SegurancaSection() {
         </h2>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm text-[#64748B] dark:text-[#94A3B8]">Senha atual</label>

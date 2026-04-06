@@ -2,17 +2,21 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isAxiosError } from "axios";
 import { useZodForm } from "./useZodForm";
-import { useCreateAppointment } from "./useAppointments";
-import { novaConsultaSchema, type NovaConsultaInput } from "../validate/novaConsulta.schema";
+import {
+  // useAppointmentsByPatient,
+  useCreateAppointment,
+} from "./useAppointments";
+import {
+  novaConsultaSchema,
+  type NovaConsultaInput,
+} from "../validate/novaConsulta.schema";
+// import { useWatch } from "react-hook-form";
 // import { useAuth } from "../context/AuthContext";
 
 export function useNovaConsultaForm() {
   // const { user } = useAuth();
   const navigate = useNavigate();
   const [generalError, setGeneralError] = useState<string | null>(null);
-
-  
-
 
   const form = useZodForm(novaConsultaSchema, {
     defaultValues: {
@@ -24,7 +28,16 @@ export function useNovaConsultaForm() {
     },
   });
 
-  const { mutate: createAppointment, isPending: isLoading } = useCreateAppointment();
+  // const pacienteId = form.watch("patientId");
+  // const { data: appointments = [] } = useAppointmentsByPatient(pacienteId);
+
+  const { mutate: createAppointment, isPending: isLoading } =
+    useCreateAppointment();
+
+  // const isValidateAppointments = appointments.some((app) => {
+  //   const date = new Date(app.scheduledAt);
+
+  // })
 
   const onSubmit = form.handleSubmit((data: NovaConsultaInput) => {
     setGeneralError(null);
@@ -33,7 +46,7 @@ export function useNovaConsultaForm() {
     // hora é um Date retornado pelo InputPickerTime — extrai apenas h/m
     const horaDate = data.hora as Date;
 
-    console.log(horaDate)
+    console.log(horaDate);
     const scheduledAt = new Date(
       data.data.getFullYear(),
       data.data.getMonth(),

@@ -168,3 +168,33 @@ export interface UpdateMedicalRecordInput {
   prescription?: string | null;
   notes?: string | null;
 }
+
+// ─── PatientHistory ───────────────────────────────────────────────────────────
+
+export type HistoryType =
+  | "CONSULTA"
+  | "EXAME"
+  | "PRESCRICAO"
+  | "OBSERVACAO"
+  | "SOLICITACAO";
+
+export interface PatientHistoryResponse {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  appointmentId: string | null;
+  type: HistoryType;
+  title: string;
+  description: string;
+  attachments: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePatientHistoryInput {
+  type: string;
+  title: string;
+  description: string;
+  appointmentId?: string | null;
+  attachments?: string[];
+}

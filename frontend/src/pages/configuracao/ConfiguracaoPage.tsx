@@ -48,7 +48,7 @@ function ConfigContent() {
   return (
     // pen: d3fY6 · bg #F8FAFC light · #0F172A dark · padding 32 · gap 24
     <main className="flex-1 bg-[#F8FAFC] dark:bg-[#0F172A] overflow-y-auto transition-colors duration-200">
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="p-4 sm:p-6 lg:p-8 flex flex-col">
           {/* Header — pen: fnUSB */}
           <ConfigHeader />

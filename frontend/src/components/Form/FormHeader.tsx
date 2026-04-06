@@ -17,7 +17,7 @@ export const FormHeader = ({
   pacientName,
 }: FormHeaderProps) => {
   return (
-    <div className="flex items-start justify-between mb-6">
+    <div className="flex items-start justify-between">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 flex-wrap">
           <Link

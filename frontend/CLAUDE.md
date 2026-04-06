@@ -1092,3 +1092,21 @@ Implementado com divs CSS puro (sem biblioteca externa). Dados estáticos com 6 
 
 5 transações estáticas. Ícone `ArrowDownLeft` (verde) para entradas, `ArrowUpRight` (vermelho) para saídas. Rodapé com totais de entradas e saídas.
 
+### Responsividade (adicionada em 2026-04-04)
+
+A página é totalmente responsiva com os seguintes breakpoints:
+
+| Breakpoint | KPI Cards | Header | Bottom Row |
+|-----------|-----------|--------|------------|
+| `< sm` (< 640px) | 1 coluna | empilhado (título + botões) | coluna (chart → transactions) |
+| `sm` (640px+) | 2 colunas | linha (justify-between) | coluna |
+| `lg` (1024px+) | 4 colunas | linha | linha (chart flex-1 + transactions 320px) |
+
+**Alterações realizadas:**
+
+- `GestaoFinanceiraPage`: padding `p-4 sm:p-8`; KPIs de `flex` para `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`; bottom row de `flex` para `flex flex-col lg:flex-row`
+- `FinanceiroHeader`: container de `flex justify-between` para `flex flex-col sm:flex-row sm:justify-between`
+- `KPICard`: padding `p-4 sm:p-5`; removido `flex-1` (desnecessário em grid)
+- `ReceitaDespesasChart`: adicionado `min-h-[280px]` para garantir altura mínima em coluna; padding `p-4 sm:p-5`
+- `TransacoesRecentes`: substituído `style={{ width: 320 }}` fixo por `w-full lg:w-80 lg:min-w-[280px]`
+

@@ -39,13 +39,34 @@ function toDomain(row: {
 // WHERE BUILDERS
 // =============================================================================
 
+/** Parseia "HH:MM" e aplica ao Date base — retorna novo Date */
+function applyTime(base: Date, hhmm: string, endOfMinute = false): Date {
+  const [h, m] = hhmm.split(":").map(Number);
+  return new Date(
+    base.getFullYear(), base.getMonth(), base.getDate(),
+    h, m, endOfMinute ? 59 : 0, endOfMinute ? 999 : 0,
+  );
+}
+
 /** Filtros comuns a todos os métodos (status + intervalo de datas) */
-function buildBaseWhere(filters?: Pick<AppointmentFilters, "status" | "dateStart" | "dateEnd">) {
+function buildBaseWhere(filters?: Pick<AppointmentFilters, "status" | "date" | "timeStart" | "timeEnd" | "dateStart" | "dateEnd">) {
+  let gte: Date | undefined = filters?.dateStart;
+  let lte: Date | undefined = filters?.dateEnd;
+
+  if (filters?.date) {
+    const d = new Date(filters.date);
+    // Se timeStart/timeEnd fornecidos, usa horário exato; senão range do dia inteiro
+    gte = filters.timeStart
+      ? applyTime(d, filters.timeStart)
+      : new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+    lte = filters.timeEnd
+      ? applyTime(d, filters.timeEnd, true)
+      : new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+  }
+
   return {
     ...(filters?.status ? { status: filters.status } : {}),
-    ...(filters?.dateStart || filters?.dateEnd
-      ? { scheduledAt: { gte: filters?.dateStart, lte: filters?.dateEnd } }
-      : {}),
+    ...(gte || lte ? { scheduledAt: { gte, lte } } : {}),
   };
 }
 

@@ -19,7 +19,7 @@ const BAR_HEIGHT = 140; // px total disponível para as barras
 
 export function ReceitaDespesasChart() {
   return (
-    <div className="flex-1 bg-white dark:bg-[#1E293B] rounded-xl border border-[#E2E8F0] dark:border-[#334155] p-5 flex flex-col gap-4 min-w-0 transition-colors duration-200">
+    <div className="flex-1 min-h-[280px] bg-white dark:bg-[#1E293B] rounded-xl border border-[#E2E8F0] dark:border-[#334155] p-4 sm:p-5 flex flex-col gap-4 min-w-0 transition-colors duration-200">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-[15px] font-semibold text-[#1E293B] dark:text-[#F1F5F9]">

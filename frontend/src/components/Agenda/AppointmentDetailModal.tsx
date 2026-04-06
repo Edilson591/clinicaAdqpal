@@ -71,10 +71,12 @@ export function AppointmentDetailModal({
   )!;
 
   const handleSave = () => {
+    console.log(selectedStatus)
     if (selectedStatus === appointment.status) {
       onClose();
       return;
     }
+
     updateMutation.mutate(
       { id: appointment.id, data: { status: selectedStatus } },
       { onSuccess: onClose },

@@ -1,5 +1,5 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, FilePen, Save, User, Calendar, Hash } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { FilePen, Save, User, Calendar, Hash } from "lucide-react";
 import { Header } from "../../components/Dashboard/Header";
 import { Button } from "../../components/ui/Button";
 import ErrorAlert from "../../components/ui/ErrorAlert";
@@ -56,28 +56,6 @@ function EditProntuarioContent() {
       <Header isSearchAvaliable={false} />
 
       {/* Breadcrumb */}
-      {/* <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link
-              to="/prontuarios"
-              className="flex items-center gap-1 px-1.5 py-1 rounded text-[#64748B] text-sm hover:bg-[#F1F5F9] transition-colors"
-            >
-              <ArrowLeft size={15} />
-              Prontuários
-            </Link>
-            <span className="text-[#CBD5E1] text-sm">/</span>
-            <FilePen size={20} className="text-[#38A169]" />
-            <h1 className="text-[22px] font-semibold text-[#1E293B]">
-              Editar Prontuário
-            </h1>
-          </div>
-          {patient && (
-            <p className="text-[13px] text-[#94A3B8]">
-              Prontuário de{" "}
-              <span className="font-medium text-[#64748B]">{patient.name}</span>
-            </p>
-          )}
-        </div> */}
       <FormHeader
         title="Prontuários"
         link="/prontuarios"
@@ -119,7 +97,7 @@ function EditProntuarioContent() {
                     <User size={12} />
                     Paciente
                   </span>
-                  <div className="h-14 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 flex items-center text-sm text-[#475569]">
+                  <div className="h-14 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] dark:bg-[#263548] dark:border-[#334155] dark:text-muted-foreground px-4 flex items-center text-sm text-[#475569]">
                     {patient?.name ?? "—"}
                   </div>
                 </div>
@@ -130,7 +108,7 @@ function EditProntuarioContent() {
                     <Calendar size={12} />
                     Data de criação
                   </span>
-                  <div className="h-14 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 flex items-center text-sm text-[#475569]">
+                  <div className="h-14 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] dark:bg-[#263548] dark:border-[#334155] dark:text-muted-foreground px-4 flex items-center text-sm text-[#475569]">
                     {createdAt}
                   </div>
                 </div>
@@ -141,7 +119,7 @@ function EditProntuarioContent() {
                     <Hash size={12} />
                     ID do prontuário
                   </span>
-                  <div className="h-14 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 flex items-center text-sm text-[#94A3B8] font-mono truncate">
+                  <div className="h-14 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] dark:bg-[#263548] dark:border-[#334155] dark:text-muted-foreground px-4 flex items-center text-sm text-[#94A3B8] font-mono truncate">
                     {id}
                   </div>
                 </div>

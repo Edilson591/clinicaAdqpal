@@ -1,5 +1,5 @@
-import { Menu, FileText, Plus, Search } from "lucide-react";
-import { useSidebarContext } from "../../context/useSidebarContext";
+import {  FileText, Plus, Search } from "lucide-react";
+// import { useSidebarContext } from "../../context/useSidebarContext";
 import { Header } from "../Dashboard/Header";
 import { useNavigate } from "react-router-dom";
 
@@ -14,7 +14,7 @@ export function ProntuariosHeader({
   search,
   onSearchChange,
 }: ProntuariosHeaderProps) {
-  const { toggleMobile } = useSidebarContext();
+  // const { toggleMobile } = useSidebarContext();
   const navigate = useNavigate();
   return (
     <div>
@@ -23,13 +23,13 @@ export function ProntuariosHeader({
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <button
+            {/* <button
               onClick={toggleMobile}
               className="lg:hidden cursor-pointer p-1 rounded text-[#94A3B8] dark:text-[#64748B] hover:opacity-70 transition-colors"
               aria-label="Abrir menu"
             >
               <Menu size={20} />
-            </button>
+            </button> */}
             <FileText size={20} className="text-[#38A169]" />
             <h1 className="text-2xl font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
               Prontuários

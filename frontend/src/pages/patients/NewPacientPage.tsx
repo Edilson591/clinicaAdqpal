@@ -83,7 +83,7 @@ function NovoPacienteContent() {
 
   return (
     <FormContent>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} >
         <Header isSearchAvaliable={false} />
         {/* ── Header ── */}
         <FormHeader
@@ -92,6 +92,8 @@ function NovoPacienteContent() {
           subTitle="Novo Paciente"
           description="Preencha os dados do paciente abaixo"
         />
+
+        <div className="mb-6"></div>
 
         {/* ── Form card ── */}
         <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] rounded-xl p-6 flex flex-col gap-6 transition-colors duration-200">

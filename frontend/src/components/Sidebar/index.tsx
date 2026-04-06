@@ -1,14 +1,22 @@
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useSidebarContext } from "../../context/useSidebarContext";
 import { cn } from "../../lib/utils";
 import SidebarContent from "./SidebarContent";
+import { useEffect } from "react";
 
 export function Sidebar() {
   const { isOpen, isHovered, isMobileOpen, hoverSidebar, closeMobile } =
     useSidebarContext();
   const { user, logout } = useAuth();
 
+  const location = useLocation();
+
   const expanded = isOpen || isHovered;
+
+  useEffect(() => {
+    closeMobile();
+  }, [location.pathname, closeMobile]);
 
   return (
     <>

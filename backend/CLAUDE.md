@@ -11,12 +11,16 @@ Documentação técnica do backend da aplicação ADQPAL.
 | Node.js | 20+ | Runtime |
 | TypeScript | 5.x | Linguagem (strict mode) |
 | Express | 4.x | Framework HTTP |
-| Prisma | 7.x | ORM |
+| Prisma | 5.x | ORM |
 | Supabase (PostgreSQL) | — | Banco de dados |
 | bcryptjs | 2.x | Hash de senhas (12 rounds) |
 | jsonwebtoken | 9.x | Autenticação JWT |
 | Zod | 3.x | Validação de entrada |
 | Morgan | 1.x | Logging de requisições |
+| axios | 1.x | Cliente HTTP (WhatsApp API) |
+| cors | 2.x | Controle de origens permitidas |
+| dotenv | 16.x | Carregamento de variáveis de ambiente |
+| express-rate-limit | 8.x | Rate limiting |
 | ts-node-dev | 2.x | Hot reload em dev |
 
 ---
@@ -26,49 +30,112 @@ Documentação técnica do backend da aplicação ADQPAL.
 ```
 backend/
 ├─ prisma/
-│  └─ schema.prisma          # Schema do banco (modelos Prisma)
+│  └─ schema.prisma              # Schema do banco (todos os modelos Prisma)
 ├─ src/
-│  ├─ domain/                # CAMADA DE DOMÍNIO (sem dependências externas)
-│  │  ├─ entities/
-│  │  │  └─ User.ts          # Entidade User + tipos auxiliares
-│  │  ├─ errors/
-│  │  │  └─ DomainError.ts   # Hierarquia de erros tipados
-│  │  ├─ repositories/
-│  │  │  └─ IUserRepository.ts  # Port (interface) do repositório
-│  │  └─ services/
-│  │     ├─ IHashService.ts  # Port para hashing
-│  │     └─ ITokenService.ts # Port para JWT
-│  ├─ application/           # CAMADA DE APLICAÇÃO (casos de uso)
+│  ├─ __tests__/                 # Testes automatizados (Jest + Supertest)
+│  │  ├─ application/
+│  │  │  ├─ CreateAppointment.test.ts
+│  │  │  ├─ GetAppointment.test.ts
+│  │  │  └─ UpdateDeleteAppointment.test.ts
+│  │  ├─ domain/
+│  │  │  └─ errors.test.ts
 │  │  ├─ dtos/
-│  │  │  └─ UserDTOs.ts      # Schemas Zod + tipos de entrada/saída
-│  │  ├─ mappers/
-│  │  │  └─ userMapper.ts    # Converte User → UserResponseDTO
-│  │  └─ use-cases/
-│  │     ├─ RegisterUser.ts
-│  │     ├─ LoginUser.ts
-│  │     ├─ GetUser.ts
-│  │     ├─ UpdateUser.ts
-│  │     └─ DeleteUser.ts
-│  ├─ infrastructure/        # CAMADA DE INFRAESTRUTURA (implementações concretas)
-│  │  ├─ database/
-│  │  │  └─ prismaClient.ts  # Singleton do PrismaClient
+│  │  │  └─ AppointmentDTOs.test.ts
+│  │  ├─ http/
+│  │  │  └─ health.test.ts
+│  │  └─ infrastructure/
+│  │     └─ SSEManager.test.ts
+│  ├─ domain/                    # CAMADA DE DOMÍNIO (sem dependências externas)
+│  │  ├─ entities/
+│  │  │  ├─ Appointment.ts
+│  │  │  ├─ MedicalRecord.ts
+│  │  │  ├─ Patient.ts
+│  │  │  ├─ PatientHistory.ts
+│  │  │  └─ User.ts
+│  │  ├─ errors/
+│  │  │  └─ DomainError.ts       # Hierarquia de erros tipados
 │  │  ├─ repositories/
-│  │  │  └─ PrismaUserRepository.ts  # Implementação com Prisma
-│  │  └─ services/
-│  │     ├─ BcryptHashService.ts
-│  │     └─ JwtTokenService.ts
-│  └─ interfaces/            # CAMADA DE INTERFACES (HTTP)
+│  │  │  ├─ IAppointmentRepository.ts
+│  │  │  ├─ IMedicalRecordRepository.ts
+│  │  │  ├─ IPatientHistoryRepository.ts
+│  │  │  ├─ IPatientRepository.ts
+│  │  │  └─ IUserRepository.ts
+│  │  ├─ services/
+│  │  │  ├─ IHashService.ts      # Port para hashing
+│  │  │  └─ ITokenService.ts     # Port para JWT
+│  │  └─ shared/
+│  │     └─ pagination.ts        # Tipos e helpers de paginação
+│  ├─ application/               # CAMADA DE APLICAÇÃO (casos de uso)
+│  │  ├─ dtos/
+│  │  │  ├─ AppointmentDTOs.ts
+│  │  │  ├─ MedicalRecordDTOs.ts
+│  │  │  ├─ PatientDTOs.ts
+│  │  │  ├─ PatientHistoryDTOs.ts
+│  │  │  └─ UserDTOs.ts
+│  │  ├─ mappers/
+│  │  │  ├─ appointmentMapper.ts
+│  │  │  ├─ medicalRecordMapper.ts
+│  │  │  ├─ patientMapper.ts
+│  │  │  └─ userMapper.ts
+│  │  └─ use-cases/
+│  │     ├─ CreateAppointment.ts
+│  │     ├─ CreateMedicalRecord.ts
+│  │     ├─ CreatePatient.ts
+│  │     ├─ CreatePatientHistory.ts
+│  │     ├─ DeleteAppointment.ts
+│  │     ├─ DeleteMedicalRecord.ts
+│  │     ├─ DeletePatient.ts
+│  │     ├─ DeleteUser.ts
+│  │     ├─ GetAppointment.ts
+│  │     ├─ GetMedicalRecord.ts
+│  │     ├─ GetPatient.ts
+│  │     ├─ GetUser.ts
+│  │     ├─ ListPatientHistory.ts
+│  │     ├─ LoginUser.ts
+│  │     ├─ RegisterUser.ts
+│  │     ├─ SendAppointmentWhatsApp.ts
+│  │     ├─ SoftDeletePatientHistory.ts
+│  │     ├─ UpdateAppointment.ts
+│  │     ├─ UpdateMedicalRecord.ts
+│  │     ├─ UpdatePatient.ts
+│  │     └─ UpdateUser.ts
+│  ├─ infrastructure/            # CAMADA DE INFRAESTRUTURA (implementações concretas)
+│  │  ├─ database/
+│  │  │  └─ prismaClient.ts      # Singleton do PrismaClient
+│  │  ├─ repositories/
+│  │  │  ├─ PrismaAppointmentRepository.ts
+│  │  │  ├─ PrismaMedicalRecordRepository.ts
+│  │  │  ├─ PrismaPatientHistoryRepository.ts
+│  │  │  ├─ PrismaPatientRepository.ts
+│  │  │  └─ PrismaUserRepository.ts
+│  │  ├─ services/
+│  │  │  ├─ BcryptHashService.ts
+│  │  │  ├─ JwtTokenService.ts
+│  │  │  └─ WhatsAppService.ts   # Integração Meta Cloud API
+│  │  └─ sse/
+│  │     └─ SSEManager.ts        # Server-Sent Events para notificações em tempo real
+│  └─ interfaces/                # CAMADA DE INTERFACES (HTTP)
 │     ├─ controllers/
+│     │  ├─ AppointmentController.ts
+│     │  ├─ MedicalRecordController.ts
+│     │  ├─ PatientController.ts
+│     │  ├─ PatientHistoryController.ts
 │     │  └─ UserController.ts
 │     ├─ middlewares/
 │     │  ├─ authMiddleware.ts    # Valida JWT, popula req.userId
 │     │  ├─ errorMiddleware.ts   # Tratamento global de erros
+│     │  ├─ rateLimiter.ts       # Rate limiters (geral + WhatsApp)
 │     │  └─ validateBody.ts      # Validação de body via Zod
 │     ├─ routes/
+│     │  ├─ appointmentRoutes.ts
+│     │  ├─ historyRoutes.ts     # DELETE /history/:id (soft delete)
+│     │  ├─ medicalRecordRoutes.ts
+│     │  ├─ patientHistoryRoutes.ts
+│     │  ├─ patientRoutes.ts
 │     │  └─ userRoutes.ts
 │     └─ http/
-│        └─ app.ts              # Express app (middlewares + rotas)
-└─ server.ts                    # Entry point (listen)
+│        └─ app.ts               # Express app (middlewares + rotas)
+└─ server.ts                     # Entry point (listen)
 ```
 
 ---
@@ -108,6 +175,10 @@ Copie `.env.example` para `.env` e preencha:
 | `JWT_EXPIRES_IN` | Expiração do token (padrão: `7d`) |
 | `PORT` | Porta do servidor (padrão: `3333`) |
 | `NODE_ENV` | `development` \| `production` \| `test` |
+| `ALLOWED_ORIGINS` | Origens CORS permitidas, separadas por vírgula (padrão: `http://localhost:5174`) |
+| `WHATSAPP_PHONE_NUMBER_ID` | ID do número de telefone (encontrado em business.facebook.com → seu app → WhatsApp → Configuração da API) |
+| `WHATSAPP_TOKEN` | Token permanente de acesso à API |
+| `WHATSAPP_API_VERSION` | Versão da API (padrão: `v17.0`) |
 
 ### Onde obter a DATABASE_URL no Supabase
 
@@ -121,9 +192,11 @@ Copie `.env.example` para `.env` e preencha:
 ## Scripts
 
 ```bash
-npm run dev           # Servidor em modo watch (ts-node-dev)
-npm run build         # Compila TypeScript → dist/
-npm run start         # Executa dist/server.js
+npm run dev              # Servidor em modo watch (ts-node-dev)
+npm run build            # Compila TypeScript → dist/
+npm run start            # Executa dist/server.js
+npm run test             # Roda todos os testes (Jest, sequencial)
+npm run test:watch       # Roda testes em modo watch
 npm run prisma:migrate   # Aplica migrações (cria/altera tabelas)
 npm run prisma:studio    # Interface visual do banco (Prisma Studio)
 npm run prisma:generate  # Regenera o Prisma Client
@@ -146,20 +219,42 @@ npm run prisma:migrate
 npm run prisma:generate
 ```
 
-### Schema atual (`prisma/schema.prisma`)
+### Modelos no schema (`prisma/schema.prisma`)
+
+**Role**
+
+```prisma
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+
+  @@map("roles")
+}
+```
+
+**User** — campos reais (diferem do exemplo original):
 
 ```prisma
 model User {
   id           String   @id @default(uuid())
-  name         String
+  username     String   @unique
   email        String   @unique
   passwordHash String   @map("password_hash")
+  roleId       Int      @map("role_id")
+  role         Role     @relation(...)
+  cpf          String?  @unique
+  -- demais campos opcionais (phone, etc.)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@map("users")
 }
 ```
+
+> **Atenção:** o campo de nome do usuário é `username` (não `name`). O modelo possui `roleId` (FK para `roles`) e `cpf` opcional.
+
+**Patient**, **Appointment**, **MedicalRecord**, **PatientHistory** — ver seções específicas abaixo.
 
 ---
 
@@ -269,6 +364,63 @@ Content-Type: application/json
 
 ---
 
+## Histórico do Paciente (PatientHistory)
+
+Implementado em 2026-04-04. Registra todas as interações médicas de um paciente ao longo do tempo.
+
+### Modelo `PatientHistory`
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| id | String (UUID) | sim | Gerado automaticamente |
+| patientId | String (UUID FK) | sim | Referência ao paciente |
+| doctorId | String (UUID FK) | sim | Usuário que criou o registro |
+| appointmentId | String (UUID FK) | não | Consulta relacionada (opcional) |
+| type | Enum | sim | `CONSULTA` \| `EXAME` \| `PRESCRICAO` \| `OBSERVACAO` \| `SOLICITACAO` |
+| title | String | sim | Resumo (3–200 chars) |
+| description | String | sim | Detalhes completos (mín. 10 chars) |
+| attachments | String[] | não | URLs de arquivos anexados |
+| deletedAt | DateTime? | — | Soft delete (null = ativo) |
+| createdAt | DateTime | auto | Timestamp de criação |
+| updatedAt | DateTime | auto | Timestamp de atualização |
+
+### Rotas (requerem `Authorization: Bearer <token>`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/patients/:patientId/history` | Criar registro (médico/admin) |
+| `GET` | `/patients/:patientId/history` | Listar histórico (paginado) |
+| `GET` | `/patients/:patientId/history?type=EXAME` | Filtrar por tipo |
+| `GET` | `/patients/:patientId/history?search=texto` | Busca em título/descrição |
+| `DELETE` | `/history/:id` | Soft delete (criador ou admin) |
+
+### Regras de negócio
+
+- Apenas `roleId = 1` (ADMIN) e `roleId = 3` (DOCTOR) podem criar registros → `ForbiddenError` 403 para outros roles
+- Soft delete: `deletedAt` é preenchido — o registro nunca é apagado permanentemente
+- Apenas o criador (`doctorId`) ou um ADMIN pode deletar
+- Listagem filtra `deletedAt IS NULL` automaticamente — registros deletados ficam invisíveis
+- Busca (`?search=`) é case-insensitive em `title` e `description` (OR)
+- Ordenação padrão: `createdAt DESC`
+
+### Arquivos criados
+
+| Camada | Arquivo |
+|--------|---------|
+| Domain | `src/domain/entities/PatientHistory.ts` |
+| Domain | `src/domain/repositories/IPatientHistoryRepository.ts` |
+| Domain | `src/domain/errors/DomainError.ts` → adicionado `ForbiddenError` (403) |
+| Application | `src/application/dtos/PatientHistoryDTOs.ts` |
+| Application | `src/application/use-cases/CreatePatientHistory.ts` |
+| Application | `src/application/use-cases/ListPatientHistory.ts` |
+| Application | `src/application/use-cases/SoftDeletePatientHistory.ts` |
+| Infrastructure | `src/infrastructure/repositories/PrismaPatientHistoryRepository.ts` |
+| Interfaces | `src/interfaces/controllers/PatientHistoryController.ts` |
+| Interfaces | `src/interfaces/routes/patientHistoryRoutes.ts` |
+| Interfaces | `src/interfaces/routes/historyRoutes.ts` |
+
+---
+
 ## Segurança
 
 - Senhas armazenadas com **bcrypt** (12 rounds — custo alto, brute force lento)
@@ -342,15 +494,9 @@ Content-Type: application/json
 
 ### Configuração WhatsApp
 
-Variáveis de ambiente necessárias:
+As variáveis `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TOKEN` e `WHATSAPP_API_VERSION` estão documentadas na seção **Variáveis de Ambiente** acima.
 
-| Variável                   | Descrição                                       |
-|----------------------------|-------------------------------------------------|
-| `WHATSAPP_PHONE_NUMBER_ID` | ID do número no Meta Business                   |
-| `WHATSAPP_TOKEN`           | Token permanente da API                         |
-| `WHATSAPP_API_VERSION`     | Versão da API (padrão: `v17.0`)                 |
-
-Obtenha em: [developers.facebook.com](https://developers.facebook.com) → seu app → WhatsApp → API Setup
+Para obter as credenciais: acesse **business.facebook.com** → seu app → WhatsApp → Configuração da API.
 
 ### Rate Limit do endpoint WhatsApp
 
@@ -370,6 +516,75 @@ Obtenha em: [developers.facebook.com](https://developers.facebook.com) → seu a
 | Credenciais             | Exclusivamente em `.env`, nunca no código                   |
 | Erros sem stack trace   | `errorMiddleware` omite detalhes em `NODE_ENV=production`   |
 | HTTPS                   | Configurar no reverse proxy (Nginx, Railway, Render, etc.)  |
+
+---
+
+## Pacientes (Patients)
+
+### Modelo `Patient`
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| id | String (UUID) | sim | Gerado automaticamente |
+| name | String | sim | Nome completo |
+| email | String? | não | E-mail único |
+| phone | String? | não | Telefone |
+| cpf | String? | não | CPF único |
+| dateOfBirth | DateTime? | não | Data de nascimento |
+| street | String? | não | Endereço |
+| gender | String? | não | Gênero |
+| agreement | String? | não | Plano/convênio |
+| createdAt | DateTime | auto | Timestamp de criação |
+| updatedAt | DateTime | auto | Timestamp de atualização |
+
+### Rotas de Pacientes (requerem `Authorization: Bearer <token>`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/patients` | Criar paciente |
+| GET | `/patients` | Listar pacientes |
+| GET | `/patients/:id` | Buscar paciente por ID |
+| PUT | `/patients/:id` | Atualizar paciente |
+| DELETE | `/patients/:id` | Deletar paciente |
+
+---
+
+## Prontuários (MedicalRecords)
+
+Cada prontuário está vinculado a uma consulta (`appointmentId` único — 1:1 com `Appointment`) e a um paciente.
+
+### Modelo `MedicalRecord`
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| id | String (UUID) | sim | Gerado automaticamente |
+| appointmentId | String (UUID FK) | sim | Referência única à consulta |
+| patientId | String (UUID FK) | sim | Referência ao paciente |
+| diagnosis | String? | não | Diagnóstico |
+| prescription | String? | não | Prescrição |
+| notes | String? | não | Observações livres |
+| createdAt | DateTime | auto | Timestamp de criação |
+| updatedAt | DateTime | auto | Timestamp de atualização |
+
+### Rotas de Prontuários (requerem `Authorization: Bearer <token>`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/medical-records` | Criar prontuário |
+| GET | `/medical-records` | Listar prontuários |
+| GET | `/medical-records/:id` | Buscar prontuário por ID |
+| PUT | `/medical-records/:id` | Atualizar prontuário |
+| DELETE | `/medical-records/:id` | Deletar prontuário |
+
+---
+
+## Server-Sent Events (SSE)
+
+`src/infrastructure/sse/SSEManager.ts` — gerencia conexões SSE para envio de notificações em tempo real ao frontend (ex.: atualização de agenda, status de consulta).
+
+- Singleton que mantém mapa de clientes conectados por `userId`
+- Frontend conecta em `GET /sse` (ou rota equivalente) com header `Accept: text/event-stream`
+- Usado pelos controllers para emitir eventos após operações críticas
 
 ---
 

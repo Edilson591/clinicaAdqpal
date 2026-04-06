@@ -41,3 +41,10 @@ export class ValidationError extends DomainError {
     this.name = "ValidationError";
   }
 }
+
+export class ForbiddenError extends DomainError {
+  constructor(message = "Acesso negado.") {
+    super(message, 403);
+    this.name = "ForbiddenError";
+  }
+}

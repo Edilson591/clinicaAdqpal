@@ -13,12 +13,12 @@ import { Header } from "../../components/Dashboard/Header";
 export default function GestaoFinanceiraPage() {
   return (
     <main className="flex-1 bg-[#F8FAFC] dark:bg-[#0F172A] overflow-y-auto transition-colors duration-200">
-      <div className="p-8 flex flex-col gap-6 h-full">
+      <div className="p-4 sm:p-8 flex flex-col gap-6 h-full">
         <Header isSearchAvaliable={false} />
         <FinanceiroHeader />
 
         {/* KPI Cards */}
-        <div className="flex gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard
             title="Receita Total"
             value="R$ 24.850"
@@ -58,7 +58,7 @@ export default function GestaoFinanceiraPage() {
         </div>
 
         {/* Bottom Row: Chart + Transactions */}
-        <div className="flex gap-4 flex-1 min-h-0">
+        <div className="flex flex-col lg:flex-row gap-4">
           <ReceitaDespesasChart />
           <TransacoesRecentes />
         </div>

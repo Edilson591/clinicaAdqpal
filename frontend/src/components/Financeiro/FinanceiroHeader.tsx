@@ -5,7 +5,7 @@ export function FinanceiroHeader() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-col gap-1">
         <h1 className="text-[22px] font-bold text-[#1E293B] dark:text-[#F1F5F9]">
           Gestão Financeira

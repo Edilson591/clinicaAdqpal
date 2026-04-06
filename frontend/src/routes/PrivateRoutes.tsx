@@ -5,6 +5,7 @@ import DashboardPage from "../pages/dashboard/DashboardPage";
 import PatientsPage from "../pages/patients/PatientsPage";
 import NewPacientPage from "../pages/patients/NewPacientPage";
 import EditPacientePage from "../pages/patients/EditPacientePage";
+import HistoricoPacientePage from "../pages/patients/HistoricoPacientePage";
 import AgendaPage from "../pages/agenda/AgendaPage";
 import NovaConsultaPage from "../pages/agenda/NovaConsultaPage";
 import ProntuariosPage from "../pages/prontuarios/ProntuariosPage";
@@ -21,6 +22,7 @@ export const privateRoutes = (
       <Route path="/pacientes" element={<PatientsPage />} />
       <Route path="/pacientes/novo" element={<NewPacientPage />} />
       <Route path="/pacientes/:id/editar" element={<EditPacientePage />} />
+      <Route path="/pacientes/:id/historico" element={<HistoricoPacientePage />} />
       <Route path="/agenda" element={<AgendaPage />} />
       <Route path="/agenda/nova" element={<NovaConsultaPage />} />
       <Route path="/prontuarios" element={<ProntuariosPage />} />

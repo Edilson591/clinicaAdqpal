@@ -36,7 +36,8 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  appointments Appointment[]
+  appointments    Appointment[]
+  patientHistories PatientHistory[] @relation("DoctorHistories")
 
   @@map("users")
 }
@@ -61,8 +62,9 @@ model Patient {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  appointments   Appointment[]
-  medicalRecords MedicalRecord[]
+  appointments     Appointment[]
+  medicalRecords   MedicalRecord[]
+  patientHistories PatientHistory[]
 
   @@map("patients")
 }
@@ -88,7 +90,8 @@ model Appointment {
   createdAt   DateTime          @default(now()) @map("created_at")
   updatedAt   DateTime          @updatedAt @map("updated_at")
 
-  medicalRecord MedicalRecord?
+  medicalRecord    MedicalRecord?
+  patientHistories PatientHistory[]
 
   @@map("appointments")
 }
@@ -108,4 +111,34 @@ model MedicalRecord {
   updatedAt     DateTime    @updatedAt @map("updated_at")
 
   @@map("medical_records")
+}
+
+// ─── PatientHistory ───────────────────────────────────────────────────────────
+
+enum PatientHistoryType {
+  CONSULTA
+  EXAME
+  PRESCRICAO
+  OBSERVACAO
+  SOLICITACAO
+}
+
+model PatientHistory {
+  id            String             @id @default(uuid())
+  patientId     String             @map("patient_id")
+  doctorId      String             @map("doctor_id")
+  appointmentId String?            @map("appointment_id")
+  type          PatientHistoryType
+  title         String
+  description   String
+  attachments   String[]           @default([])
+  deletedAt     DateTime?          @map("deleted_at")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  patient     Patient      @relation(fields: [patientId], references: [id])
+  doctor      User         @relation("DoctorHistories", fields: [doctorId], references: [id])
+  appointment Appointment? @relation(fields: [appointmentId], references: [id])
+
+  @@map("patient_history")
 }
