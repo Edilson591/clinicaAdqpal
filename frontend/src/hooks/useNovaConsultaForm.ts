@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { isAxiosError } from "axios";
 import { useZodForm } from "./useZodForm";
 import {
-  // useAppointmentsByPatient,
+  useAppointmentsByDateAndTime,
   useCreateAppointment,
 } from "./useAppointments";
 import {
@@ -28,16 +28,26 @@ export function useNovaConsultaForm() {
     },
   });
 
-  // const pacienteId = form.watch("patientId");
-  // const { data: appointments = [] } = useAppointmentsByPatient(pacienteId);
+  const dataObj = form.watch("data");
+  const horaObj = form.watch("hora");
+
+  const date = dataObj.toLocaleDateString("sv-SE"); // formato YYYY-MM-DD
+  const hora = horaObj.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const { data: appointments = [] } = useAppointmentsByDateAndTime(date, hora);
 
   const { mutate: createAppointment, isPending: isLoading } =
     useCreateAppointment();
 
-  // const isValidateAppointments = appointments.some((app) => {
-  //   const date = new Date(app.scheduledAt);
+  console.log(appointments)
 
-  // })
+  const isValidateAppointments = appointments.some((app) => {
+    const date = new Date(app.scheduledAt);
+
+  })
 
   const onSubmit = form.handleSubmit((data: NovaConsultaInput) => {
     setGeneralError(null);

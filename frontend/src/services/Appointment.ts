@@ -35,4 +35,9 @@ export const appointmentService = {
   delete: async (id: string): Promise<void> => {
     await api.delete(`/appointments/${id}`);
   },
+
+  getByDateAndTime:async (date: string, timeStart: string): Promise<AppointmentResponse[]>=> {
+    const res = await api.get<ApiResponse<AppointmentResponse[]>>(`/appointments?date=${date}&timeStart=${timeStart}`);
+    return res.data.data!;
+  }
 };

@@ -1,11 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { appointmentService } from "../services/Appointment";
-import type { CreateAppointmentInput, UpdateAppointmentInput } from "../types/api";
+import type {
+  CreateAppointmentInput,
+  UpdateAppointmentInput,
+} from "../types/api";
 
 export const APPOINTMENT_KEYS = {
   all: ["appointments"] as const,
   detail: (id: string) => ["appointments", id] as const,
-  byPatient: (patientId: string) => ["appointments", "patient", patientId] as const,
+  byPatient: (patientId: string) =>
+    ["appointments", "patient", patientId] as const,
+  byDateAndTime: (date: string, timeStart: string) =>
+    ["appointments", "date-time", date, timeStart] as const,
 };
 
 export function useAppointments() {
@@ -40,10 +46,13 @@ export function useAppointmentsByPatient(patientId: string) {
 export function useCreateAppointment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateAppointmentInput) => appointmentService.create(data),
+    mutationFn: (data: CreateAppointmentInput) =>
+      appointmentService.create(data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: APPOINTMENT_KEYS.all });
-      queryClient.invalidateQueries({ queryKey: APPOINTMENT_KEYS.byPatient(data.patientId) });
+      queryClient.invalidateQueries({
+        queryKey: APPOINTMENT_KEYS.byPatient(data.patientId),
+      });
     },
   });
 }
@@ -56,7 +65,9 @@ export function useUpdateAppointment() {
     onSuccess: (updated, { id }) => {
       queryClient.invalidateQueries({ queryKey: APPOINTMENT_KEYS.all });
       queryClient.invalidateQueries({ queryKey: APPOINTMENT_KEYS.detail(id) });
-      queryClient.invalidateQueries({ queryKey: APPOINTMENT_KEYS.byPatient(updated.patientId) });
+      queryClient.invalidateQueries({
+        queryKey: APPOINTMENT_KEYS.byPatient(updated.patientId),
+      });
     },
   });
 }
@@ -68,5 +79,13 @@ export function useDeleteAppointment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: APPOINTMENT_KEYS.all });
     },
+  });
+}
+
+export function useAppointmentsByDateAndTime(date?: string, timeStart?: string) {
+  return useQuery({
+    queryKey: APPOINTMENT_KEYS.byDateAndTime(date ?? "", timeStart ?? ""),
+    queryFn: () => appointmentService.getByDateAndTime(date!, timeStart!),
+    enabled: !!date && !!timeStart,
   });
 }
