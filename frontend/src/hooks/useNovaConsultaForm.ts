@@ -37,17 +37,17 @@ export function useNovaConsultaForm() {
     minute: "2-digit",
   });
 
-  const { data: appointments = [] } = useAppointmentsByDateAndTime(date, hora);
+  const { data: appointments = [] } = useAppointmentsByDateAndTime(date, hora, hora);
 
   const { mutate: createAppointment, isPending: isLoading } =
     useCreateAppointment();
 
   console.log(appointments)
 
-  const isValidateAppointments = appointments.some((app) => {
-    const date = new Date(app.scheduledAt);
+  // const isValidateAppointments = appointments.some((app) => {
+  //   const date = new Date(app.scheduledAt);
 
-  })
+  // })
 
   const onSubmit = form.handleSubmit((data: NovaConsultaInput) => {
     setGeneralError(null);
@@ -64,6 +64,9 @@ export function useNovaConsultaForm() {
       horaDate.getHours(),
       horaDate.getMinutes(),
     ).toISOString();
+
+
+    console.log(scheduledAt)
 
     createAppointment(
       {

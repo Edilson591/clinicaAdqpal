@@ -40,36 +40,70 @@ function toDomain(row: {
 // =============================================================================
 
 /** Parseia "HH:MM" e aplica ao Date base em UTC — retorna novo Date */
-function applyTime(base: Date, hhmm: string, endOfMinute = false): Date {
+function applyTime(base: Date, hhmm: string, endOfMinute = false): string {
   const [h, m] = hhmm.split(":").map(Number);
-  return new Date(Date.UTC(
-    base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate(),
-    h, m, endOfMinute ? 59 : 0, endOfMinute ? 999 : 0,
-  ));
+
+  console.log(base);
+  const date = new Date(
+    base.getUTCFullYear(),
+    base.getUTCMonth(),
+    base.getUTCDate(),
+    h,
+    m,
+  );
+
+  return date.toISOString();
 }
 
 /** Condição impossível — garante que nenhum registro seja retornado */
-const MATCH_NOTHING = { scheduledAt: { gte: new Date("9999-12-31T23:59:59Z"), lte: new Date(0) } };
+const MATCH_NOTHING = {
+  scheduledAt: { gte: new Date("9999-12-31T23:59:59Z"), lte: new Date(0) },
+};
 
 /** Filtros comuns a todos os métodos (status + intervalo de datas) */
-function buildBaseWhere(filters?: Pick<AppointmentFilters, "status" | "date" | "timeStart" | "timeEnd" | "dateStart" | "dateEnd">) {
+function buildBaseWhere(
+  filters?: Pick<
+    AppointmentFilters,
+    "status" | "date" | "timeStart" | "timeEnd" | "dateStart" | "dateEnd"
+  >,
+) {
   // timeStart/timeEnd sem date → não faz sentido, retorna nada
   if ((filters?.timeStart || filters?.timeEnd) && !filters?.date) {
     return MATCH_NOTHING;
   }
 
-  let gte: Date | undefined = filters?.dateStart;
-  let lte: Date | undefined = filters?.dateEnd;
+  let gte: Date | undefined | string = filters?.dateStart;
+  let lte: Date | undefined | string = filters?.dateEnd;
 
   if (filters?.date) {
     const d = new Date(filters.date);
-    // Usa UTC para evitar bugs de timezone ao parsear "YYYY-MM-DD"
+
     gte = filters.timeStart
       ? applyTime(d, filters.timeStart)
-      : new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0));
+      : new Date(
+          Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
+            0,
+            0,
+            0,
+            0,
+          ),
+        );
     lte = filters.timeEnd
       ? applyTime(d, filters.timeEnd, true)
-      : new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
+      : new Date(
+          Date.UTC(
+            d.getUTCFullYear(),
+            d.getUTCMonth(),
+            d.getUTCDate(),
+            23,
+            59,
+            59,
+            999,
+          ),
+        );
   }
 
   return {
@@ -89,8 +123,20 @@ function buildFindAllWhere(filters?: AppointmentFilters) {
     ...(filters?.search
       ? {
           OR: [
-            { patient: { name: { contains: filters.search, mode: "insensitive" as const } } },
-            { medico:   { contains: filters.search, mode: "insensitive" as const } },
+            {
+              patient: {
+                name: {
+                  contains: filters.search,
+                  mode: "insensitive" as const,
+                },
+              },
+            },
+            {
+              medico: {
+                contains: filters.search,
+                mode: "insensitive" as const,
+              },
+            },
           ],
         }
       : {}),
@@ -173,7 +219,10 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     }
   }
 
-  async findAll(filters?: AppointmentFilters, pagination?: PaginationQuery): Promise<Appointment[]> {
+  async findAll(
+    filters?: AppointmentFilters,
+    pagination?: PaginationQuery,
+  ): Promise<Appointment[]> {
     try {
       const rows = await this.prisma.appointment.findMany({
         where: buildFindAllWhere(filters),
@@ -191,7 +240,9 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
 
   async count(filters?: AppointmentFilters): Promise<number> {
     try {
-      return await this.prisma.appointment.count({ where: buildFindAllWhere(filters) });
+      return await this.prisma.appointment.count({
+        where: buildFindAllWhere(filters),
+      });
     } catch (err) {
       throw new DomainError(`Erro ao contar consultas: ${String(err)}`, 500);
     }

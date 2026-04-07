@@ -18,7 +18,7 @@ import { FormContent } from "../../components/Form/FormContent";
 import { FormHeader } from "../../components/Form/FormHeader";
 import { FormCard } from "../../components/Form/FormCard";
 import { FormSection } from "../../components/Form/FormSection";
-import { useEffect } from "react";
+
 
 // ── Page content ──────────────────────────────────────────────────────────────
 
@@ -43,9 +43,7 @@ function NovaConsultaContent() {
     users?.map((u) => ({ value: u.id, label: u.username })) ?? [];
 
 
-    useEffect(() => {
-      console.log(errors)
-    },[errors])
+
   return (
     <FormContent>
       <Header isSearchAvaliable={false} />

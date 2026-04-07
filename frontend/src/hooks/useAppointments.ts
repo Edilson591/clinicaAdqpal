@@ -10,8 +10,8 @@ export const APPOINTMENT_KEYS = {
   detail: (id: string) => ["appointments", id] as const,
   byPatient: (patientId: string) =>
     ["appointments", "patient", patientId] as const,
-  byDateAndTime: (date: string, timeStart: string) =>
-    ["appointments", "date-time", date, timeStart] as const,
+  byDateAndTime: (date: string, timeStart: string, endTime: string) =>
+    ["appointments", "date-time", date, timeStart, endTime] as const,
 };
 
 export function useAppointments() {
@@ -82,10 +82,10 @@ export function useDeleteAppointment() {
   });
 }
 
-export function useAppointmentsByDateAndTime(date?: string, timeStart?: string) {
+export function useAppointmentsByDateAndTime(date?: string, timeStart?: string, endTime: string = "23:59") {
   return useQuery({
-    queryKey: APPOINTMENT_KEYS.byDateAndTime(date ?? "", timeStart ?? ""),
-    queryFn: () => appointmentService.getByDateAndTime(date!, timeStart!),
-    enabled: !!date && !!timeStart,
+    queryKey: APPOINTMENT_KEYS.byDateAndTime(date ?? "", timeStart ?? "", endTime ?? ""),
+    queryFn: () => appointmentService.getByDateAndTime(date!, timeStart!, endTime),
+    enabled: !!date && !!timeStart && !!endTime,
   });
 }
