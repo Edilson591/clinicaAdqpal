@@ -1,12 +1,15 @@
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from "react-hook-form";
 import { Activity } from "lucide-react";
 import { InputGroup } from "../ui/Input";
 import type { NovoProntuarioInput } from "../../validate/novoProntuario.schema";
 import { FormSection } from "../Form/FormSection";
+import { VoiceTextarea } from "../ui/VoiceTextarea";
 
 interface Props {
   register: UseFormRegister<NovoProntuarioInput>;
   errors: FieldErrors<NovoProntuarioInput>;
+  watch: UseFormWatch<NovoProntuarioInput>;
+  setValue: UseFormSetValue<NovoProntuarioInput>;
 }
 
 const VITAIS = [
@@ -18,7 +21,7 @@ const VITAIS = [
   { name: "altura", label: "Altura (cm)", placeholder: "170" },
 ] as const;
 
-export function ExameFisicoSection({ register, errors }: Props) {
+export function ExameFisicoSection({ register, errors, watch, setValue }: Props) {
   return (
     <FormSection icon={Activity} title="Exame Físico">
       {/* Vitais — pen: oxD1L · 6 colunas */}
@@ -38,14 +41,13 @@ export function ExameFisicoSection({ register, errors }: Props) {
         ))}
       </div>
 
-      <InputGroup
+      <VoiceTextarea
         label="Descrição do exame físico geral"
-        textarea
-        textareaProps={{
-          placeholder: "Paciente em bom estado geral, consciente, orientado...",
-          className: "min-h-[72px] bg-[#F8FAFC]",
-          ...register("exameFisicoGeral"),
-        }}
+        placeholder="Paciente em bom estado geral, consciente, orientado..."
+        className="min-h-[72px] bg-[#F8FAFC]"
+        currentValue={watch("exameFisicoGeral") ?? ""}
+        onTranscriptAppend={(val) => setValue("exameFisicoGeral", val)}
+        {...register("exameFisicoGeral")}
       />
     </FormSection>
   );

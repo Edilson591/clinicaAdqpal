@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "../../components/Dashboard/Header";
 import { Button } from "../../components/ui/Button";
 import { InputGroup } from "../../components/ui/Input";
+import { VoiceTextarea } from "../../components/ui/VoiceTextarea";
 import { SelectGroup } from "../../components/ui/Select";
 import ErrorAlert from "../../components/ui/ErrorAlert";
 import DividerForm from "../../components/ui/DividerForms";
@@ -179,14 +180,13 @@ function NovaTransacaoContent() {
               </div>
             </div>
 
-            <InputGroup
+            <VoiceTextarea
               label="Observações"
-              textarea
-              textareaProps={{
-                placeholder: "Informações adicionais sobre a transação...",
-                className: "min-h-[80px]",
-                ...register("observacoes"),
-              }}
+              placeholder="Informações adicionais sobre a transação..."
+              className="min-h-[80px]"
+              currentValue={watch("observacoes") ?? ""}
+              onTranscriptAppend={(val) => setValue("observacoes", val)}
+              {...register("observacoes")}
             />
           </FormSection>
 

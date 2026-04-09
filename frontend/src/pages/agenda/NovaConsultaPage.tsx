@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { CalendarPlus, Save, FileText } from "lucide-react";
+import { CalendarPlus, Save, FileText, Settings2 } from "lucide-react";
 import { Header } from "../../components/Dashboard/Header";
 import { Button } from "../../components/ui/Button";
 import ErrorAlert from "../../components/ui/ErrorAlert";
@@ -12,8 +13,10 @@ import {
 } from "../../components/ui/DatePickerInput";
 import DividerForm from "../../components/ui/DividerForms";
 import { useNovaConsultaForm } from "../../hooks/useNovaConsultaForm";
-import { usePatients } from "../../hooks/usePatients";
+import { usePatient } from "../../hooks/usePatients";
+import { usePatientSearch } from "../../hooks/usePatientSearch";
 import { useDoctors } from "../../hooks/useUsers";
+import { useSpecialtiesByDoctor } from "../../hooks/useSpecialties";
 import { FormContent } from "../../components/Form/FormContent";
 import { FormHeader } from "../../components/Form/FormHeader";
 import { FormCard } from "../../components/Form/FormCard";
@@ -22,27 +25,51 @@ import { FormSection } from "../../components/Form/FormSection";
 
 // ── Page content ──────────────────────────────────────────────────────────────
 
+const APPOINTMENT_TYPE_OPTIONS = [
+  { value: "IN_PERSON", label: "Presencial" },
+  { value: "ONLINE", label: "Online" },
+  { value: "HOME_CARE", label: "Domiciliar" },
+];
+
 function NovaConsultaContent() {
   const navigate = useNavigate();
 
   const {
     control,
+    watch,
+    register,
+    setValue,
     formState: { errors },
     onSubmit,
     isLoading,
     generalError,
   } = useNovaConsultaForm();
 
-  const { data: patients } = usePatients();
-  const { data: users } = useDoctors();
+  const selectedDoctorId = watch("doctorId");
+  const selectedType = watch("type");
+  const selectedPacient = watch("patientId");
 
-  const patientOptions =
-    patients?.map((p) => ({ value: p.id, label: p.name })) ?? [];
+  const { options: patientOptions, setQuery: setPatientQuery } = usePatientSearch();
+  const { data: patient } = usePatient(selectedPacient);
+  const { data: users } = useDoctors();
+  const { data: specialties } = useSpecialtiesByDoctor(selectedDoctorId);
 
   const doctorOptions =
     users?.map((u) => ({ value: u.id, label: u.username })) ?? [];
 
+  const specialtyOptions =
+    specialties?.map((s) => ({ value: s.id, label: s.name })) ?? [];
 
+  // Preenche o endereço automaticamente quando o paciente é selecionado
+  useEffect(() => {
+    if (!patient) return;
+    const parts = [
+      [patient.street, patient.streetNumber].filter(Boolean).join(", "),
+      [patient.city, patient.state].filter(Boolean).join(", "),
+    ].filter(Boolean);
+    const builtAddress = parts.join(" — ");
+    if (builtAddress) setValue("address", builtAddress);
+  }, [patient, setValue]);
 
   return (
     <FormContent>
@@ -98,6 +125,24 @@ function NovaConsultaContent() {
                   options={patientOptions}
                   value={field.value}
                   onChange={field.onChange}
+                  onSearchChange={setPatientQuery}
+                />
+              )}
+            />
+
+            {/* Especialidade */}
+            <Controller
+              name="specialtyId"
+              control={control}
+              render={({ field }) => (
+                <SearchableSelectGroup
+                  label="Especialidade"
+                  required
+                  error={errors.specialtyId?.message}
+                  placeholder={selectedDoctorId ? "Buscar especialidade..." : "Selecione um médico primeiro"}
+                  options={specialtyOptions}
+                  value={field.value}
+                  onChange={field.onChange}
                 />
               )}
             />
@@ -140,6 +185,84 @@ function NovaConsultaContent() {
                 />
               </div>
             </div>
+          </FormSection>
+
+          <DividerForm />
+
+          {/* ── Tipo e Local ── */}
+          <FormSection icon={Settings2} title="Tipo e Local da Consulta">
+            {/* Tipo */}
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <SearchableSelectGroup
+                  label="Tipo de Consulta"
+                  required
+                  error={errors.type?.message}
+                  placeholder="Selecione o tipo..."
+                  options={APPOINTMENT_TYPE_OPTIONS}
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+
+            {/* Sala — IN_PERSON */}
+            {selectedType === "IN_PERSON" && (
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-[#2D3748] dark:text-[#F1F5F9]">
+                  Sala / Consultório <span className="text-red-500">*</span>
+                </label>
+                <input
+                  {...register("roomId")}
+                  placeholder="Ex: Consultório 01"
+                  className="h-14 w-full rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-4 text-sm text-[#2D3748] dark:text-[#F1F5F9] placeholder:text-[#A0AEC0] dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#38A169]"
+                />
+                {errors.roomId && (
+                  <p className="text-xs text-red-500">{errors.roomId.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* Link — ONLINE */}
+            {selectedType === "ONLINE" && (
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-[#2D3748] dark:text-[#F1F5F9]">
+                  Link da Reunião <span className="text-red-500">*</span>
+                </label>
+                <input
+                  {...register("meetingLink")}
+                  placeholder="Ex: https://meet.google.com/abc-def"
+                  className="h-14 w-full rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-4 text-sm text-[#2D3748] dark:text-[#F1F5F9] placeholder:text-[#A0AEC0] dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#38A169]"
+                />
+                {errors.meetingLink && (
+                  <p className="text-xs text-red-500">{errors.meetingLink.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* Endereço — HOME_CARE */}
+            {selectedType === "HOME_CARE" && (
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-[#2D3748] dark:text-[#F1F5F9]">
+                  Endereço do Atendimento <span className="text-red-500">*</span>
+                </label>
+                <input
+                  {...register("address")}
+                  placeholder="Ex: Rua das Flores, 123 — São Paulo, SP"
+                  className="h-14 w-full rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-4 text-sm text-[#2D3748] dark:text-[#F1F5F9] placeholder:text-[#A0AEC0] dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#38A169]"
+                />
+                {patient?.street && (
+                  <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
+                    Endereço preenchido automaticamente do cadastro do paciente. Você pode editar.
+                  </p>
+                )}
+                {errors.address && (
+                  <p className="text-xs text-red-500">{errors.address.message}</p>
+                )}
+              </div>
+            )}
           </FormSection>
 
           <DividerForm />

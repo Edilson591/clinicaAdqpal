@@ -1,15 +1,18 @@
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
+import type { UseFormRegister, FieldErrors, UseFormWatch, UseFormSetValue } from "react-hook-form";
 import { Microscope } from "lucide-react";
 import { InputGroup } from "../ui/Input";
 import type { NovoProntuarioInput } from "../../validate/novoProntuario.schema";
 import { FormSection } from "../Form/FormSection";
+import { VoiceTextarea } from "../ui/VoiceTextarea";
 
 interface Props {
   register: UseFormRegister<NovoProntuarioInput>;
   errors: FieldErrors<NovoProntuarioInput>;
+  watch: UseFormWatch<NovoProntuarioInput>;
+  setValue: UseFormSetValue<NovoProntuarioInput>;
 }
 
-export function DiagnosticoSection({ register, errors }: Props) {
+export function DiagnosticoSection({ register, errors, watch, setValue }: Props) {
   return (
     <FormSection icon={Microscope} title="Diagnóstico e Conduta">
       {/* Row: CID-10 (w:160) + Hipótese (fill) — pen: z8QZa */}
@@ -39,17 +42,15 @@ export function DiagnosticoSection({ register, errors }: Props) {
         </div>
       </div>
 
-      <InputGroup
+      <VoiceTextarea
         label="Conduta / Prescrição"
         required
         error={errors.conduta?.message}
-        textarea
-        textareaProps={{
-          placeholder:
-            "Medicamentos prescritos, dosagem, orientações ao paciente, retorno em...",
-          className: "min-h-[88px] bg-[#F8FAFC]",
-          ...register("conduta"),
-        }}
+        placeholder="Medicamentos prescritos, dosagem, orientações ao paciente, retorno em..."
+        className="min-h-[88px] bg-[#F8FAFC]"
+        currentValue={watch("conduta") ?? ""}
+        onTranscriptAppend={(val) => setValue("conduta", val)}
+        {...register("conduta")}
       />
     </FormSection>
   );

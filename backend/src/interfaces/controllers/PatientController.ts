@@ -24,7 +24,11 @@ export class PatientController {
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const pagination = parsePagination(req.query);
-      const result = await new ListPatients(patientRepository).execute(pagination);
+      const filters = {
+        ...(req.query.search ? { search: String(req.query.search) } : {}),
+        ...(req.query.createdToday === "true" ? { createdToday: true } : {}),
+      };
+      const result = await new ListPatients(patientRepository).execute(pagination, Object.keys(filters).length ? filters : undefined);
       res.status(200).json({ success: true, ...result });
     } catch (err) {
       next(err);

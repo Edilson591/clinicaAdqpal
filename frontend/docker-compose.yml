@@ -1,0 +1,14 @@
+services:
+  frontend:
+    image: node:22
+    container_name: clinica_frontend
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host"
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_APP_URL=http://localhost:5173
+      - CHOKIDAR_USEPOLLING=true

@@ -10,6 +10,12 @@ export class CreateAppointment {
       userId: dto.userId,
       patientId: dto.patientId,
       scheduledAt: dto.scheduledAt,
+      medico: dto.medico ?? null,
+      type: dto.type ?? "IN_PERSON",
+      specialtyId: dto.specialtyId ?? null,
+      roomId: dto.roomId ?? null,
+      meetingLink: dto.meetingLink ?? null,
+      address: dto.address ?? null,
       notes: dto.notes ?? null,
     });
     return toAppointmentResponseDTO(appointment);

@@ -4,13 +4,48 @@ import type { CreatePatientInput, UpdatePatientInput } from "../types/api";
 
 export const PATIENT_KEYS = {
   all: ["patients"] as const,
+  paginated: (page: number, limit: number, search?: string) =>
+    ["patients", "page", page, limit, search] as const,
   detail: (id: string) => ["patients", id] as const,
+  allByUserToday: (userId: string) => ["patients", "user", userId] as const,
+  countToday: ["patients", "count-today"] as const,
 };
 
 export function usePatients() {
   return useQuery({
     queryKey: PATIENT_KEYS.all,
     queryFn: patientService.getAll,
+  });
+}
+
+export function usePatientsCountToday() {
+  return useQuery({
+    queryKey: PATIENT_KEYS.countToday,
+    queryFn: patientService.countToday,
+  });
+}
+export function usePatientSearch() {
+  return useQuery({
+    queryKey: PATIENT_KEYS.all,
+    queryFn: patientService.getAll,
+  });
+}
+export function usePatientsTodayByUser(userId: string) {
+  return useQuery({
+    queryKey: PATIENT_KEYS.allByUserToday(userId),
+    queryFn: () => patientService.getAllByUser(userId),
+    enabled: !!userId,
+  });
+}
+
+export function usePatientsPaginated(
+  page: number,
+  limit: number,
+  search?: string,
+) {
+  return useQuery({
+    queryKey: PATIENT_KEYS.paginated(page, limit, search),
+    queryFn: () => patientService.getAllPaginated(page, limit, search ?? ""),
   });
 }
 

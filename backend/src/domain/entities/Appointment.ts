@@ -2,7 +2,18 @@
 // DOMAIN ENTITY: Appointment
 // =============================================================================
 
-export type AppointmentStatus = "SCHEDULED" | "COMPLETED" | "CANCELLED";
+import { Patient } from "@prisma/client";
+
+export type AppointmentStatus =
+  | "SCHEDULED"
+  | "CONFIRMED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELED"
+  | "NO_SHOW"
+  | "CANCELLED";
+
+export type AppointmentType = "IN_PERSON" | "ONLINE" | "HOME_CARE";
 
 export interface Appointment {
   id: string;
@@ -11,6 +22,12 @@ export interface Appointment {
   scheduledAt: Date;
   medico: string | null;
   status: AppointmentStatus;
+  type: AppointmentType;
+  pacient: Patient | null;
+  specialtyId: string | null;
+  roomId: string | null;
+  meetingLink: string | null;
+  address: string | null;
   notes: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +52,11 @@ export interface CreateAppointmentData {
   patientId: string;
   scheduledAt: Date;
   medico?: string | null;
+  type?: AppointmentType;
+  specialtyId?: string | null;
+  roomId?: string | null;
+  meetingLink?: string | null;
+  address?: string | null;
   notes?: string | null;
 }
 
@@ -44,6 +66,11 @@ export interface UpdateAppointmentData {
   scheduledAt?: Date;
   medico?: string | null;
   status?: AppointmentStatus;
+  type?: AppointmentType;
+  specialtyId?: string | null;
+  roomId?: string | null;
+  meetingLink?: string | null;
+  address?: string | null;
   notes?: string | null;
 }
 
@@ -62,4 +89,6 @@ export interface AppointmentFilters {
   dateEnd?: Date;
   /** Busca por nome do paciente ou campo medico (case-insensitive) */
   search?: string;
+  /** Ordenação por scheduledAt — padrão "asc" */
+  order?: "asc" | "desc";
 }

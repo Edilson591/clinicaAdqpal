@@ -71,7 +71,6 @@ export function AppointmentDetailModal({
   )!;
 
   const handleSave = () => {
-    console.log(selectedStatus)
     if (selectedStatus === appointment.status) {
       onClose();
       return;

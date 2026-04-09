@@ -1,10 +1,21 @@
+import { useState } from "react";
 import { PatientsPageHeader } from "../../components/Patients/PatientsPageHeader";
 import { PatientList } from "../../components/Patients/PatientList";
+import { Pagination } from "../../components/ui/Pagination";
 import { usePatientsPage } from "../../hooks/usePatientsPage";
 
 function PatientsContent() {
-  const { patients, total, isLoading, search, setSearch, filter, setFilter } =
-    usePatientsPage();
+  const [page, setPage] = useState(1);
+  const {
+    patients,
+    total,
+    totalPages,
+    isLoading,
+    search,
+    setSearch,
+    filter,
+    setFilter,
+  } = usePatientsPage(page, setPage);
 
   return (
     // pen: Km2zu · bg #F8FAFC light · #0F172A dark · padding 32 · gap 24
@@ -29,6 +40,13 @@ function PatientsContent() {
 
         {/* Lista — pen: jBwnl */}
         <PatientList patients={patients} isLoading={isLoading} />
+
+        {/* Paginação */}
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
     </main>
   );

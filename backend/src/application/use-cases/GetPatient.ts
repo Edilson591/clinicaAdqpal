@@ -4,6 +4,7 @@ import { NotFoundError } from "../../domain/errors/DomainError";
 import { toPatientResponseDTO } from "../mappers/patientMapper";
 import type { PaginationQuery, PaginatedResult } from "../../domain/shared/pagination";
 import { toPaginatedResult } from "../../domain/shared/pagination";
+import type { PacientFilters } from "../../domain/entities/Patient";
 
 export class GetPatient {
   constructor(private readonly patientRepository: IPatientRepository) {}
@@ -18,11 +19,11 @@ export class GetPatient {
 export class ListPatients {
   constructor(private readonly patientRepository: IPatientRepository) {}
 
-  async execute(pagination?: PaginationQuery): Promise<PaginatedResult<PatientResponseDTO>> {
+  async execute(pagination?: PaginationQuery, filters?: PacientFilters): Promise<PaginatedResult<PatientResponseDTO>> {
     const pg: PaginationQuery = pagination ?? { page: 1, limit: 20 };
     const [patients, total] = await Promise.all([
-      this.patientRepository.findAll(pg),
-      this.patientRepository.count(),
+      this.patientRepository.findAll(pg, filters),
+      this.patientRepository.count(filters),
     ]);
     return toPaginatedResult(patients.map(toPatientResponseDTO), total, pg);
   }

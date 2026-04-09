@@ -4,6 +4,7 @@ import { navItems } from "../Dashboard/Sidebar";
 import UserSection from "./UserSection";
 import { cn } from "../../lib/utils";
 import logo from "../../../public/logo-adqpal.png";
+import { ContentLogo } from "../ui/ContentLogo";
 
 interface SidebarContentProps {
   expanded: boolean;
@@ -18,12 +19,7 @@ function SidebarContent({ expanded, user, logout }: SidebarContentProps) {
       <div
         className={`flex items-center px-6 shrink-0 ${!expanded && "justify-center"}`}
       >
-        <div className="flex items-center justify-center  rounded-lg px-3 py-2 min-w-10 transition-all duration-300">
-          <span className="text-white font-bold text-sm tracking-wide whitespace-nowrap">
-            {/* {expanded ? "ADQPAL" : "A"} */}
-            <img src={logo} className="m-auto bg-white rounded-[7px] transition-all duration-300 hover:scale-105" alt="logo adqpal" />
-          </span>
-        </div>
+        <ContentLogo logo={logo} />
       </div>
 
       {/* Divider — pen: vMMpr · #E5E7EB light · #334155 dark */}

@@ -21,6 +21,8 @@ function EditPacienteContent() {
   const {
     register,
     control,
+    watch,
+    setValue,
     formState: { errors },
     onSubmit,
     getValues,
@@ -82,7 +84,7 @@ function EditPacienteContent() {
 
             <DividerForm />
 
-            <InformacoesAdicionais register={register} errors={errors} />
+            <InformacoesAdicionais register={register} errors={errors} watch={watch} setValue={setValue} />
 
             <div className="flex items-center gap-3 pt-2">
               <Button

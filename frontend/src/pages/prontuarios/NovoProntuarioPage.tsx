@@ -18,6 +18,8 @@ function NovoProntuarioContent() {
   const {
     register,
     control,
+    watch,
+    setValue,
     formState: { errors },
     onSubmit,
     isLoading,
@@ -74,15 +76,15 @@ function NovoProntuarioContent() {
 
           <DividerForm />
 
-          <AnamneseSection register={register} errors={errors} />
+          <AnamneseSection register={register} errors={errors} watch={watch} setValue={setValue} />
 
           <DividerForm />
 
-          <ExameFisicoSection register={register} errors={errors} />
+          <ExameFisicoSection register={register} errors={errors} watch={watch} setValue={setValue} />
 
           <DividerForm />
 
-          <DiagnosticoSection register={register} errors={errors} />
+          <DiagnosticoSection register={register} errors={errors} watch={watch} setValue={setValue} />
 
           {/* Actions — pen: DcwgB */}
           <div className="flex items-center gap-3 pt-2">

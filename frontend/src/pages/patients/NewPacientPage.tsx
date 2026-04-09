@@ -30,6 +30,8 @@ function NovoPacienteContent() {
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     formState: { errors },
   } = useZodForm(newPacientSchema, {
     defaultValues: {
@@ -117,7 +119,7 @@ function NovoPacienteContent() {
           <DividerForm />
 
           {/* ── Informações Adicionais ── */}
-          <InformacoesAdicionais register={register} errors={errors} />
+          <InformacoesAdicionais register={register} errors={errors} watch={watch} setValue={setValue} />
 
           {/* ── Actions ── */}
           <div className="flex items-center gap-3 pt-2">

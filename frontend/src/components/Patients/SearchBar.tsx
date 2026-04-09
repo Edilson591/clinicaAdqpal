@@ -13,7 +13,7 @@ export function SearchBar({
 }: SearchBarProps) {
   return (
     // pen: AqIc8 · h:44, bg #FFFFFF light · #1E293B dark · border #E2E8F0 / #334155
-    <div className="relative flex-1 min-w-0">
+    <div className="relative flex-1 max-w-sm">
       <Search
         size={15}
         className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#94A3B8] dark:text-[#64748B]"

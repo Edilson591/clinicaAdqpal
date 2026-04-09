@@ -6,6 +6,7 @@ import appointmentRoutes from "../routes/appointmentRoutes";
 import medicalRecordRoutes from "../routes/medicalRecordRoutes";
 import patientHistoryRoutes from "../routes/patientHistoryRoutes";
 import historyRoutes from "../routes/historyRoutes";
+import specialtyRoutes from "../routes/specialtyRoutes";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import cors from "cors";
 
@@ -13,7 +14,7 @@ const app = express();
 //setando o cors e o json
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",")
-  : ["http://localhost:5174"];
+  : ["http://localhost:5174","http://localhost:8080","http://localhost:3000","http://localhost"];
 
 app.use(
   cors({
@@ -45,6 +46,7 @@ app.use("/appointments", appointmentRoutes);
 app.use("/medical-records", medicalRecordRoutes);
 app.use("/patients/:patientId/history", patientHistoryRoutes);
 app.use("/history", historyRoutes);
+app.use("/specialties", specialtyRoutes);
 
 app.use(errorMiddleware);
 

@@ -1,14 +1,14 @@
-import { Loader2, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { MedicalRecordResponse } from "../../types/api";
+import { FieldSkeleton } from "../ui/FieldSkeleton";
 
 interface ProntuariosListProps {
   records: MedicalRecordResponse[];
-  patientMap: Map<string, string>;
   isLoading: boolean;
 }
 
-export function ProntuariosList({ records, patientMap, isLoading }: ProntuariosListProps) {
+export function ProntuariosList({ records, isLoading }: ProntuariosListProps) {
   return (
     // pen: uYC4k · bg #FFFFFF light · #1E293B dark · border #E2E8F0 / #334155 · cornerRadius 12
     <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] rounded-xl overflow-hidden transition-colors duration-200">
@@ -21,8 +21,10 @@ export function ProntuariosList({ records, patientMap, isLoading }: ProntuariosL
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={24} className="animate-spin text-[#38A169]" />
+        <div className="flex flex-col gap-4 p-6">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <FieldSkeleton key={i} />
+          ))}
         </div>
       )}
 
@@ -57,8 +59,10 @@ export function ProntuariosList({ records, patientMap, isLoading }: ProntuariosL
             </thead>
             <tbody>
               {records.map((r, idx) => {
-                const patientName = patientMap.get(r.patientId) ?? "—";
-                const updatedAt = new Date(r.updatedAt).toLocaleDateString("pt-BR");
+                const patientName = r.patient?.name ?? "Nome não encontrado";
+                const updatedAt = new Date(r.updatedAt).toLocaleDateString(
+                  "pt-BR",
+                );
 
                 return (
                   // Alternating rows — pen: cRhwy/6Tolh/8JiXo · h:56

@@ -3,10 +3,13 @@ import { type UseFormRegister, type FieldErrors } from "react-hook-form";
 import { Button } from "./Button";
 import { InputGroup } from "./Input";
 import { LogIn } from "lucide-react";
-import LogoContainer from "./LogoContainer";
+// import LogoContainer from "./LogoContainer";
 import ErrorAlert from "./ErrorAlert";
 import LoadingSpinner from "./Spinner";
 import type { LoginInput } from "../../validate/login.schema";
+import { ContentLogo } from "./ContentLogo";
+import { LgpdFooter } from "./LgpdFooter";
+import logo from "../../../public/logo-adqpal.png";
 
 // =============================================================================
 // TYPES
@@ -36,11 +39,12 @@ function LoginCard({
       }}
     >
       {/* Logo Container */}
-      <LogoContainer />
+      <ContentLogo logo={logo} />
+      {/* <LogoContainer /> */}
 
       {/* Título - ID: XPRor */}
       <h1
-        className="text-[28px] font-bold mt-8 text-center leading-tight"
+        className="text-[28px] font-bold mt-4 text-center leading-tight"
         style={{ color: "#1a365d" }}
       >
         Bem-vindo ao ADQPAL
@@ -125,13 +129,8 @@ function LoginCard({
         </Button>
       </form>
 
-      {/* Footer - ID: QTyPO */}
-      <p
-        className="text-sm font-normal text-center mt-8"
-        style={{ color: "#718096" }}
-      >
-        Instituto ADQPAL © 2026
-      </p>
+      {/* Footer LGPD - ID: QTyPO */}
+      <LgpdFooter />
     </div>
   );
 }

@@ -9,6 +9,7 @@ export function toMedicalRecordResponseDTO(record: MedicalRecord): MedicalRecord
     diagnosis: record.diagnosis,
     prescription: record.prescription,
     notes: record.notes,
+    patient: record.patient ?? null,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };

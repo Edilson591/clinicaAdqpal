@@ -10,20 +10,21 @@ import {
   novaConsultaSchema,
   type NovaConsultaInput,
 } from "../validate/novaConsulta.schema";
-// import { useWatch } from "react-hook-form";
-// import { useAuth } from "../context/AuthContext";
 
 export function useNovaConsultaForm() {
-  // const { user } = useAuth();
   const navigate = useNavigate();
   const [generalError, setGeneralError] = useState<string | null>(null);
-
   const form = useZodForm(novaConsultaSchema, {
     defaultValues: {
       doctorId: "",
       patientId: "",
       data: new Date(),
       hora: new Date("2026-03-30T08:00:00"),
+      type: "IN_PERSON" as const,
+      specialtyId: "",
+      roomId: "",
+      meetingLink: "",
+      address: "",
       notes: "",
     },
   });
@@ -37,42 +38,52 @@ export function useNovaConsultaForm() {
     minute: "2-digit",
   });
 
-  const { data: appointments = [] } = useAppointmentsByDateAndTime(date, hora, hora);
+  const { data: appointments = [] } = useAppointmentsByDateAndTime(
+    date,
+    hora,
+    hora,
+  );
 
   const { mutate: createAppointment, isPending: isLoading } =
     useCreateAppointment();
 
-  console.log(appointments)
-
-  // const isValidateAppointments = appointments.some((app) => {
-  //   const date = new Date(app.scheduledAt);
-
-  // })
-
   const onSubmit = form.handleSubmit((data: NovaConsultaInput) => {
     setGeneralError(null);
 
-    // Combina data + hora em ISO string
-    // hora é um Date retornado pelo InputPickerTime — extrai apenas h/m
+    const hasConflict = appointments.some(
+      (app) => app.userId === data.doctorId && app.status === "SCHEDULED",
+    );
+
+    if (hasConflict) {
+      form.setError("data", {
+        type: "manual",
+        message: "Médico já possui consulta agendada neste horário",
+      });
+      return;
+    }
+
     const horaDate = data.hora as Date;
 
-    console.log(horaDate);
     const scheduledAt = new Date(
-      data.data.getFullYear(),
-      data.data.getMonth(),
-      data.data.getDate(),
-      horaDate.getHours(),
-      horaDate.getMinutes(),
+      Date.UTC(
+        data.data.getFullYear(),
+        data.data.getMonth(),
+        data.data.getDate(),
+        horaDate.getHours(),
+        horaDate.getMinutes(),
+      ),
     ).toISOString();
-
-
-    console.log(scheduledAt)
 
     createAppointment(
       {
         userId: data.doctorId,
         patientId: data.patientId,
         scheduledAt,
+        type: data.type,
+        specialtyId: data.specialtyId || null,
+        roomId: data.roomId || null,
+        meetingLink: data.meetingLink || null,
+        address: data.address || null,
         notes: data.notes ?? null,
       },
       {

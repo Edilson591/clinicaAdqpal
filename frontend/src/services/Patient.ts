@@ -1,6 +1,7 @@
 import api from "./api";
 import type {
   ApiResponse,
+  PaginatedResponse,
   PatientResponse,
   CreatePatientInput,
   UpdatePatientInput,
@@ -25,6 +26,22 @@ export const patientService = {
     return res.data.data!;
   },
 
+  getAllByUser: async (userId: string): Promise<PatientResponse[]> => {
+    const res = await api.get<ApiResponse<PatientResponse[]>>(`/patients?userId=${userId}`);
+    return res.data.data!;
+  },
+
+  getAllPaginated: async (
+    page: number,
+    limit: number,
+    search: string,
+  ): Promise<PaginatedResponse<PatientResponse>> => {
+    const res = await api.get<PaginatedResponse<PatientResponse>>(
+      `/patients?page=${page}&limit=${limit}&search=${search}`,
+    );
+    return res.data;
+  },
+
   getById: async (id: string): Promise<PatientResponse> => {
     const res = await api.get<ApiResponse<PatientResponse>>(`/patients/${id}`);
     return res.data.data!;
@@ -43,5 +60,12 @@ export const patientService = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/patients/${id}`);
+  },
+
+  countToday: async (): Promise<number> => {
+    const res = await api.get<PaginatedResponse<unknown>>(
+      "/patients?page=1&limit=1&createdToday=true",
+    );
+    return res.data.pagination?.total ?? 0;
   },
 };

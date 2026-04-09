@@ -1,18 +1,17 @@
 import { useState } from "react";
 import { Eye } from "lucide-react";
-import { usePatients } from "../../hooks/usePatients";
 import { useUsers } from "../../hooks/useUsers";
 import { useAuth } from "../../context/AuthContext";
 import { USER_ROLES } from "../../types/roles";
 import type {
   AppointmentResponse,
   AppointmentStatus,
-  PatientResponse,
   UserResponse,
 } from "../../types/api";
 import { AppointmentDetailModal } from "./AppointmentDetailModal";
 import { useCalendar } from "../../hooks/useCalendar";
 import { FieldSkeleton } from "../ui/FieldSkeleton";
+import { formatTime } from "../../utils/formatTime";
 
 const STATUS_CONFIG: Record<
   AppointmentStatus,
@@ -31,6 +30,20 @@ const STATUS_CONFIG: Record<
     bgDark: "dark:bg-[#1E3A5F]",
     textDark: "dark:text-[#60A5FA]",
   },
+  CONFIRMED: {
+    label: "Confirmada",
+    bgLight: "bg-[#E0E7FF]",
+    textLight: "text-[#3730A3]",
+    bgDark: "dark:bg-[#1E1B4B]",
+    textDark: "dark:text-[#A5B4FC]",
+  },
+  IN_PROGRESS: {
+    label: "Em atendimento",
+    bgLight: "bg-[#FEF3C7]",
+    textLight: "text-[#92400E]",
+    bgDark: "dark:bg-[#3F2A1E]",
+    textDark: "dark:text-[#FCD34D]",
+  },
   COMPLETED: {
     label: "Concluída",
     bgLight: "bg-[#DCFCE7]",
@@ -39,6 +52,20 @@ const STATUS_CONFIG: Record<
     textDark: "dark:text-[#4ADE80]",
   },
   CANCELLED: {
+    label: "Cancelada",
+    bgLight: "bg-[#FEE2E2]",
+    textLight: "text-[#991B1B]",
+    bgDark: "dark:bg-[#3F1E1E]",
+    textDark: "dark:text-[#FCA5A5]",
+  },
+  NO_SHOW: {
+    label: "Não compareceu",
+    bgLight: "bg-[#F3F4F6]",
+    textLight: "text-[#374151]",
+    bgDark: "dark:bg-[#1F2937]",
+    textDark: "dark:text-[#D1D5DB]",
+  },
+  CANCELED: {
     label: "Cancelada",
     bgLight: "bg-[#FEE2E2]",
     textLight: "text-[#991B1B]",
@@ -55,27 +82,24 @@ type PropsScheduleList = {
   date: Date;
   appointments: AppointmentResponse[];
   isLoading: boolean;
+  search?: string;
 };
 
-export function ScheduleList({ date, appointments, isLoading}: PropsScheduleList) {
+export function ScheduleList({
+  date,
+  appointments,
+  isLoading,
+  search = "",
+}: PropsScheduleList) {
   const { user } = useAuth();
- 
-  const { data: patients = [] } = usePatients();
+
   const { data: users = [] } = useUsers();
   const [selected, setSelected] = useState<AppointmentResponse | null>(null);
   const { isSameDay } = useCalendar();
 
   const roleId = user?.roleId ?? 0;
 
-  // Filtra consultas de hoje
-  const today = date.toDateString();
-  const todayAppointments = appointments.filter(
-    (a) => new Date(a.scheduledAt).toDateString() === today,
-  );
-
   // Lookup helpers
-  const getPatient = (patientId: string): PatientResponse | undefined =>
-    patients.find((p) => p.id === patientId);
   const getDoctor = (userId: string): UserResponse | undefined =>
     users.find((u) => u.id === userId);
 
@@ -95,6 +119,16 @@ export function ScheduleList({ date, appointments, isLoading}: PropsScheduleList
 
   const isToday = isSameDay(date, new Date());
 
+  const title = search
+    ? `Resultados para "${search}"`
+    : isToday
+      ? "Consultas de hoje"
+      : `Consultas de ${date.toLocaleDateString("pt-BR")}`;
+
+  const emptyMessage = search
+    ? "Nenhuma consulta encontrada."
+    : `Nenhuma consulta para ${isToday ? "hoje" : date.toLocaleDateString("pt-BR")}.`;
+
   return (
     <>
       {/* pen: ysozS · bg #FFFFFF light · #1E293B dark · border #E2E8F0 / #334155 · cornerRadius 12 */}
@@ -102,39 +136,32 @@ export function ScheduleList({ date, appointments, isLoading}: PropsScheduleList
         {/* Título — pen: uuauv */}
         <div className="px-6 py-5 border-b border-[#E2E8F0] dark:border-[#334155]">
           <h2 className="text-xl font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
-            {isToday
-              ? "Consultas de hoje"
-              : `Consultas de ${date.toLocaleDateString("pt-BR")}`}
+            {title}
           </h2>
         </div>
 
         {/* Rows — pen: O5G23 */}
         <div className="flex flex-col gap-3 p-6">
           {isLoading && (
-            // <p className="text-sm text-[#64748B] dark:text-[#94A3B8] text-center py-4">
-            //   Carregando...
-            // </p>
-            <FieldSkeleton/>
+            <div className="flex flex-col gap-4 p-6">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <FieldSkeleton key={i} />
+              ))}
+            </div>
           )}
 
-          {!isLoading && todayAppointments.length === 0 && (
+          {!isLoading && appointments.length === 0 && (
             <p className="text-sm text-[#64748B] dark:text-[#94A3B8] text-center py-4">
-              Nenhuma consulta para hoje.
+              {emptyMessage}
             </p>
           )}
 
-          {todayAppointments.map((appt) => {
+          {appointments.map((appt) => {
             const s = STATUS_CONFIG[appt.status];
-            const patient = getPatient(appt.patientId);
+            const patient = appt.pacient;
             const doctor = getDoctor(appt.userId);
             const showDoctor = canSeeDoctor(appt);
-            const timeStr = new Date(appt.scheduledAt).toLocaleTimeString(
-              "pt-BR",
-              {
-                hour: "2-digit",
-                minute: "2-digit",
-              },
-            );
+            const timeStr = formatTime(appt.scheduledAt);
 
             return (
               <div
@@ -182,7 +209,7 @@ export function ScheduleList({ date, appointments, isLoading}: PropsScheduleList
       {selected && (
         <AppointmentDetailModal
           appointment={selected}
-          patient={getPatient(selected.patientId)}
+          patient={selected.pacient}
           doctor={getDoctor(selected.userId)}
           showDoctor={canSeeDoctor(selected)}
           onClose={() => setSelected(null)}

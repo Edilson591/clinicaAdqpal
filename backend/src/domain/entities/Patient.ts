@@ -21,6 +21,13 @@ export interface Patient {
   updatedAt: Date;
 }
 
+export interface PacientFilters {
+  /** Busca por nome do paciente (case-insensitive) */
+  search?: string;
+  /** Retorna apenas pacientes criados hoje */
+  createdToday?: boolean;
+}
+
 export interface CreatePatientData {
   name: string;
   email?: string | null;

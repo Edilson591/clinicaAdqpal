@@ -6,6 +6,7 @@ const statusStyles: Record<AgendaStatus, string> = {
   Confirmada: "bg-[#DBEAFE] text-[#1D4ED8] dark:bg-[#1E3A5F] dark:text-[#60A5FA]",
   Concluido: "bg-[#DCFCE7] text-[#166534] dark:bg-[#1E3A2F] dark:text-[#4ADE80]",
   Cancelado: "bg-[#FEE2E2] text-[#991B1B] dark:bg-[#3F1E1E] dark:text-[#FCA5A5]",
+  "Em Andamento": 'bg-[#FEF3C7] text-[#92400E] dark:bg-[#3F2A1E] dark:text-[#FCD34D]',
 };
 
 function StatusBadge({ status }: { status: AgendaStatus }) {
@@ -48,10 +49,25 @@ export function AgendaTable({ appointments, isLoading, search }: AgendaTableProp
         ))}
       </div>
 
-      {/* Loading */}
+      {/* Loading — skeleton rows */}
       {isLoading && (
-        <div className="px-6 py-8 text-center text-sm text-[#94A3B8]">
-          Carregando agenda...
+        <div className="divide-y divide-[#F3F4F6] dark:divide-[#334155]">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="grid grid-cols-[80px_1fr_120px_4px_140px] items-center px-6 py-4"
+            >
+              <div className="h-4 w-14 rounded bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
+              <div className="h-4 w-40 rounded bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
+              <div className="flex justify-center">
+                <div className="h-7 w-24 rounded-full bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
+              </div>
+              <span />
+              <div className="flex justify-center">
+                <div className="h-8 w-28 rounded-lg bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

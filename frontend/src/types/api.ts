@@ -8,6 +8,19 @@ export interface ApiResponse<T = void> {
   data?: T;
 }
 
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: PaginationMeta;
+}
+
 // ─── User ─────────────────────────────────────────────────────────────────────
 
 export interface UserResponse {
@@ -112,9 +125,25 @@ export interface UpdatePatientInput {
   additionalInfo?: string | null;
 }
 
+// ─── Specialty ────────────────────────────────────────────────────────────────
+
+export interface SpecialtyResponse {
+  id: string;
+  name: string;
+}
+
 // ─── Appointment ──────────────────────────────────────────────────────────────
 
-export type AppointmentStatus = "SCHEDULED" | "COMPLETED" | "CANCELLED";
+export type AppointmentStatus =
+  | "SCHEDULED"
+  | "CONFIRMED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELED"
+  | "NO_SHOW"
+  | "CANCELLED";
+
+export type AppointmentType = "IN_PERSON" | "ONLINE" | "HOME_CARE";
 
 export interface AppointmentResponse {
   id: string;
@@ -122,6 +151,12 @@ export interface AppointmentResponse {
   patientId: string;
   scheduledAt: string;
   status: AppointmentStatus;
+  type: AppointmentType;
+  specialtyId: string | null;
+  pacient: PatientResponse;
+  roomId: string | null;
+  meetingLink: string | null;
+  address: string | null;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -131,6 +166,11 @@ export interface CreateAppointmentInput {
   userId: string;
   patientId: string;
   scheduledAt: string;
+  type?: AppointmentType;
+  specialtyId?: string | null;
+  roomId?: string | null;
+  meetingLink?: string | null;
+  address?: string | null;
   notes?: string | null;
 }
 
@@ -139,6 +179,11 @@ export interface UpdateAppointmentInput {
   patientId?: string;
   scheduledAt?: string;
   status?: AppointmentStatus;
+  type?: AppointmentType;
+  specialtyId?: string | null;
+  roomId?: string | null;
+  meetingLink?: string | null;
+  address?: string | null;
   notes?: string | null;
 }
 
@@ -149,6 +194,7 @@ export interface MedicalRecordResponse {
   appointmentId: string;
   patientId: string;
   diagnosis: string | null;
+  patient: PatientResponse;
   prescription: string | null;
   notes: string | null;
   createdAt: string;

@@ -1,6 +1,11 @@
 import type { PrismaClient } from "@prisma/client";
 import type { IPatientRepository } from "../../domain/repositories/IPatientRepository";
-import type { Patient, CreatePatientData, UpdatePatientData } from "../../domain/entities/Patient";
+import type {
+  Patient,
+  CreatePatientData,
+  UpdatePatientData,
+  PacientFilters,
+} from "../../domain/entities/Patient";
 import type { PaginationQuery } from "../../domain/shared/pagination";
 import { DomainError } from "../../domain/errors/DomainError";
 
@@ -63,9 +68,28 @@ export class PrismaPatientRepository implements IPatientRepository {
     }
   }
 
-  async findAll(pagination?: PaginationQuery): Promise<Patient[]> {
+  private buildWhere(filters?: PacientFilters) {
+    const where: Record<string, unknown> = {};
+    if (filters?.search) {
+      where.name = { contains: filters.search, mode: "insensitive" };
+    }
+    if (filters?.createdToday) {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date();
+      end.setHours(23, 59, 59, 999);
+      where.createdAt = { gte: start, lte: end };
+    }
+    return where;
+  }
+
+  async findAll(
+    pagination?: PaginationQuery,
+    filters?: PacientFilters,
+  ): Promise<Patient[]> {
     try {
       const rows = await this.prisma.patient.findMany({
+        where: this.buildWhere(filters),
         orderBy: { name: "asc" },
         ...(pagination && {
           skip: (pagination.page - 1) * pagination.limit,
@@ -78,9 +102,9 @@ export class PrismaPatientRepository implements IPatientRepository {
     }
   }
 
-  async count(): Promise<number> {
+  async count(filters?: PacientFilters): Promise<number> {
     try {
-      return await this.prisma.patient.count();
+      return await this.prisma.patient.count({ where: this.buildWhere(filters) });
     } catch (err) {
       throw new DomainError(`Erro ao contar pacientes: ${String(err)}`, 500);
     }

@@ -1,12 +1,26 @@
 import { useState, useMemo } from "react";
-import { usePatients } from "./usePatients";
+import { usePatientsPaginated } from "./usePatients";
 
 export type PatientFilter = "all" | "with_cpf" | "without_cpf" | "with_email";
 
-export function usePatientsPage() {
-  const { data: patients = [], isLoading, error } = usePatients();
+export function usePatientsPage(page: number, setPage: (p: number) => void) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<PatientFilter>("all");
+  const { data, isLoading, error } = usePatientsPaginated(page, 20, search);
+  const patients = useMemo(() => data?.data ?? [], [data]);
+
+  const pagination = data?.pagination;
+
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleFilterChange = (value: PatientFilter) => {
+    setFilter(value);
+    setPage(1);
+  };
 
   const filtered = useMemo(() => {
     let result = patients;
@@ -38,12 +52,13 @@ export function usePatientsPage() {
 
   return {
     patients: filtered,
-    total: patients.length,
+    total: pagination?.total ?? 0,
+    totalPages: pagination?.totalPages ?? 1,
     isLoading,
     error,
     search,
-    setSearch,
+    setSearch: handleSearchChange,
     filter,
-    setFilter,
+    setFilter: handleFilterChange,
   };
 }

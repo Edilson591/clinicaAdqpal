@@ -11,6 +11,7 @@ function toDomain(row: {
   diagnosis: string | null;
   prescription: string | null;
   notes: string | null;
+  patient?: { id: string; name: string; phone?: string | null; email?: string | null } | null;
   createdAt: Date;
   updatedAt: Date;
 }): MedicalRecord {
@@ -21,6 +22,7 @@ function toDomain(row: {
     diagnosis: row.diagnosis,
     prescription: row.prescription,
     notes: row.notes,
+    patient: row.patient ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -31,7 +33,10 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
 
   async findById(id: string): Promise<MedicalRecord | null> {
     try {
-      const row = await this.prisma.medicalRecord.findUnique({ where: { id } });
+      const row = await this.prisma.medicalRecord.findUnique({
+        where: { id },
+        include: { patient: { select: { id: true, name: true, phone: true, email: true } } },
+      });
       return row ? toDomain(row) : null;
     } catch (err) {
       throw new DomainError(`Erro ao buscar prontuário: ${String(err)}`, 500);
@@ -40,7 +45,10 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
 
   async findByAppointmentId(appointmentId: string): Promise<MedicalRecord | null> {
     try {
-      const row = await this.prisma.medicalRecord.findUnique({ where: { appointmentId } });
+      const row = await this.prisma.medicalRecord.findUnique({
+        where: { appointmentId },
+        include: { patient: { select: { id: true, name: true, phone: true, email: true } } },
+      });
       return row ? toDomain(row) : null;
     } catch (err) {
       throw new DomainError(`Erro ao buscar prontuário: ${String(err)}`, 500);
@@ -51,6 +59,7 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
     try {
       const rows = await this.prisma.medicalRecord.findMany({
         where: { patientId },
+        include: { patient: { select: { id: true, name: true, phone: true, email: true } } },
         orderBy: { createdAt: "desc" },
       });
       return rows.map(toDomain);
@@ -62,6 +71,7 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
   async findAll(pagination?: PaginationQuery): Promise<MedicalRecord[]> {
     try {
       const rows = await this.prisma.medicalRecord.findMany({
+        include: { patient: { select: { id: true, name: true, phone: true, email: true } } },
         orderBy: { createdAt: "desc" },
         ...(pagination && {
           skip: (pagination.page - 1) * pagination.limit,

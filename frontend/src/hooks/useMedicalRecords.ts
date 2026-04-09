@@ -4,6 +4,7 @@ import type { CreateMedicalRecordInput, UpdateMedicalRecordInput } from "../type
 
 export const MEDICAL_RECORD_KEYS = {
   all: ["medical-records"] as const,
+  paginated: (page: number) => ["medical-records", "page", page] as const,
   detail: (id: string) => ["medical-records", id] as const,
   byPatient: (patientId: string) => ["medical-records", "patient", patientId] as const,
 };
@@ -12,6 +13,13 @@ export function useMedicalRecords() {
   return useQuery({
     queryKey: MEDICAL_RECORD_KEYS.all,
     queryFn: medicalRecordService.getAll,
+  });
+}
+
+export function useMedicalRecordsPaginated(page: number) {
+  return useQuery({
+    queryKey: MEDICAL_RECORD_KEYS.paginated(page),
+    queryFn: () => medicalRecordService.getAllPaginated(page),
   });
 }
 

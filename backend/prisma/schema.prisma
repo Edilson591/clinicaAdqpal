@@ -4,7 +4,8 @@
 // =============================================================================
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -36,8 +37,9 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  appointments    Appointment[]
+  appointments     Appointment[]
   patientHistories PatientHistory[] @relation("DoctorHistories")
+  specialties      DoctorSpecialty[]
 
   @@map("users")
 }
@@ -73,22 +75,57 @@ model Patient {
 
 enum AppointmentStatus {
   SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
   COMPLETED
+  CANCELED
+  NO_SHOW
   CANCELLED
 }
 
+enum AppointmentType {
+  IN_PERSON
+  ONLINE
+  HOME_CARE
+}
+
+model Specialty {
+  id           String            @id @default(uuid())
+  name         String            @unique
+  appointments Appointment[]
+  doctors      DoctorSpecialty[]
+
+  @@map("specialties")
+}
+
+model DoctorSpecialty {
+  doctorId    String
+  specialtyId String
+  doctor      User      @relation(fields: [doctorId], references: [id])
+  specialty   Specialty @relation(fields: [specialtyId], references: [id])
+
+  @@id([doctorId, specialtyId])
+  @@map("doctor_specialties")
+}
+
 model Appointment {
-  id          String            @id @default(uuid())
-  userId      String            @map("user_id")
-  patientId   String            @map("patient_id")
-  user        User              @relation(fields: [userId], references: [id])
-  patient     Patient           @relation(fields: [patientId], references: [id])
-  scheduledAt DateTime          @map("scheduled_at")
-  medico      String?
-  status      AppointmentStatus @default(SCHEDULED)
-  notes       String?
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
+  id           String            @id @default(uuid())
+  userId       String            @map("user_id")
+  patientId    String            @map("patient_id")
+  user         User              @relation(fields: [userId], references: [id])
+  patient      Patient           @relation(fields: [patientId], references: [id])
+  scheduledAt  DateTime          @map("scheduled_at")
+  medico       String?
+  status       AppointmentStatus @default(SCHEDULED)
+  type         AppointmentType   @default(IN_PERSON)
+  specialtyId  String?           @map("specialty_id")
+  specialty    Specialty?        @relation(fields: [specialtyId], references: [id])
+  roomId       String?           @map("room_id")
+  meetingLink  String?           @map("meeting_link")
+  address      String?
+  notes        String?
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
 
   medicalRecord    MedicalRecord?
   patientHistories PatientHistory[]

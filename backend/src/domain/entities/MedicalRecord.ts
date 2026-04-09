@@ -9,6 +9,7 @@ export interface MedicalRecord {
   diagnosis: string | null;
   prescription: string | null;
   notes: string | null;
+  patient?: { id: string; name: string; phone?: string | null; email?: string | null } | null;
   createdAt: Date;
   updatedAt: Date;
 }

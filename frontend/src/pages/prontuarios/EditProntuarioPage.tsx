@@ -4,6 +4,7 @@ import { Header } from "../../components/Dashboard/Header";
 import { Button } from "../../components/ui/Button";
 import ErrorAlert from "../../components/ui/ErrorAlert";
 import { InputGroup } from "../../components/ui/Input";
+import { VoiceTextarea } from "../../components/ui/VoiceTextarea";
 import DividerForm from "../../components/ui/DividerForms";
 import { FieldSkeleton } from "../../components/ui/FieldSkeleton";
 import { useEditProntuarioForm } from "../../hooks/useEditProntuarioForm";
@@ -37,6 +38,8 @@ function EditProntuarioContent() {
 
   const {
     register,
+    watch,
+    setValue,
     formState: { errors },
     onSubmit,
     isLoadingRecord,
@@ -132,27 +135,24 @@ function EditProntuarioContent() {
             <section className="flex flex-col gap-4">
               <SectionHeader icon={FilePen} title="Diagnóstico e Conduta" />
 
-              <InputGroup
+              <VoiceTextarea
                 label="Diagnóstico"
                 error={errors.diagnosis?.message}
-                textarea
-                textareaProps={{
-                  placeholder: "Hipótese diagnóstica, CID-10...",
-                  className: "min-h-[96px]",
-                  ...register("diagnosis"),
-                }}
+                placeholder="Hipótese diagnóstica, CID-10..."
+                className="min-h-[96px]"
+                currentValue={watch("diagnosis") ?? ""}
+                onTranscriptAppend={(val) => setValue("diagnosis", val)}
+                {...register("diagnosis")}
               />
 
-              <InputGroup
+              <VoiceTextarea
                 label="Conduta / Prescrição"
                 error={errors.prescription?.message}
-                textarea
-                textareaProps={{
-                  placeholder:
-                    "Medicamentos prescritos, dosagem, orientações ao paciente...",
-                  className: "min-h-[96px]",
-                  ...register("prescription"),
-                }}
+                placeholder="Medicamentos prescritos, dosagem, orientações ao paciente..."
+                className="min-h-[96px]"
+                currentValue={watch("prescription") ?? ""}
+                onTranscriptAppend={(val) => setValue("prescription", val)}
+                {...register("prescription")}
               />
             </section>
 
@@ -162,15 +162,14 @@ function EditProntuarioContent() {
             <section className="flex flex-col gap-4">
               <SectionHeader icon={FilePen} title="Anotações Clínicas" />
 
-              <InputGroup
+              <VoiceTextarea
                 label="Anotações"
                 error={errors.notes?.message}
-                textarea
-                textareaProps={{
-                  placeholder: "Anamnese, observações adicionais, evolução...",
-                  className: "min-h-[112px]",
-                  ...register("notes"),
-                }}
+                placeholder="Anamnese, observações adicionais, evolução..."
+                className="min-h-[112px]"
+                currentValue={watch("notes") ?? ""}
+                onTranscriptAppend={(val) => setValue("notes", val)}
+                {...register("notes")}
               />
             </section>
 

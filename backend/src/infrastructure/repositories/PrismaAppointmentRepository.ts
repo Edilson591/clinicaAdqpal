@@ -1,9 +1,10 @@
-import type { PrismaClient } from "@prisma/client";
+import type { Patient, PrismaClient } from "@prisma/client";
 import type { IAppointmentRepository } from "../../domain/repositories/IAppointmentRepository";
 import type {
   Appointment,
   AppointmentFilters,
   AppointmentStatus,
+  AppointmentType,
   AppointmentWithRelations,
   CreateAppointmentData,
   UpdateAppointmentData,
@@ -18,6 +19,12 @@ function toDomain(row: {
   scheduledAt: Date;
   medico: string | null;
   status: string;
+  type: string;
+  pacient?: Patient;
+  specialtyId: string | null;
+  roomId: string | null;
+  meetingLink: string | null;
+  address: string | null;
   notes: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -29,6 +36,12 @@ function toDomain(row: {
     scheduledAt: row.scheduledAt,
     medico: row.medico,
     status: row.status as AppointmentStatus,
+    type: row.type as AppointmentType,
+    pacient: row.pacient || null,
+    specialtyId: row.specialtyId,
+    roomId: row.roomId,
+    meetingLink: row.meetingLink,
+    address: row.address,
     notes: row.notes,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -42,17 +55,17 @@ function toDomain(row: {
 /** Parseia "HH:MM" e aplica ao Date base em UTC — retorna novo Date */
 function applyTime(base: Date, hhmm: string, endOfMinute = false): string {
   const [h, m] = hhmm.split(":").map(Number);
-
-  console.log(base);
-  const date = new Date(
-    base.getUTCFullYear(),
-    base.getUTCMonth(),
-    base.getUTCDate(),
-    h,
-    m,
-  );
-
-  return date.toISOString();
+  return new Date(
+    Date.UTC(
+      base.getUTCFullYear(),
+      base.getUTCMonth(),
+      base.getUTCDate(),
+      h,
+      m,
+      endOfMinute ? 59 : 0,
+      endOfMinute ? 999 : 0,
+    ),
+  ).toISOString();
 }
 
 /** Condição impossível — garante que nenhum registro seja retornado */
@@ -79,7 +92,7 @@ function buildBaseWhere(
     const d = new Date(filters.date);
 
     gte = filters.timeStart
-      ? applyTime(d, filters.timeStart)
+      ? applyTime(d, filters.timeStart, false)
       : new Date(
           Date.UTC(
             d.getUTCFullYear(),
@@ -226,13 +239,17 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     try {
       const rows = await this.prisma.appointment.findMany({
         where: buildFindAllWhere(filters),
-        orderBy: { scheduledAt: "desc" },
+        include: {
+          patient: true,
+        },
+        orderBy: { scheduledAt: filters?.order ?? "asc" },
         ...(pagination && {
           skip: (pagination.page - 1) * pagination.limit,
           take: pagination.limit,
         }),
       });
-      return rows.map(toDomain);
+
+      return rows.map((row) => toDomain({ ...row, pacient: row.patient }));
     } catch (err) {
       throw new DomainError(`Erro ao listar consultas: ${String(err)}`, 500);
     }

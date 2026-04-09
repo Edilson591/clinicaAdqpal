@@ -50,17 +50,6 @@ export function PatientsPageHeader({
           </p>
         </div>
 
-        {/* Toggle dark/light — reutiliza o mesmo botão do Header */}
-        {/* <button
-          onClick={toggleTheme}
-          aria-label={isDark ? "Modo claro" : "Modo escuro"}
-          className="flex items-center gap-2 h-10 px-3 rounded-lg text-sm font-medium border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-[#64748B] dark:text-[#94A3B8] hover:opacity-80 transition-all cursor-pointer"
-        >
-          {isDark ? <Sun size={15} /> : <Moon size={15} />}
-          <span className="hidden sm:inline">
-            {isDark ? "Claro" : "Escuro"}
-          </span>
-        </button> */}
       </div>
 
       {/* Linha 2 — Toolbar (pen: zdLrO, gap 12, h:44) */}

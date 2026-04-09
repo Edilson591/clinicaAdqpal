@@ -26,6 +26,7 @@ interface SearchableSelectProps {
   placeholder?: string;
   error?: boolean;
   disabled?: boolean;
+  onSearchChange?: (query: string) => void;
 }
 
 export interface SearchableSelectGroupProps extends Omit<ComponentProps<"div">, "onChange"> {
@@ -39,6 +40,7 @@ export interface SearchableSelectGroupProps extends Omit<ComponentProps<"div">, 
   options: SearchableOption[];
   placeholder?: string;
   disabled?: boolean;
+  onSearchChange?: (query: string) => void;
 }
 
 // =============================================================================
@@ -52,6 +54,7 @@ export function SearchableSelect({
   placeholder = "Selecionar...",
   error,
   disabled,
+  onSearchChange,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -86,6 +89,7 @@ export function SearchableSelect({
     if (disabled) return;
     setOpen((v) => !v);
     setSearch("");
+    onSearchChange?.("");
   }
 
   function handleSelect(optValue: string) {
@@ -134,7 +138,10 @@ export function SearchableSelect({
               autoFocus
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                onSearchChange?.(e.target.value);
+              }}
               placeholder="Buscar..."
               className="flex-1 text-sm bg-transparent outline-none text-foreground dark:text-[#F1F5F9] placeholder:text-muted-foreground"
             />
@@ -192,6 +199,7 @@ export function SearchableSelectGroup({
   options,
   placeholder,
   disabled,
+  onSearchChange,
   className,
   ...props
 }: SearchableSelectGroupProps) {
@@ -214,6 +222,7 @@ export function SearchableSelectGroup({
         placeholder={placeholder}
         error={!!error}
         disabled={disabled}
+        onSearchChange={onSearchChange}
       />
       {(error || helperText) && (
         <p

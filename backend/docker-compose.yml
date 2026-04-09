@@ -1,0 +1,20 @@
+services:
+  backend:
+    image: node:22
+    container_name: clinica_backend
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm install && npx ts-node-dev --respawn --transpile-only --poll server.ts"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - PORT=${PORT:-3333}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+    ports:
+      - "${PORT:-3333}:${PORT:-3333}"
