@@ -12,7 +12,7 @@ function loadPluggyScript(): Promise<void> {
     }
     const script = document.createElement("script");
     script.id = "pluggy-connect-script";
-    script.src = "https://cdn.pluggy.ai/pluggy-connect/v2/pluggy-connect.js";
+    script.src = "https://cdn.pluggy.ai/pluggy-connect/v2.2.0/pluggy-connect.js";
     script.onload = () => resolve();
     script.onerror = () => reject(new Error("Falha ao carregar o widget Pluggy."));
     document.head.appendChild(script);
@@ -22,6 +22,7 @@ function loadPluggyScript(): Promise<void> {
 // Abre o widget Pluggy Connect com o token fornecido
 function openPluggyWidget(
   accessToken: string,
+  sandbox: boolean,
   onSuccess: (itemId: string) => void,
   onClose: () => void
 ) {
@@ -34,6 +35,7 @@ function openPluggyWidget(
 
   const widget = new PluggyConnect({
     connectToken: accessToken,
+    sandbox,
     onSuccess: ({ item }: { item: { id: string } }) => {
       onSuccess(item.id);
     },
@@ -42,6 +44,8 @@ function openPluggyWidget(
     },
     onClose,
   });
+
+  console.log(widget)
 
   widget.init();
 }
@@ -165,10 +169,11 @@ export function PluggyConnect() {
     setError(null);
     try {
       await loadPluggyScript();
-      const accessToken = await PluggyService.getConnectToken();
+      const { accessToken, sandbox } = await PluggyService.getConnectToken();
 
       openPluggyWidget(
         accessToken,
+        sandbox,
         async (itemId) => {
           // Widget success — sincroniza o item
           setSyncingId(itemId);
@@ -184,6 +189,7 @@ export function PluggyConnect() {
         () => setConnecting(false)
       );
     } catch (err) {
+      console.log(err)
       setError("Não foi possível abrir o widget Pluggy. Verifique sua conexão.");
       setConnecting(false);
     }

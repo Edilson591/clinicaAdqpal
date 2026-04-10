@@ -37,7 +37,8 @@ export class PluggyController {
       const pluggy = new PluggyService();
       const { itemId } = req.query as { itemId?: string };
       const accessToken = await pluggy.createConnectToken(itemId);
-      res.json({ success: true, data: { accessToken } });
+      const sandbox = process.env.PLUGGY_SANDBOX === "true" || process.env.NODE_ENV !== "production";
+      res.json({ success: true, data: { accessToken, sandbox } });
     } catch (err) {
       next(err);
     }

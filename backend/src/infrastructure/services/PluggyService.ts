@@ -49,6 +49,7 @@ export class PluggyService {
     this.client = new PluggyClient({
       clientId: process.env.PLUGGY_CLIENT_ID,
       clientSecret: process.env.PLUGGY_CLIENT_SECRET,
+      baseUrl: process.env.PLUGGY_BASE_URL!,
     });
   }
 
@@ -61,9 +62,17 @@ export class PluggyService {
   }
   /** Cria um token temporário para abrir o widget Pluggy Connect no frontend */
   async createConnectToken(itemId?: string): Promise<string> {
-    const result = await this.client.createConnectToken(itemId, {
-      webhookUrl: process.env.PLUGGY_WEBHOOK_URL,
-    } as Record<string, unknown>);
+    const sandbox =
+      process.env.PLUGGY_SANDBOX === "true" ||
+      process.env.NODE_ENV !== "production";
+    const options: Record<string, unknown> = { sandbox };
+    if (process.env.PLUGGY_WEBHOOK_URL) {
+      options.webhookUrl = process.env.PLUGGY_WEBHOOK_URL;
+    }
+    const result = await this.client.createConnectToken(
+      itemId,
+      options as Parameters<PluggyClient["createConnectToken"]>[1],
+    );
     return result.accessToken;
   }
 

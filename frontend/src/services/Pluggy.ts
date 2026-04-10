@@ -18,10 +18,10 @@ export interface SyncResult {
 
 export const PluggyService = {
   /** Obtém o token temporário para abrir o widget Pluggy Connect */
-  async getConnectToken(itemId?: string): Promise<string> {
+  async getConnectToken(itemId?: string): Promise<{ accessToken: string; sandbox: boolean }> {
     const params = itemId ? `?itemId=${itemId}` : "";
     const res = await api.get(`/pluggy/connect-token${params}`);
-    return res.data.data.accessToken;
+    return { accessToken: res.data.data.accessToken, sandbox: res.data.data.sandbox ?? true };
   },
 
   /** Lista todos os itens (bancos) conectados */
