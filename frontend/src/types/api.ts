@@ -244,3 +244,77 @@ export interface CreatePatientHistoryInput {
   appointmentId?: string | null;
   attachments?: string[];
 }
+
+// ─── Financial ────────────────────────────────────────────────────────────────
+
+export type AccountType = "CHECKING" | "SAVINGS" | "CASH" | "CREDIT_CARD" | "INVESTMENT";
+export type CategoryType = "INCOME" | "EXPENSE" | "BOTH";
+export type TransactionType = "INCOME" | "EXPENSE" | "TRANSFER";
+export type TransactionStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
+export type PaymentMethod =
+  | "CASH"
+  | "CREDIT_CARD"
+  | "DEBIT_CARD"
+  | "PIX"
+  | "BANK_TRANSFER"
+  | "INSURANCE"
+  | "OTHER";
+
+export interface FinancialAccountResponse {
+  id: string;
+  name: string;
+  type: AccountType;
+  bank: string | null;
+  initialBalance: number;
+  currentBalance: number;
+  currency: string;
+  isActive: boolean;
+  isDefault: boolean;
+  color: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinancialCategoryResponse {
+  id: string;
+  name: string;
+  type: CategoryType;
+  color: string | null;
+  icon: string | null;
+  parentId: string | null;
+  parent: { id: string; name: string } | null;
+  children: { id: string; name: string }[];
+  isDefault: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TransactionResponse {
+  id: string;
+  accountId: string;
+  categoryId: string;
+  patientId: string | null;
+  appointmentId: string | null;
+  createdBy: string;
+  type: TransactionType;
+  amount: number;
+  description: string;
+  status: TransactionStatus;
+  paymentMethod: PaymentMethod;
+  dueDate: string;
+  paidAt: string | null;
+  reference: string | null;
+  isRecurring: boolean;
+  recurringGroupId: string | null;
+  installmentNumber: number | null;
+  totalInstallments: number | null;
+  transferToAccountId: string | null;
+  tags: string[];
+  attachmentUrl: string | null;
+  account: { id: string; name: string; color: string | null } | null;
+  category: { id: string; name: string; color: string | null } | null;
+  patient: { id: string; name: string } | null;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -14,6 +14,8 @@ import EditProntuarioPage from "../pages/prontuarios/EditProntuarioPage";
 import ConfiguracaoPage from "../pages/configuracao/ConfiguracaoPage";
 import GestaoFinanceiraPage from "../pages/financeiro/GestaoFinanceiraPage";
 import NovaTransacaoPage from "../pages/financeiro/NovaTransacaoPage";
+import TransacoesPage from "../pages/financeiro/TransacoesPage";
+import { FinanceiroGuard } from "../components/ui/FinanceiroGuard";
 
 export const privateRoutes = (
   <Route element={<ProtectedRoute />}>
@@ -29,8 +31,13 @@ export const privateRoutes = (
       <Route path="/prontuarios/novo" element={<NovoProntuarioPage />} />
       <Route path="/prontuarios/:id/editar" element={<EditProntuarioPage />} />
       <Route path="/configuracoes" element={<ConfiguracaoPage />} />
-      <Route path="/financeiro" element={<GestaoFinanceiraPage />} />
-      <Route path="/financeiro/nova" element={<NovaTransacaoPage />} />
+
+      {/* Área Financeira — restrita a Admin, Recepcionista e Suporte de TI */}
+      <Route element={<FinanceiroGuard />}>
+        <Route path="/financeiro" element={<GestaoFinanceiraPage />} />
+        <Route path="/financeiro/nova" element={<NovaTransacaoPage />} />
+        <Route path="/financeiro/transacoes" element={<TransacoesPage />} />
+      </Route>
     </Route>
   </Route>
 );

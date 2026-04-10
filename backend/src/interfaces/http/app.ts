@@ -7,6 +7,10 @@ import medicalRecordRoutes from "../routes/medicalRecordRoutes";
 import patientHistoryRoutes from "../routes/patientHistoryRoutes";
 import historyRoutes from "../routes/historyRoutes";
 import specialtyRoutes from "../routes/specialtyRoutes";
+import financialAccountRoutes from "../routes/financialAccountRoutes";
+import financialCategoryRoutes from "../routes/financialCategoryRoutes";
+import transactionRoutes from "../routes/transactionRoutes";
+import pluggyRoutes from "../routes/pluggyRoutes";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import cors from "cors";
 
@@ -47,6 +51,10 @@ app.use("/medical-records", medicalRecordRoutes);
 app.use("/patients/:patientId/history", patientHistoryRoutes);
 app.use("/history", historyRoutes);
 app.use("/specialties", specialtyRoutes);
+app.use("/financial/accounts", financialAccountRoutes);
+app.use("/financial/categories", financialCategoryRoutes);
+app.use("/financial/transactions", transactionRoutes);
+app.use("/pluggy", pluggyRoutes);
 
 app.use(errorMiddleware);
 

@@ -2,14 +2,25 @@ import { Calendar, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Header } from "../Dashboard/Header";
 import { SearchBar } from "../Patients/SearchBar";
+import { SearchableSelectGroup } from "../ui/SearchableSelect";
 
 interface AgendaHeaderProps {
   totalHoje: number;
   search: string;
   onSearchChange: (v: string) => void;
+  doctorOptions: { value: string; label: string }[];
+  selectDoctor: string;
+  setSelectDoctor: (v: string) => void;
 }
 
-export function AgendaHeader({ totalHoje, search, onSearchChange }: AgendaHeaderProps) {
+export function AgendaHeader({
+  totalHoje,
+  search,
+  onSearchChange,
+  doctorOptions,
+  selectDoctor,
+  setSelectDoctor,
+}: AgendaHeaderProps) {
   return (
     <div>
       {/* Linha 1 — Título + ações */}
@@ -41,7 +52,22 @@ export function AgendaHeader({ totalHoje, search, onSearchChange }: AgendaHeader
 
       {/* Linha 2 — Busca */}
       <div className="flex flex-wrap items-center gap-3">
-        <SearchBar value={search} onChange={onSearchChange} placeholder="Buscar consulta por paciente ou médico..." />
+        <SearchBar
+          value={search}
+          onChange={onSearchChange}
+          placeholder="Buscar consulta por paciente ou médico..."
+        />
+
+        <SearchableSelectGroup
+          // label="Médico"
+          // error={errors.doctorId?.message}
+          placeholder="Buscar médico pelo nome..."
+          className=" max-w-96 "
+          classNameChildren="h-11 bg-white dark:bg-[#1E293B]"
+          options={doctorOptions}
+          value={selectDoctor}
+          onChange={setSelectDoctor}
+        />
       </div>
     </div>
   );

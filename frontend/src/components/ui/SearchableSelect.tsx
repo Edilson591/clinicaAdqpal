@@ -24,18 +24,23 @@ interface SearchableSelectProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  className?: string;
   error?: boolean;
   disabled?: boolean;
   onSearchChange?: (query: string) => void;
 }
 
-export interface SearchableSelectGroupProps extends Omit<ComponentProps<"div">, "onChange"> {
+export interface SearchableSelectGroupProps extends Omit<
+  ComponentProps<"div">,
+  "onChange"
+> {
   label?: string;
   required?: boolean;
   error?: string;
   helperText?: string;
   labelProps?: LabelProps;
   value: string;
+  classNameChildren?: string;
   onChange: (value: string) => void;
   options: SearchableOption[];
   placeholder?: string;
@@ -54,6 +59,7 @@ export function SearchableSelect({
   placeholder = "Selecionar...",
   error,
   disabled,
+  className,
   onSearchChange,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
@@ -116,6 +122,7 @@ export function SearchableSelect({
           !value && "text-muted-foreground",
           value && "text-foreground dark:text-[#F1F5F9]",
           "disabled:cursor-not-allowed disabled:opacity-50",
+          `${className}`
         )}
       >
         <span className="truncate">{value ? selectedLabel : placeholder}</span>
@@ -199,6 +206,7 @@ export function SearchableSelectGroup({
   options,
   placeholder,
   disabled,
+  classNameChildren,
   onSearchChange,
   className,
   ...props
@@ -221,6 +229,7 @@ export function SearchableSelectGroup({
         onChange={onChange}
         placeholder={placeholder}
         error={!!error}
+        className={classNameChildren}
         disabled={disabled}
         onSearchChange={onSearchChange}
       />

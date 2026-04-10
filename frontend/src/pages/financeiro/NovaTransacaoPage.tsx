@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Save, ArrowLeft, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { Save, ArrowLeft, ArrowDownLeft, ArrowUpRight, ArrowLeftRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Controller } from "react-hook-form";
 import { Header } from "../../components/Dashboard/Header";
 import { Button } from "../../components/ui/Button";
 import { InputGroup } from "../../components/ui/Input";
@@ -12,30 +13,37 @@ import { FormHeader } from "../../components/Form/FormHeader";
 import { FormContent } from "../../components/Form/FormContent";
 import { FormCard } from "../../components/Form/FormCard";
 import { FormSection } from "../../components/Form/FormSection";
+import { DatePickerInput } from "../../components/ui/DatePickerInput";
 import { useZodForm } from "../../hooks/useZodForm";
 import { novaTransacaoSchema, type NovaTransacaoInput } from "../../validate/novaTransacao.schema";
-import { Controller } from "react-hook-form";
-import { DatePickerInput } from "../../components/ui/DatePickerInput";
+import {
+  useFinancialAccounts,
+  useFinancialCategories,
+  useCreateTransaction,
+} from "../../hooks/useFinancial";
 
-const CATEGORIAS_ENTRADA = [
-  { value: "consulta", label: "Consulta" },
-  { value: "exame", label: "Exame / Procedimento" },
-  { value: "convenio", label: "Convênio" },
-  { value: "outro_entrada", label: "Outro" },
+const PAYMENT_OPTIONS = [
+  { value: "PIX", label: "PIX" },
+  { value: "CASH", label: "Dinheiro" },
+  { value: "CREDIT_CARD", label: "Cartão de Crédito" },
+  { value: "DEBIT_CARD", label: "Cartão de Débito" },
+  { value: "BANK_TRANSFER", label: "Transferência Bancária" },
+  { value: "INSURANCE", label: "Convênio" },
+  { value: "OTHER", label: "Outro" },
 ];
 
-const CATEGORIAS_SAIDA = [
-  { value: "aluguel", label: "Aluguel / Infraestrutura" },
-  { value: "material", label: "Material Clínico" },
-  { value: "salario", label: "Salário / RH" },
-  { value: "equipamento", label: "Equipamento" },
-  { value: "marketing", label: "Marketing" },
-  { value: "outro_saida", label: "Outro" },
+const STATUS_OPTIONS = [
+  { value: "CONFIRMED", label: "Confirmado" },
+  { value: "PENDING", label: "Pendente" },
+  { value: "CANCELLED", label: "Cancelado" },
 ];
 
 function NovaTransacaoContent() {
   const navigate = useNavigate();
   const [generalError, setGeneralError] = useState<string | null>(null);
+
+  const { data: accounts = [] } = useFinancialAccounts(true);
+  const createTransaction = useCreateTransaction();
 
   const {
     register,
@@ -46,26 +54,51 @@ function NovaTransacaoContent() {
     formState: { errors, isSubmitting },
   } = useZodForm(novaTransacaoSchema, {
     defaultValues: {
-      tipo: "entrada",
-      descricao: "",
-      valor: "",
-      data: new Date().toISOString().split("T")[0],
-      categoria: "",
-      observacoes: "",
+      type: "INCOME",
+      accountId: "",
+      categoryId: "",
+      description: "",
+      amount: "",
+      status: "CONFIRMED",
+      paymentMethod: "PIX",
+      dueDate: new Date().toISOString().split("T")[0],
+      notes: "",
     },
   });
 
-  const tipo = watch("tipo");
-  const categorias = tipo === "entrada" ? CATEGORIAS_ENTRADA : CATEGORIAS_SAIDA;
+  const type = watch("type");
+  const { data: categories = [] } = useFinancialCategories(undefined, true);
 
-  const onSubmit = handleSubmit((_data: NovaTransacaoInput) => {
+  const accountOptions = accounts.map((a) => ({
+    value: a.id,
+    label: a.bank ? `${a.name} — ${a.bank}` : a.name,
+  }));
+
+  const categoryOptions = categories
+    .filter((c) => {
+      if (type === "INCOME") return c.type === "INCOME" || c.type === "BOTH";
+      if (type === "EXPENSE") return c.type === "EXPENSE" || c.type === "BOTH";
+      return true;
+    })
+    .map((c) => ({ value: c.id, label: c.name }));
+
+  const onSubmit = handleSubmit(async (data: NovaTransacaoInput) => {
     try {
       setGeneralError(null);
-      // TODO: conectar ao backend quando a API de transações for criada
-      // await transacaoService.create({ ...data, valor: parseFloat(data.valor.replace(",", ".")) });
+      await createTransaction.mutateAsync({
+        type: data.type,
+        accountId: data.accountId,
+        categoryId: data.categoryId,
+        description: data.description,
+        amount: parseFloat(data.amount.replace(",", ".")),
+        status: data.status,
+        paymentMethod: data.paymentMethod,
+        dueDate: new Date(data.dueDate + "T00:00:00").toISOString(),
+        ...(data.notes ? { reference: data.notes } : {}),
+      });
       navigate("/financeiro");
     } catch {
-      setGeneralError("Erro ao salvar a transação.");
+      setGeneralError("Erro ao salvar a transação. Verifique os dados e tente novamente.");
     }
   });
 
@@ -77,7 +110,7 @@ function NovaTransacaoContent() {
         title="Financeiro"
         link="/financeiro"
         subTitle="Nova Transação"
-        description="Registre uma nova entrada ou saída financeira"
+        description="Registre uma nova entrada, saída ou transferência financeira"
       />
 
       <FormCard>
@@ -93,9 +126,9 @@ function NovaTransacaoContent() {
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => { setValue("tipo", "entrada"); setValue("categoria", ""); }}
+                onClick={() => { setValue("type", "INCOME"); setValue("categoryId", ""); }}
                 className={`flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer ${
-                  tipo === "entrada"
+                  type === "INCOME"
                     ? "border-[#38A169] bg-[#DCFCE7] text-[#166534]"
                     : "border-[#E2E8F0] text-[#64748B] hover:border-[#38A169]/40"
                 }`}
@@ -105,9 +138,9 @@ function NovaTransacaoContent() {
               </button>
               <button
                 type="button"
-                onClick={() => { setValue("tipo", "saida"); setValue("categoria", ""); }}
+                onClick={() => { setValue("type", "EXPENSE"); setValue("categoryId", ""); }}
                 className={`flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer ${
-                  tipo === "saida"
+                  type === "EXPENSE"
                     ? "border-[#EF4444] bg-[#FEE2E2] text-[#991B1B]"
                     : "border-[#E2E8F0] text-[#64748B] hover:border-[#EF4444]/40"
                 }`}
@@ -115,49 +148,88 @@ function NovaTransacaoContent() {
                 <ArrowUpRight size={17} />
                 Saída
               </button>
+              <button
+                type="button"
+                onClick={() => { setValue("type", "TRANSFER"); setValue("categoryId", ""); }}
+                className={`flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer ${
+                  type === "TRANSFER"
+                    ? "border-[#3B82F6] bg-[#DBEAFE] text-[#1E40AF]"
+                    : "border-[#E2E8F0] text-[#64748B] hover:border-[#3B82F6]/40"
+                }`}
+              >
+                <ArrowLeftRight size={17} />
+                Transferência
+              </button>
             </div>
           </FormSection>
 
           <DividerForm />
 
-          {/* Dados principais */}
+          {/* Dados da transação */}
           <FormSection icon={Save} title="Dados da Transação">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <InputGroup
                   label="Descrição"
                   required
-                  error={errors.descricao?.message}
+                  error={errors.description?.message}
                   inputProps={{
                     placeholder: "Ex: Consulta Dr. João, Aluguel consultório...",
-                    ...register("descricao"),
+                    ...register("description"),
                   }}
                 />
               </div>
-              <div className="w-full sm:w-48">
+              <div className="w-full sm:w-44">
                 <InputGroup
                   label="Valor (R$)"
                   required
-                  error={errors.valor?.message}
+                  error={errors.amount?.message}
                   inputProps={{
                     placeholder: "0,00",
                     inputMode: "decimal",
-                    ...register("valor"),
+                    ...register("amount"),
                   }}
                 />
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <div className="w-full sm:w-52">
+              <div className="flex-1">
+                <SelectGroup
+                  label="Conta"
+                  required
+                  error={errors.accountId?.message}
+                  selectProps={{
+                    placeholder: "Selecione a conta",
+                    options: accountOptions,
+                    ...register("accountId"),
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <SelectGroup
+                  label="Categoria"
+                  required
+                  error={errors.categoryId?.message}
+                  selectProps={{
+                    placeholder: "Selecione a categoria",
+                    options: categoryOptions,
+                    ...register("categoryId"),
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="w-full sm:w-48">
                 <Controller
-                  name="data"
+                  name="dueDate"
                   control={control}
                   render={({ field }) => (
                     <DatePickerInput
                       label="Data"
                       required
-                      error={errors.data?.message}
+                      error={errors.dueDate?.message}
                       selected={field.value ? new Date(field.value + "T00:00:00") : null}
                       onChange={(date) =>
                         field.onChange(date ? date.toISOString().split("T")[0] : "")
@@ -168,13 +240,25 @@ function NovaTransacaoContent() {
               </div>
               <div className="flex-1">
                 <SelectGroup
-                  label="Categoria"
+                  label="Forma de Pagamento"
                   required
-                  error={errors.categoria?.message}
+                  error={errors.paymentMethod?.message}
                   selectProps={{
-                    placeholder: "Selecione a categoria",
-                    options: categorias,
-                    ...register("categoria"),
+                    placeholder: "Selecione",
+                    options: PAYMENT_OPTIONS,
+                    ...register("paymentMethod"),
+                  }}
+                />
+              </div>
+              <div className="w-full sm:w-44">
+                <SelectGroup
+                  label="Status"
+                  required
+                  error={errors.status?.message}
+                  selectProps={{
+                    placeholder: "Status",
+                    options: STATUS_OPTIONS,
+                    ...register("status"),
                   }}
                 />
               </div>
@@ -184,22 +268,21 @@ function NovaTransacaoContent() {
               label="Observações"
               placeholder="Informações adicionais sobre a transação..."
               className="min-h-[80px]"
-              currentValue={watch("observacoes") ?? ""}
-              onTranscriptAppend={(val) => setValue("observacoes", val)}
-              {...register("observacoes")}
+              currentValue={watch("notes") ?? ""}
+              onTranscriptAppend={(val) => setValue("notes", val)}
+              {...register("notes")}
             />
           </FormSection>
 
-          {/* Ações */}
           <div className="flex items-center gap-3 pt-2">
             <Button
               type="submit"
               variant="primary"
-              disabled={isSubmitting}
+              disabled={isSubmitting || createTransaction.isPending}
               className="bg-[#38A169] from-[#38A169] to-[#38A169] hover:from-[#2F9259] hover:to-[#2F9259] h-11 px-5"
             >
               <Save size={16} />
-              {isSubmitting ? "Salvando..." : "Salvar Transação"}
+              {isSubmitting || createTransaction.isPending ? "Salvando..." : "Salvar Transação"}
             </Button>
             <Button
               type="button"

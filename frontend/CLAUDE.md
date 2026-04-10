@@ -473,6 +473,153 @@ Os componentes estão organizados na seguinte posição:
 
 - Sempre usar `width: "fill_container"` quando o componente estiver dentro de um layout flexbox
 - Para customizar textos em instâncias, usar o caminho completo do ID do descendente
+
+---
+
+## Controle de Permissões
+
+Implementado em 2026-04-09. Controla acesso a áreas restritas por role do usuário.
+
+### Arquitetura
+
+```
+PermissionsProvider (AppLayout)
+  └─ usePermissions() → { canAccessFinanceiro }
+       └─ FinanceiroGuard → <AcessoNegado /> ou <Outlet />
+```
+
+### `src/context/PermissionsContext.tsx`
+
+- **`PermissionsProvider`**: envolve o `AppLayout`, lê `user.roleId` do Redux via `useAuth()` e computa permissões
+- **`usePermissions()`**: hook para consumir permissões em qualquer componente dentro do layout
+
+```ts
+const { canAccessFinanceiro } = usePermissions();
+```
+
+### Permissões disponíveis
+
+| Flag | Roles permitidos | IDs |
+|------|-----------------|-----|
+| `canAccessFinanceiro` | Administrador, Recepcionista, Suporte de TI | 1, 5, 9 |
+
+### Componentes de guarda
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/components/ui/FinanceiroGuard.tsx` | Wrapper de rota: renderiza `<Outlet />` se autorizado, senão exibe `<AcessoNegado />` |
+| `src/components/ui/AcessoNegado.tsx` | Tela de acesso negado com role atual do usuário e botão de retorno |
+
+### Como usar o guard em rotas
+
+```tsx
+// PrivateRoutes.tsx
+<Route element={<FinanceiroGuard />}>
+  <Route path="/financeiro" element={<GestaoFinanceiraPage />} />
+  <Route path="/financeiro/nova" element={<NovaTransacaoPage />} />
+  <Route path="/financeiro/transacoes" element={<TransacoesPage />} />
+</Route>
+```
+
+### Como adicionar nova permissão
+
+1. Adicionar flag em `PermissionsContextValue` em `PermissionsContext.tsx`
+2. Computar a flag no `PermissionsProvider` com os roles permitidos
+3. Criar um guard component (ex.: `AgendaGuard.tsx`) que lê o novo flag
+4. Envolver as rotas no novo guard em `PrivateRoutes.tsx`
+
+---
+
+## Módulo Financeiro
+
+Implementado em 2026-04-09. Conectado ao backend via React Query + Axios.
+
+### Páginas
+
+| Rota | Componente | Descrição |
+|------|-----------|-----------|
+| `/financeiro` | `GestaoFinanceiraPage` | Dashboard com KPIs reais do mês atual + gráfico + transações recentes |
+| `/financeiro/nova` | `NovaTransacaoPage` | Formulário completo conectado à API |
+| `/financeiro/transacoes` | `TransacoesPage` | Listagem com filtros, paginação e delete |
+
+### Componentes (`src/components/Financeiro/`)
+
+| Componente | Props | Descrição |
+|-----------|-------|-----------|
+| `FinanceiroHeader` | — | Título, mês atual dinâmico, tabs de navegação (Visão Geral / Transações), botão Nova Transação |
+| `KPICard` | `title, value, trend, trendPositive, Icon, iconBg, iconColor` | Card de indicador financeiro |
+| `TransacoesRecentes` | `transactions, totalIncome, totalExpense, isLoading` | Lista das 5 transações mais recentes com totais reais |
+| `ReceitaDespesasChart` | `currentIncome?, currentExpense?` | Gráfico de barras: 5 meses históricos (ilustrativos) + mês atual com dados reais |
+
+### Hooks (`src/hooks/useFinancial.ts`)
+
+| Hook | Retorna |
+|------|---------|
+| `useFinancialAccounts(isActive?)` | Lista de contas |
+| `useFinancialAccountById(id)` | Conta por ID |
+| `useCreateFinancialAccount()` | Mutation de criação |
+| `useUpdateFinancialAccount()` | Mutation de atualização |
+| `useDeleteFinancialAccount()` | Mutation de deleção |
+| `useFinancialCategories(type?, isActive?)` | Lista de categorias |
+| `useCreateFinancialCategory()` | Mutation de criação |
+| `useUpdateFinancialCategory()` | Mutation de atualização |
+| `useDeleteFinancialCategory()` | Mutation de deleção |
+| `useTransactions(filters?)` | `PaginatedResponse<TransactionResponse>` |
+| `useTransactionById(id)` | Transação por ID |
+| `useCreateTransaction()` | Mutation — invalida `transactions` e `accounts` |
+| `useUpdateTransaction()` | Mutation — invalida `transactions` e `accounts` |
+| `useDeleteTransaction()` | Mutation — invalida `transactions` e `accounts` |
+
+### Serviços (`src/services/Financial.ts`)
+
+- `FinancialAccountService` → `/financial/accounts`
+- `FinancialCategoryService` → `/financial/categories`
+- `TransactionService` → `/financial/transactions` (suporta filtros: `accountId`, `categoryId`, `patientId`, `type`, `status`, `paymentMethod`, `dateStart`, `dateEnd`, `search`, `page`, `limit`)
+
+### Schema de Validação (`src/validate/novaTransacao.schema.ts`)
+
+Campos do formulário Nova Transação:
+
+| Campo | Tipo | Obrigatório |
+|-------|------|-------------|
+| `type` | `"INCOME" \| "EXPENSE" \| "TRANSFER"` | sim |
+| `accountId` | string (UUID) | sim |
+| `categoryId` | string (UUID) | sim |
+| `description` | string (1–200 chars) | sim |
+| `amount` | string numérica > 0 | sim |
+| `status` | `"PENDING" \| "CONFIRMED" \| "CANCELLED"` | sim |
+| `paymentMethod` | `"CASH" \| "CREDIT_CARD" \| "DEBIT_CARD" \| "PIX" \| "BANK_TRANSFER" \| "INSURANCE" \| "OTHER"` | sim |
+| `dueDate` | string ISO date | sim |
+| `notes` | string | não |
+
+### Tipos (`src/types/api.ts`)
+
+```ts
+type AccountType = "CHECKING" | "SAVINGS" | "CASH" | "CREDIT_CARD" | "INVESTMENT";
+type CategoryType = "INCOME" | "EXPENSE" | "BOTH";
+type TransactionType = "INCOME" | "EXPENSE" | "TRANSFER";
+type TransactionStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
+type PaymentMethod = "CASH" | "CREDIT_CARD" | "DEBIT_CARD" | "PIX" | "BANK_TRANSFER" | "INSURANCE" | "OTHER";
+```
+
+### Cores do módulo financeiro
+
+| Significado | Background | Texto/Ícone |
+|------------|-----------|-------------|
+| Entrada (INCOME) | `#DCFCE7` | `#38A169` / `#166534` |
+| Saída (EXPENSE) | `#FEE2E2` | `#EF4444` / `#991B1B` |
+| Transferência (TRANSFER) | `#DBEAFE` | `#3B82F6` / `#1E40AF` |
+| Status Confirmado | `#DCFCE7` | `#166534` |
+| Status Pendente | `#FEF9C3` | `#854D0E` |
+| Status Cancelado | `#FEE2E2` | `#991B1B` |
+
+### Lógica de KPIs no Dashboard
+
+Calculados a partir de `useTransactions({ dateStart, dateEnd, limit: 100 })` com datas do mês atual:
+- **Receitas do Mês**: `type === "INCOME" && status === "CONFIRMED"` → soma dos `amount`
+- **Despesas do Mês**: `type === "EXPENSE" && status === "CONFIRMED"` → soma dos `amount`
+- **Resultado Líquido**: Receitas − Despesas
+- **Consultas Pagas**: `type === "INCOME" && status === "CONFIRMED" && patientId !== null` → contagem
 - Os ícones usam a fonte Lucide
 - Todos os componentes seguem o padrão de cores e espaçamento do Tailwind/Shadcn
 

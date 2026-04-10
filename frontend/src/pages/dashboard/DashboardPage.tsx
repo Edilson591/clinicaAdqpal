@@ -21,6 +21,9 @@ export default function DashboardPage() {
   const { agendaDoDia, totalPages, total: consultasHoje, isLoading, search, setSearch, proximoAtendimento } =
     useDashboard(page, setPage, date);
 
+
+
+
   const { data: novosPacientes = 0 } = usePatientsCountToday();
 
   return (

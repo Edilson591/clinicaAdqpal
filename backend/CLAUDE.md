@@ -588,6 +588,214 @@ Cada prontuário está vinculado a uma consulta (`appointmentId` único — 1:1 
 
 ---
 
+## Integração Pluggy (Open Banking)
+
+Implementado em 2026-04-09. Permite conectar contas bancárias via Open Banking regulado pelo Banco Central do Brasil.
+
+### Setup
+
+```bash
+# Instalar o SDK do Pluggy
+npm install pluggy-sdk
+
+# Aplicar a migration
+npm run prisma:migrate
+```
+
+### Variáveis de Ambiente
+
+| Variável | Descrição |
+|----------|-----------|
+| `PLUGGY_CLIENT_ID` | Client ID obtido no dashboard Pluggy |
+| `PLUGGY_CLIENT_SECRET` | Client Secret do dashboard Pluggy |
+| `PLUGGY_WEBHOOK_URL` | URL pública do backend para receber webhooks (ex: `https://seu-dominio.com/pluggy/webhook`) |
+
+### Rotas (`/pluggy`)
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| `GET` | `/pluggy/connect-token` | JWT | Cria token temporário para o widget Pluggy Connect |
+| `GET` | `/pluggy/items` | JWT | Lista conexões bancárias ativas |
+| `POST` | `/pluggy/sync/:itemId` | JWT | Sincroniza contas + últimas 90 dias de transações |
+| `DELETE` | `/pluggy/items/:itemId` | JWT | Desconecta um banco (remove local + Pluggy) |
+| `POST` | `/pluggy/webhook` | Nenhuma | Recebe eventos automáticos do Pluggy |
+
+### Fluxo de Conexão
+
+1. Frontend solicita `GET /pluggy/connect-token`
+2. Backend cria token no Pluggy SDK → retorna `accessToken`
+3. Frontend abre o widget Pluggy Connect com o token
+4. Usuário autentica com o banco → widget chama `onSuccess({ item.id })`
+5. Frontend envia `POST /pluggy/sync/:itemId`
+6. Backend sincroniza: cria `PluggyItem` + `FinancialAccount` + `Transaction` (usando `reference: "pluggy_<id>"` para evitar duplicatas)
+
+### Modelo `PluggyItem` (Prisma)
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `pluggyItemId` | String (único) | ID do item no Pluggy |
+| `connectorName` | String | Nome do banco (ex: "Bradesco") |
+| `connectorLogo` | String? | URL do logo do banco |
+| `status` | String | `UPDATED` \| `UPDATING` \| `LOGIN_ERROR` \| `OUTDATED` |
+| `lastSync` | DateTime? | Última sincronização bem-sucedida |
+
+### Arquivos criados
+
+| Camada | Arquivo |
+|--------|---------|
+| Infrastructure | `src/infrastructure/services/PluggyService.ts` |
+| Interfaces | `src/interfaces/controllers/PluggyController.ts` |
+| Interfaces | `src/interfaces/routes/pluggyRoutes.ts` |
+| Prisma | `prisma/migrations/20260409220000_pluggy_integration/` |
+
+### Mapeamentos
+
+**Tipo de conta Pluggy → AccountType:**
+- `BANK` / `SAVINGS` → `CHECKING` / `SAVINGS`
+- `CREDIT` → `CREDIT_CARD`
+- `INVESTMENT` → `INVESTMENT`
+
+**Tipo de transação Pluggy → TransactionType:**
+- `CREDIT` → `INCOME`
+- `DEBIT` → `EXPENSE`
+
+---
+
+## Módulo Financeiro
+
+Implementado em 2026-04-09. Gerencia contas, categorias e transações financeiras da clínica.
+
+### Modelo `FinancialAccount`
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| id | String (UUID) | sim | Gerado automaticamente |
+| name | String | sim | Nome da conta |
+| type | Enum | sim | `CHECKING` \| `SAVINGS` \| `CASH` \| `CREDIT_CARD` \| `INVESTMENT` |
+| bank | String? | não | Nome do banco |
+| initialBalance | Float | sim | Saldo inicial |
+| currency | String | sim | Moeda (padrão: `BRL`) |
+| isActive | Boolean | sim | Conta ativa/inativa |
+| isDefault | Boolean | sim | Conta padrão |
+| color | String? | não | Cor para exibição |
+| createdAt | DateTime | auto | Timestamp de criação |
+| updatedAt | DateTime | auto | Timestamp de atualização |
+
+### Modelo `FinancialCategory`
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| id | String (UUID) | sim | Gerado automaticamente |
+| name | String | sim | Nome da categoria |
+| type | Enum | sim | `INCOME` \| `EXPENSE` \| `BOTH` |
+| color | String? | não | Cor para exibição |
+| icon | String? | não | Ícone da categoria |
+| parentId | String? | não | FK para categoria pai (subcategorias) |
+| isDefault | Boolean | sim | Categoria padrão do sistema |
+| isActive | Boolean | sim | Categoria ativa/inativa |
+| createdAt | DateTime | auto | Timestamp de criação |
+| updatedAt | DateTime | auto | Timestamp de atualização |
+
+### Modelo `Transaction`
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| id | String (UUID) | sim | Gerado automaticamente |
+| accountId | String (UUID FK) | sim | Conta financeira |
+| categoryId | String (UUID FK) | sim | Categoria da transação |
+| patientId | String (UUID FK) | não | Paciente relacionado (opcional) |
+| appointmentId | String (UUID FK) | não | Consulta relacionada (opcional) |
+| createdBy | String (UUID FK) | sim | Usuário que criou |
+| type | Enum | sim | `INCOME` \| `EXPENSE` \| `TRANSFER` |
+| amount | Float | sim | Valor da transação |
+| description | String | sim | Descrição |
+| status | Enum | sim | `PENDING` \| `CONFIRMED` \| `CANCELLED` |
+| paymentMethod | Enum | sim | `CASH` \| `CREDIT_CARD` \| `DEBIT_CARD` \| `PIX` \| `BANK_TRANSFER` \| `INSURANCE` \| `OTHER` |
+| dueDate | DateTime | sim | Data de vencimento |
+| paidAt | DateTime? | não | Data de pagamento efetivo |
+| reference | String? | não | Referência externa |
+| isRecurring | Boolean | sim | Transação recorrente |
+| recurringGroupId | String? | não | Agrupa recorrências |
+| installmentNumber | Int? | não | Número da parcela |
+| totalInstallments | Int? | não | Total de parcelas |
+| transferToAccountId | String? | não | Conta destino (para transferências) |
+| tags | String[] | não | Tags livres |
+| attachmentUrl | String? | não | URL de comprovante/anexo |
+| deletedAt | DateTime? | — | Soft delete |
+| createdAt | DateTime | auto | Timestamp de criação |
+| updatedAt | DateTime | auto | Timestamp de atualização |
+
+### Rotas (requerem `Authorization: Bearer <token>`)
+
+#### Contas (`/financial-accounts`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/financial-accounts` | Criar conta |
+| `GET` | `/financial-accounts` | Listar contas |
+| `GET` | `/financial-accounts/:id` | Buscar conta por ID |
+| `PUT` | `/financial-accounts/:id` | Atualizar conta |
+| `DELETE` | `/financial-accounts/:id` | Deletar conta |
+
+#### Categorias (`/financial-categories`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/financial-categories` | Criar categoria |
+| `GET` | `/financial-categories` | Listar categorias |
+| `GET` | `/financial-categories/:id` | Buscar categoria por ID |
+| `PUT` | `/financial-categories/:id` | Atualizar categoria |
+| `DELETE` | `/financial-categories/:id` | Deletar categoria |
+
+#### Transações (`/transactions`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/transactions` | Criar transação |
+| `GET` | `/transactions` | Listar transações (com filtros) |
+| `GET` | `/transactions/:id` | Buscar transação por ID |
+| `PUT` | `/transactions/:id` | Atualizar transação |
+| `DELETE` | `/transactions/:id` | Deletar transação (soft delete) |
+
+### Filtros disponíveis em `GET /transactions`
+
+`?accountId=` `?categoryId=` `?patientId=` `?appointmentId=` `?type=` `?status=` `?paymentMethod=` `?dateStart=` `?dateEnd=` `?search=` `?page=` `?limit=`
+
+### Arquivos criados
+
+| Camada | Arquivo |
+|--------|---------|
+| Domain | `src/domain/entities/FinancialAccount.ts` |
+| Domain | `src/domain/entities/FinancialCategory.ts` |
+| Domain | `src/domain/entities/Transaction.ts` |
+| Domain | `src/domain/repositories/IFinancialAccountRepository.ts` |
+| Domain | `src/domain/repositories/IFinancialCategoryRepository.ts` |
+| Domain | `src/domain/repositories/ITransactionRepository.ts` |
+| Application | `src/application/dtos/FinancialDTOs.ts` |
+| Application | `src/application/mappers/financialMapper.ts` |
+| Application | `src/application/use-cases/CreateFinancialAccount.ts` |
+| Application | `src/application/use-cases/UpdateFinancialAccount.ts` |
+| Application | `src/application/use-cases/DeleteFinancialAccount.ts` |
+| Application | `src/application/use-cases/ListFinancialAccounts.ts` |
+| Application | `src/application/use-cases/CreateFinancialCategory.ts` |
+| Application | `src/application/use-cases/UpdateFinancialCategory.ts` |
+| Application | `src/application/use-cases/DeleteFinancialCategory.ts` |
+| Application | `src/application/use-cases/ListFinancialCategories.ts` |
+| Application | `src/application/use-cases/CreateTransaction.ts` |
+| Application | `src/application/use-cases/UpdateTransaction.ts` |
+| Application | `src/application/use-cases/DeleteTransaction.ts` |
+| Application | `src/application/use-cases/ListTransactions.ts` |
+| Infrastructure | `src/infrastructure/repositories/PrismaFinancialAccountRepository.ts` |
+| Infrastructure | `src/infrastructure/repositories/PrismaFinancialCategoryRepository.ts` |
+| Infrastructure | `src/infrastructure/repositories/PrismaTransactionRepository.ts` |
+| Interfaces | `src/interfaces/controllers/FinancialController.ts` |
+| Interfaces | `src/interfaces/routes/financialAccountRoutes.ts` |
+| Interfaces | `src/interfaces/routes/financialCategoryRoutes.ts` |
+| Interfaces | `src/interfaces/routes/transactionRoutes.ts` |
+| Prisma | `prisma/migrations/20260409192225_financial_module/` |
+
+---
+
 ## Adicionando Novas Entidades
 
 Para adicionar, por exemplo, `Paciente`:
