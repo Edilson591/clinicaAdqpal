@@ -149,6 +149,24 @@ export class PrismaUserRepository implements IUserRepository {
     }
   }
 
+  async updateSpecialties(userId: string, specialtyIds: string[]): Promise<void> {
+    try {
+      await this.prisma.$transaction([
+        this.prisma.doctorSpecialty.deleteMany({ where: { doctorId: userId } }),
+        ...(specialtyIds.length > 0
+          ? [
+              this.prisma.doctorSpecialty.createMany({
+                data: specialtyIds.map((specialtyId) => ({ doctorId: userId, specialtyId })),
+                skipDuplicates: true,
+              }),
+            ]
+          : []),
+      ]);
+    } catch (err) {
+      throw new DomainError(`Erro ao atualizar especialidades: ${String(err)}`, 500);
+    }
+  }
+
   async delete(id: string): Promise<void> {
     try {
       await this.prisma.user.delete({ where: { id } });

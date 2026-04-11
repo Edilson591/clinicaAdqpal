@@ -54,27 +54,35 @@ export type LoginUserDTO = z.infer<typeof LoginUserSchema>;
 
 // ─── Update ───────────────────────────────────────────────────────────────────
 
-export const UpdateUserSchema = z.object({
-  username: z
-    .string()
-    .min(3, "Username deve ter pelo menos 3 caracteres")
-    .max(50)
-    .trim()
-    .optional(),
-  email: z.string().email("Digite um e-mail válido").toLowerCase().trim().optional(),
-  password: z
-    .string()
-    .min(8, "Senha deve ter pelo menos 8 caracteres")
-    .max(72)
-    .regex(/[A-Z]/, "Senha deve conter pelo menos uma letra maiúscula")
-    .regex(/[0-9]/, "Senha deve conter pelo menos um número")
-    .optional(),
-  roleId: z.number().int().positive().optional(),
-  cpf: z.string().regex(/^\d{11}$/, "CPF deve ter 11 dígitos").nullable().optional(),
-  cnpj: z.string().regex(/^\d{14}$/, "CNPJ deve ter 14 dígitos").nullable().optional(),
-}).refine((data) => Object.keys(data).length > 0, {
-  message: "Ao menos um campo deve ser fornecido para atualização",
-});
+export const UpdateUserSchema = z
+  .object({
+    username: z
+      .string()
+      .min(3, "Username deve ter pelo menos 3 caracteres")
+      .max(50)
+      .trim()
+      .optional(),
+    email: z.string().email("Digite um e-mail válido").toLowerCase().trim().optional(),
+    currentPassword: z.string().optional(),
+    password: z
+      .string()
+      .min(8, "Senha deve ter pelo menos 8 caracteres")
+      .max(72)
+      .regex(/[A-Z]/, "Senha deve conter pelo menos uma letra maiúscula")
+      .regex(/[0-9]/, "Senha deve conter pelo menos um número")
+      .optional(),
+    roleId: z.number().int().positive().optional(),
+    cpf: z.string().regex(/^\d{11}$/, "CPF deve ter 11 dígitos").nullable().optional(),
+    cnpj: z.string().regex(/^\d{14}$/, "CNPJ deve ter 14 dígitos").nullable().optional(),
+    specialtyIds: z.array(z.string().uuid()).optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "Ao menos um campo deve ser fornecido para atualização",
+  })
+  .refine((data) => !data.password || !!data.currentPassword, {
+    message: "Senha atual é obrigatória para alterar a senha",
+    path: ["currentPassword"],
+  });
 
 export type UpdateUserDTO = z.infer<typeof UpdateUserSchema>;
 

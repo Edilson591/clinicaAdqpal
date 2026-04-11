@@ -56,10 +56,12 @@ export interface LoginUserInput {
 export interface UpdateUserInput {
   username?: string;
   email?: string;
+  currentPassword?: string;
   password?: string;
   roleId?: number;
   cpf?: string | null;
   cnpj?: string | null;
+  specialtyIds?: string[];
 }
 
 // ─── Patient ──────────────────────────────────────────────────────────────────

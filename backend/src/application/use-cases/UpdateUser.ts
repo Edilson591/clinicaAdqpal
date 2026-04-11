@@ -1,7 +1,7 @@
 import type { IUserRepository } from "../../domain/repositories/IUserRepository";
 import type { IHashService } from "../../domain/services/IHashService";
 import type { UpdateUserDTO, UserResponseDTO } from "../dtos/UserDTOs";
-import { NotFoundError, ConflictError } from "../../domain/errors/DomainError";
+import { NotFoundError, ConflictError, ValidationError } from "../../domain/errors/DomainError";
 import { toUserResponseDTO } from "../mappers/userMapper";
 
 export class UpdateUser {
@@ -26,6 +26,16 @@ export class UpdateUser {
       if (usernameTaken) throw new ConflictError("Este username já está em uso.");
     }
 
+    if (dto.password) {
+      if (!dto.currentPassword) {
+        throw new ValidationError("Senha atual é obrigatória para alterar a senha.");
+      }
+      const valid = await this.hashService.compare(dto.currentPassword, user.passwordHash);
+      if (!valid) {
+        throw new ValidationError("Senha atual incorreta.");
+      }
+    }
+
     const updateData: Parameters<IUserRepository["update"]>[1] = {};
 
     if (dto.username !== undefined) updateData.username = dto.username;
@@ -38,6 +48,11 @@ export class UpdateUser {
     }
 
     const updated = await this.userRepository.update(id, updateData);
+
+    if (dto.specialtyIds !== undefined) {
+      await this.userRepository.updateSpecialties(id, dto.specialtyIds);
+    }
+
     return toUserResponseDTO(updated);
   }
 }

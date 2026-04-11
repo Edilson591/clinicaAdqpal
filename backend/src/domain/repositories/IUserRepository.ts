@@ -9,5 +9,6 @@ export interface IUserRepository {
   count(): Promise<number>;
   create(data: CreateUserData): Promise<User>;
   update(id: string, data: UpdateUserData): Promise<User>;
+  updateSpecialties(userId: string, specialtyIds: string[]): Promise<void>;
   delete(id: string): Promise<void>;
 }
