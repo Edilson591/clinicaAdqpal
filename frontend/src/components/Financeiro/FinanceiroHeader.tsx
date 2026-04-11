@@ -1,29 +1,68 @@
 import { Plus } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { format } from "date-fns";
+import { format, startOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { SearchableSelect } from "../ui/SearchableSelect";
+import { useSelectedMonth } from "./useSelectedMonth";
+
 
 const TABS = [
   { label: "Visão Geral", path: "/financeiro" },
   { label: "Transações", path: "/financeiro/transacoes" },
 ];
 
+/** Gera lista dos últimos 13 meses (mês atual + 12 anteriores) */
+function buildMonthOptions() {
+  const options: { value: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = 0; i < 13; i++) {
+    const d = subMonths(startOfMonth(now), i);
+    const value = format(d, "yyyy-MM");
+    const label = format(d, "MMMM yyyy", { locale: ptBR });
+    options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
+  }
+  return options;
+}
+
+const MONTH_OPTIONS = buildMonthOptions();
+
+
 export function FinanceiroHeader() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { selectedMonth, setMonth } = useSelectedMonth();
 
-  const currentMonth = format(new Date(), "MMMM yyyy", { locale: ptBR });
-  const displayMonth = currentMonth.charAt(0).toUpperCase() + currentMonth.slice(1);
+  // const selectedLabel =
+  //   MONTH_OPTIONS.find((o) => o.value === selectedMonth)?.label ??
+  //   MONTH_OPTIONS[0].label;
+
+  function navigateTab(path: string) {
+    // Preserva o filtro de mês ao trocar de aba
+    const params = selectedMonth !== format(new Date(), "yyyy-MM")
+      ? `?month=${selectedMonth}`
+      : "";
+    navigate(`${path}${params}`);
+  }
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Título + botão */}
+      {/* Título + seletor de mês + botão */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-[22px] font-bold text-[#1E293B] dark:text-[#F1F5F9]">
             Gestão Financeira
           </h1>
-          <span className="text-[13px] text-[#94A3B8]">{displayMonth}</span>
+
+          {/* Seletor de mês */}
+          <div className="w-48">
+            <SearchableSelect
+              options={MONTH_OPTIONS}
+              value={selectedMonth}
+              onChange={setMonth}
+              placeholder="Selecionar mês..."
+              className="h-8 px-3 text-[12px] font-medium text-[#475569] dark:text-[#CBD5E1] bg-[#F1F5F9] dark:bg-[#334155] border-[#E2E8F0] dark:border-[#475569] focus:ring-[#38A169]/30"
+            />
+          </div>
         </div>
 
         <button
@@ -43,7 +82,7 @@ export function FinanceiroHeader() {
           return (
             <button
               key={tab.path}
-              onClick={() => navigate(tab.path)}
+              onClick={() => navigateTab(tab.path)}
               className={`px-4 py-2 text-[13px] font-medium border-b-2 transition-colors cursor-pointer -mb-px ${
                 isActive
                   ? "border-[#38A169] text-[#38A169]"

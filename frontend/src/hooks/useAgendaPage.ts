@@ -33,7 +33,7 @@ export function useAgendaPage(
 
   const effectiveUserId = search.trim() ? undefined : userId;
 
-  console.log(effectiveUserId, userId);
+  
 
   const { data, isLoading } = useAppointmentsPaginatedSearch(
     page,

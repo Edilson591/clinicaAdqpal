@@ -1257,3 +1257,191 @@ A página é totalmente responsiva com os seguintes breakpoints:
 - `ReceitaDespesasChart`: adicionado `min-h-[280px]` para garantir altura mínima em coluna; padding `p-4 sm:p-5`
 - `TransacoesRecentes`: substituído `style={{ width: 320 }}` fixo por `w-full lg:w-80 lg:min-w-[280px]`
 
+---
+
+## Testes (Vitest + React Testing Library)
+
+Implementado em 2026-04-10. Cobertura de utils, schemas Zod, hooks e contextos.
+
+### Configuração
+
+| Item | Valor |
+|------|-------|
+| Framework | **Vitest** (`vitest run` / `vitest`) |
+| Ambiente | `jsdom` |
+| Setup | `src/__tests__/setup.ts` — importa `@testing-library/jest-dom` |
+| Glob de inclusão | `src/__tests__/**/*.test.{ts,tsx}` |
+
+Scripts:
+```bash
+npm test          # executa uma vez
+npm run test:watch  # modo watch
+```
+
+### Estrutura dos testes
+
+```
+src/__tests__/
+├── setup.ts
+├── components/
+│   └── ProtectedRoute.test.tsx
+├── context/
+│   └── PermissionsProvider.test.tsx
+├── hooks/
+│   ├── useAppointmentSSE.test.ts
+│   ├── useAgendaPage.test.ts
+│   ├── useDashboard.test.ts
+│   ├── useFinancial.test.ts
+│   ├── useMedicalRecords.test.ts
+│   └── useZodForm.test.tsx
+├── store/
+│   └── authSlice.test.ts
+├── types/
+│   └── roles.test.ts
+├── utils/
+│   ├── formatCep.test.ts
+│   ├── formatCpf.test.ts
+│   ├── formatPhone.test.ts
+│   └── formatTime.test.ts
+└── validate/
+    ├── loginSchema.test.ts
+    ├── novaTransacaoSchema.test.ts
+    └── patientHistorySchema.test.ts
+```
+
+### Convenções
+
+**Mocking de `useAuth`**
+
+`useAuth()` retorna `{ user, token, isAuthenticated, logout }`. Ao mockar, sempre envolva o objeto do usuário:
+
+```ts
+vi.mock('../../context/AuthContext', () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
+// ✅ correto
+mockUseAuth.mockReturnValue({ user: adminUser, token: 'tok', isAuthenticated: true, logout: vi.fn() });
+
+// ❌ errado — user ficará undefined no hook
+mockUseAuth.mockReturnValue(adminUser);
+```
+
+**Wrapper QueryClient para hooks React Query**
+
+```ts
+function makeWrapper() {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return ({ children }: { children: React.ReactNode }) =>
+    createElement(QueryClientProvider, { client: qc }, children);
+}
+
+const { result } = renderHook(() => useMeuHook(), { wrapper: makeWrapper() });
+```
+
+**Datas locais em testes**
+
+Evite `new Date('YYYY-MM-DD')` — é interpretado como UTC e sofre deslocamento de timezone. Use o construtor local:
+
+```ts
+// ✅ correto — não sofre deslocamento
+const date = new Date(2026, 3, 10); // mês 0-indexed: 3 = abril
+
+// ❌ evitar — UTC midnight vira dia anterior no Brasil
+new Date('2026-04-10');
+```
+
+**Testes de formulário (react-hook-form)**
+
+Erros do `formState` só aparecem para campos registrados. Para testar validação, renderize um componente com `register()`:
+
+```tsx
+function TestForm() {
+  const { register, handleSubmit, formState: { errors } } = useZodForm(schema);
+  return (
+    <form onSubmit={handleSubmit(() => {})}>
+      <input {...register('campo')} />
+      {errors.campo && <p>{errors.campo.message}</p>}
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+Para testar apenas API do hook (defaultValues, reset, getValues), `renderHook` é suficiente.
+
+**Schemas Zod — teste direto**
+
+Schemas podem ser testados diretamente com `.safeParse()`, sem necessidade de renderizar componentes:
+
+```ts
+const result = schema.safeParse(dados);
+expect(result.success).toBe(true);
+// ou
+expect(result.error.issues[0].message).toBe('mensagem esperada');
+```
+
+---
+
+## Página de Perfil (`src/pages/perfil/PerfilPage.tsx`)
+
+**Rota:** `/perfil` (privada)
+**Acesso:** dropdown do usuário na sidebar (botão "Perfil" em `UserSection`)
+
+### Layout
+
+```
+PerfilPage
+  └─ main (flex-1, bg #F5F6FA, p-6 sm:p-8)
+        └─ max-w-2xl mx-auto
+              ├─ Título ("Meu Perfil")
+              ├─ AvatarHeader (avatar inicial + nome + subtítulo)
+              ├─ PerfilSection (nome, e-mail, especialidade)
+              └─ SegurancaSection (senha atual, nova senha, confirmar)
+```
+
+### Componentes internos
+
+| Componente | Descrição |
+|-----------|-----------|
+| `AvatarHeader` | Card com avatar de inicial verde, nome e cargo |
+| `PerfilSection` | Formulário com `perfilSchema` — campos nome, e-mail, especialidade |
+| `SegurancaSection` | Formulário com `segurancaSchema` — campos senha atual, nova, confirmar |
+| `FeedbackMessage` | Feedback inline de sucesso/erro (verde/vermelho com ícone) |
+
+### Formulários
+
+| Seção | Schema | Campos | Mutation |
+|-------|--------|--------|---------|
+| Perfil | `perfilSchema` | `nome`, `email`, `especialidade` | `userService.update(user.id, ...)` |
+| Segurança | `segurancaSchema` | `atual`, `nova`, `confirma` | stub (adaptar quando endpoint existir) |
+
+- Ambos usam `useZodForm` + `handleSubmit`
+- Feedback inline com `FeedbackMessage` (não usa toast global)
+- Botão mostra "Salvando..." / "Alterando..." durante `isPending`
+- `SegurancaSection` chama `reset()` após sucesso
+
+### Sidebar — integração
+
+`UserSection.tsx` usa `useNavigate` para redirecionar ao clicar em "Perfil":
+
+```tsx
+onClick={() => {
+  setMenuOpen(false);
+  navigate("/perfil");
+}}
+```
+
+### Cores
+
+| Elemento | Cor |
+|----------|-----|
+| Page bg | `#F5F6FA` |
+| Cards bg | `#FFFFFF` |
+| Borda cards | `#E5E7EB` |
+| Título / texto primário | `#1E293B` |
+| Subtítulo | `#64748B` |
+| Avatar bg | `#38A169` |
+| Ícone perfil bg | `#DCFCE7` (verde claro) |
+| Ícone segurança bg | `#EFF6FF` (azul claro) |
+

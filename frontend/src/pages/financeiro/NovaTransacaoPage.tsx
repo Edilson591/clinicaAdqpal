@@ -21,6 +21,7 @@ import {
   useFinancialCategories,
   useCreateTransaction,
 } from "../../hooks/useFinancial";
+import { useAuth } from "../../context/AuthContext";
 
 const PAYMENT_OPTIONS = [
   { value: "PIX", label: "PIX" },
@@ -41,6 +42,7 @@ const STATUS_OPTIONS = [
 function NovaTransacaoContent() {
   const navigate = useNavigate();
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const {user} = useAuth()
 
   const { data: accounts = [] } = useFinancialAccounts(true);
   const createTransaction = useCreateTransaction();
@@ -93,6 +95,7 @@ function NovaTransacaoContent() {
         amount: parseFloat(data.amount.replace(",", ".")),
         status: data.status,
         paymentMethod: data.paymentMethod,
+        createdBy: user?.id,
         dueDate: new Date(data.dueDate + "T00:00:00").toISOString(),
         ...(data.notes ? { reference: data.notes } : {}),
       });
@@ -267,7 +270,7 @@ function NovaTransacaoContent() {
             <VoiceTextarea
               label="Observações"
               placeholder="Informações adicionais sobre a transação..."
-              className="min-h-[80px]"
+              className="min-h-20"
               currentValue={watch("notes") ?? ""}
               onTranscriptAppend={(val) => setValue("notes", val)}
               {...register("notes")}

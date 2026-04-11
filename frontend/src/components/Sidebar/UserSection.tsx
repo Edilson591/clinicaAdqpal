@@ -1,6 +1,7 @@
 import { ChevronUp, LogOut, UserCircle } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { UserResponse } from "../../types/api";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -14,6 +15,7 @@ function UserSection({ user, expanded, logout }: UserSectionProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { disabledTheme } = useTheme();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -39,7 +41,13 @@ function UserSection({ user, expanded, logout }: UserSectionProps) {
             </p>
           </div>
 
-          <button className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#374151] dark:text-[#CBD5E1] hover:bg-[#F9FAFB] dark:hover:bg-[#263548] transition-colors cursor-pointer">
+          <button
+            onClick={() => {
+              setMenuOpen(false);
+              navigate("/perfil");
+            }}
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#374151] dark:text-[#CBD5E1] hover:bg-[#F9FAFB] dark:hover:bg-[#263548] transition-colors cursor-pointer"
+          >
             <UserCircle
               size={15}
               className="text-[#6B7280] dark:text-[#64748B]"

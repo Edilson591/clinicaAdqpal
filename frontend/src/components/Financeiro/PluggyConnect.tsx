@@ -168,14 +168,29 @@ export function PluggyConnect() {
     setConnecting(true);
     setError(null);
     try {
-      await loadPluggyScript();
-      const { accessToken, sandbox } = await PluggyService.getConnectToken();
+      const { accessToken, sandbox, mock } = await PluggyService.getConnectToken();
 
+      if (mock) {
+        // Modo mock: pula o widget e sincroniza diretamente com o item fake
+        const MOCK_ITEM_ID = "mock-item-001";
+        setSyncingId(MOCK_ITEM_ID);
+        setConnecting(false);
+        try {
+          const result = await syncMutation.mutateAsync(MOCK_ITEM_ID);
+          setSyncResult(result);
+        } catch {
+          setError("Erro ao sincronizar dados mock. Tente novamente.");
+        } finally {
+          setSyncingId(null);
+        }
+        return;
+      }
+
+      await loadPluggyScript();
       openPluggyWidget(
         accessToken,
         sandbox,
         async (itemId) => {
-          // Widget success — sincroniza o item
           setSyncingId(itemId);
           try {
             const result = await syncMutation.mutateAsync(itemId);
@@ -189,8 +204,8 @@ export function PluggyConnect() {
         () => setConnecting(false)
       );
     } catch (err) {
-      console.log(err)
-      setError("Não foi possível abrir o widget Pluggy. Verifique sua conexão.");
+      console.log(err);
+      setError("Não foi possível conectar ao banco. Verifique sua conexão.");
       setConnecting(false);
     }
   }, [syncMutation]);

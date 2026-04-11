@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { usePatient } from "../../hooks/usePatients";
 import { usePatientHistory } from "../../hooks/usePatientHistory";
+import { useAppointmentsByPatient } from "../../hooks/useAppointments";
 import { HistoricoHeader } from "../../components/HistoricoPaciente/HistoricoHeader";
 import { PatientInfoCard } from "../../components/HistoricoPaciente/PatientInfoCard";
 import { HistoricoList } from "../../components/HistoricoPaciente/HistoricoList";
@@ -16,6 +17,7 @@ export default function HistoricoPacientePage() {
 
   const { data: patient } = usePatient(patientId);
   const { data: history = [], isLoading } = usePatientHistory(patientId);
+  const { data: appointments = [], isLoading: appointmentsLoading } = useAppointmentsByPatient(patientId);
 
   const [activeTab, setActiveTab] = useState<HistoricoTab>("TODOS");
   const [search, setSearch] = useState("");
@@ -51,6 +53,8 @@ export default function HistoricoPacientePage() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           search={search}
+          appointments={appointments}
+          appointmentsLoading={appointmentsLoading}
         />
       </div>
 

@@ -87,6 +87,7 @@ export interface PatientResponse {
 
   createdAt: string;
   updatedAt: string;
+  latestMedicalRecordId: string | null;
 }
 
 export interface CreatePatientInput {
@@ -158,6 +159,7 @@ export interface AppointmentResponse {
   meetingLink: string | null;
   address: string | null;
   notes: string | null;
+  medicalRecordId: string | null;
   createdAt: string;
   updatedAt: string;
 }

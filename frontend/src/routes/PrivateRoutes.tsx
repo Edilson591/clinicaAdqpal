@@ -12,6 +12,7 @@ import ProntuariosPage from "../pages/prontuarios/ProntuariosPage";
 import NovoProntuarioPage from "../pages/prontuarios/NovoProntuarioPage";
 import EditProntuarioPage from "../pages/prontuarios/EditProntuarioPage";
 import ConfiguracaoPage from "../pages/configuracao/ConfiguracaoPage";
+import PerfilPage from "../pages/perfil/PerfilPage";
 import GestaoFinanceiraPage from "../pages/financeiro/GestaoFinanceiraPage";
 import NovaTransacaoPage from "../pages/financeiro/NovaTransacaoPage";
 import TransacoesPage from "../pages/financeiro/TransacoesPage";
@@ -31,6 +32,7 @@ export const privateRoutes = (
       <Route path="/prontuarios/novo" element={<NovoProntuarioPage />} />
       <Route path="/prontuarios/:id/editar" element={<EditProntuarioPage />} />
       <Route path="/configuracoes" element={<ConfiguracaoPage />} />
+      <Route path="/perfil" element={<PerfilPage />} />
 
       {/* Área Financeira — restrita a Admin, Recepcionista e Suporte de TI */}
       <Route element={<FinanceiroGuard />}>

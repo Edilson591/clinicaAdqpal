@@ -1,12 +1,18 @@
 import { useNavigate } from "react-router-dom";
-import type { DashboardAppointment, AgendaStatus } from "../../hooks/useDashboard";
-
+import type {
+  DashboardAppointment,
+  AgendaStatus,
+} from "../../hooks/useDashboard";
 // Status badge — Pendente muda no dark (pen: #334155 bg, #94A3B8 text)
 const statusStyles: Record<AgendaStatus, string> = {
-  Confirmada: "bg-[#DBEAFE] text-[#1D4ED8] dark:bg-[#1E3A5F] dark:text-[#60A5FA]",
-  Concluido: "bg-[#DCFCE7] text-[#166534] dark:bg-[#1E3A2F] dark:text-[#4ADE80]",
-  Cancelado: "bg-[#FEE2E2] text-[#991B1B] dark:bg-[#3F1E1E] dark:text-[#FCA5A5]",
-  "Em Andamento": 'bg-[#FEF3C7] text-[#92400E] dark:bg-[#3F2A1E] dark:text-[#FCD34D]',
+  Confirmada:
+    "bg-[#DBEAFE] text-[#1D4ED8] dark:bg-[#1E3A5F] dark:text-[#60A5FA]",
+  Concluido:
+    "bg-[#DCFCE7] text-[#166534] dark:bg-[#1E3A2F] dark:text-[#4ADE80]",
+  Cancelado:
+    "bg-[#FEE2E2] text-[#991B1B] dark:bg-[#3F1E1E] dark:text-[#FCA5A5]",
+  "Em Andamento":
+    "bg-[#FEF3C7] text-[#92400E] dark:bg-[#3F2A1E] dark:text-[#FCD34D]",
 };
 
 function StatusBadge({ status }: { status: AgendaStatus }) {
@@ -25,8 +31,14 @@ interface AgendaTableProps {
   search?: string;
 }
 
-export function AgendaTable({ appointments, isLoading, search }: AgendaTableProps) {
+export function AgendaTable({
+  appointments,
+  isLoading,
+  search,
+}: AgendaTableProps) {
   const navigate = useNavigate();
+
+  // const {} = useMedicalRecordsByPatient(appointments.map((a) => a.patientId))
 
   return (
     // pen: jBwnl · bg #FFFFFF light · #1E293B dark · border #E5E7EB/#334155
@@ -82,31 +94,37 @@ export function AgendaTable({ appointments, isLoading, search }: AgendaTableProp
 
       {/* Rows */}
       {!isLoading &&
-        appointments.map((item) => (
-          <div
-            key={item.id}
-            className="grid grid-cols-[80px_1fr_120px_4px_140px] items-center px-6 py-4 border-b border-[#F3F4F6] dark:border-[#334155] last:border-0 hover:bg-[#F9FAFB] dark:hover:bg-[#263548] transition-colors"
-          >
-            <span className="text-sm font-medium text-[#374151] dark:text-[#F1F5F9]">
-              {item.horario}
-            </span>
-            <span className="text-sm text-[#374151] dark:text-[#CBD5E1]">
-              {item.paciente}
-            </span>
-            <div className="flex justify-center">
-              <StatusBadge status={item.status} />
+        appointments.map((item) => {
+          return (
+            <div
+              key={item.id}
+              className="grid grid-cols-[80px_1fr_120px_4px_140px] items-center px-6 py-4 border-b border-[#F3F4F6] dark:border-[#334155] last:border-0 hover:bg-[#F9FAFB] dark:hover:bg-[#263548] transition-colors"
+            >
+              <span className="text-sm font-medium text-[#374151] dark:text-[#F1F5F9]">
+                {item.horario}
+              </span>
+              <span className="text-sm text-[#374151] dark:text-[#CBD5E1]">
+                {item.paciente}
+              </span>
+              <div className="flex justify-center">
+                <StatusBadge status={item.status} />
+              </div>
+              <span />
+              <div className="flex justify-center">
+                <button
+                  onClick={() =>
+                    item.medicalRecordId
+                      ? navigate(`/prontuarios/${item.medicalRecordId}/editar`)
+                      : navigate(`/prontuarios?patientId=${item.patientId}`)
+                  }
+                  className="text-xs font-medium text-[#38A169] border border-[#38A169] rounded-lg px-4 py-2 hover:bg-[#38A169] hover:text-white transition-colors whitespace-nowrap cursor-pointer"
+                >
+                  Ver Prontuário
+                </button>
+              </div>
             </div>
-            <span />
-            <div className="flex justify-center">
-              <button
-                onClick={() => navigate(`/prontuarios?paciente=${item.patientId}`)}
-                className="text-xs font-medium text-[#38A169] border border-[#38A169] rounded-lg px-4 py-2 hover:bg-[#38A169] hover:text-white transition-colors whitespace-nowrap cursor-pointer"
-              >
-                Ver Prontuário
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
     </div>
   );
 }

@@ -28,6 +28,7 @@ function toDomain(row: {
   notes: string | null;
   createdAt: Date;
   updatedAt: Date;
+  medicalRecord?: { id: string } | null;
 }): Appointment {
   return {
     id: row.id,
@@ -43,6 +44,7 @@ function toDomain(row: {
     meetingLink: row.meetingLink,
     address: row.address,
     notes: row.notes,
+    medicalRecordId: row.medicalRecord?.id ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -241,6 +243,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
         where: buildFindAllWhere(filters),
         include: {
           patient: true,
+          medicalRecord: { select: { id: true } },
         },
         orderBy: { scheduledAt: filters?.order ?? "asc" },
         ...(pagination && {

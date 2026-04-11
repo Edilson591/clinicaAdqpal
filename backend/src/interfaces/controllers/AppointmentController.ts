@@ -36,6 +36,15 @@ export class AppointmentController {
       const appointment = await new CreateAppointment(
         appointmentRepository,
       ).execute(dto);
+
+      // Cria prontuário vazio automaticamente vinculado à consulta
+      await prisma.medicalRecord.create({
+        data: {
+          appointmentId: appointment.id,
+          patientId:     appointment.patientId,
+        },
+      });
+
       sseManager.broadcast("appointment_created", appointment);
       res.status(201).json({
         success: true,

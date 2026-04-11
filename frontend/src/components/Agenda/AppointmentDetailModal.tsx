@@ -56,14 +56,17 @@ export function AppointmentDetailModal({
   const updateMutation = useUpdateAppointment();
 
   const scheduledDate = new Date(appointment.scheduledAt);
+
   const dateStr = scheduledDate.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",
     year: "numeric",
+    timeZone: "UTC",
   });
   const timeStr = scheduledDate.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "UTC",
   });
 
   const currentStatus = STATUS_OPTIONS.find(
@@ -96,12 +99,14 @@ export function AppointmentDetailModal({
           <h2 className="text-lg font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
             Detalhes da Consulta
           </h2>
-          <button
+            <Button
+            variant="ghost"
+            size="sm"
             onClick={onClose}
-            className="text-[#64748B] hover:text-[#1E293B] dark:hover:text-[#F1F5F9] transition-colors"
+            className="w-8 h-8 p-0 text-[#94A3B8] hover:opacity-80 transition-colors"
           >
             <X size={20} />
-          </button>
+          </Button>
         </div>
 
         {/* Body */}

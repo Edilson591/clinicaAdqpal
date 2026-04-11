@@ -21,6 +21,7 @@ export interface DashboardAppointment {
   paciente: string;
   status: AgendaStatus;
   patientId: string;
+  medicalRecordId: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -80,6 +81,7 @@ export function useDashboard(
       paciente: a.pacient?.name ?? "—",
       status: statusMap[a.status],
       patientId: a.patientId,
+      medicalRecordId: a.medicalRecordId ?? null,
     }));
   }, [appointmentsToday, user]);
 

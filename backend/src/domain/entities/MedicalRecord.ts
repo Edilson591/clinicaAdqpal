@@ -4,7 +4,7 @@
 
 export interface MedicalRecord {
   id: string;
-  appointmentId: string;
+  appointmentId: string | null;
   patientId: string;
   diagnosis: string | null;
   prescription: string | null;
@@ -15,7 +15,7 @@ export interface MedicalRecord {
 }
 
 export interface CreateMedicalRecordData {
-  appointmentId: string;
+  appointmentId: string | null;
   patientId: string;
   diagnosis?: string | null;
   prescription?: string | null;

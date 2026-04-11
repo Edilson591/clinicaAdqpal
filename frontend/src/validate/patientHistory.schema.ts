@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const HISTORY_TYPE_OPTIONS = [
-  { value: "CONSULTA", label: "Consulta" },
+  // { value: "CONSULTA", label: "Consulta" },
   { value: "EXAME", label: "Exame" },
   { value: "PRESCRICAO", label: "Prescrição" },
   { value: "OBSERVACAO", label: "Observação" },

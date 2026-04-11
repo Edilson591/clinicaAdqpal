@@ -1,4 +1,5 @@
 import { Loader2, Users, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { PatientResponse } from "../../types/api";
 
 interface PatientTableProps {
@@ -12,6 +13,7 @@ function formatDate(dateStr: string | null) {
 }
 
 export function PatientTable({ patients, isLoading }: PatientTableProps) {
+  const navigate = useNavigate();
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -75,7 +77,15 @@ export function PatientTable({ patients, isLoading }: PatientTableProps) {
                   {formatDate(patient.dateOfBirth)}
                 </td>
                 <td className="px-5 py-3.5 text-right">
-                  <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#38A169] bg-[#1E3A2F]/60 border border-[#1E3A2F] hover:bg-[#1E3A2F] transition-colors cursor-pointer">
+                  <button
+                    onClick={() =>
+                      patient.latestMedicalRecordId
+                        ? navigate(`/prontuarios/${patient.latestMedicalRecordId}/editar`)
+                        : navigate(`/prontuarios?patientId=${patient.id}`)
+                    }
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#38A169] bg-[#1E3A2F]/60 border border-[#1E3A2F] hover:bg-[#1E3A2F] hover:text-white transition-colors cursor-pointer"
+                    title={patient.latestMedicalRecordId ? "Abrir prontuário" : "Nenhum prontuário"}
+                  >
                     <FileText size={13} />
                     Prontuário
                   </button>

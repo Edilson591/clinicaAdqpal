@@ -70,7 +70,7 @@ export function useNovoProntuarioForm() {
     setGeneralError(null);
     createRecord(
       {
-        appointmentId: data.appointmentId,
+        appointmentId: data.appointmentId!,
         patientId: data.pacienteId,
         diagnosis: buildDiagnosis(data) || null,
         prescription: data.conduta || null,

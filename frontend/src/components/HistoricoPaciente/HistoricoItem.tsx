@@ -43,7 +43,7 @@ export function HistoricoItem({ item, isLast }: HistoricoItemProps) {
 
       {/* pen: bd — body vertical gap 6 */}
       <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-        <span className="text-[14px] font-semibold text-[#1E293B]">
+        <span className="text-[14px] font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
           {item.title}
         </span>
         <p className="text-[12px] text-[#64748B] leading-relaxed">

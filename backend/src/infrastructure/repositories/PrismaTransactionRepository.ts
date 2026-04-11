@@ -1,4 +1,4 @@
-import { prisma } from "../database/prismaClient";
+import prisma  from "../database/prismaClient";
 import type { ITransactionRepository } from "../../domain/repositories/ITransactionRepository";
 import type { Transaction, TransactionFilters } from "../../domain/entities/Transaction";
 import type { PaginatedResult } from "../../domain/shared/pagination";

@@ -1,17 +1,26 @@
 import type { PrismaClient } from "@prisma/client";
 import type { IMedicalRecordRepository } from "../../domain/repositories/IMedicalRecordRepository";
-import type { MedicalRecord, CreateMedicalRecordData, UpdateMedicalRecordData } from "../../domain/entities/MedicalRecord";
+import type {
+  MedicalRecord,
+  CreateMedicalRecordData,
+  UpdateMedicalRecordData,
+} from "../../domain/entities/MedicalRecord";
 import type { PaginationQuery } from "../../domain/shared/pagination";
 import { DomainError } from "../../domain/errors/DomainError";
 
 function toDomain(row: {
   id: string;
-  appointmentId: string;
+  appointmentId: string | null;
   patientId: string;
   diagnosis: string | null;
   prescription: string | null;
   notes: string | null;
-  patient?: { id: string; name: string; phone?: string | null; email?: string | null } | null;
+  patient?: {
+    id: string;
+    name: string;
+    phone?: string | null;
+    email?: string | null;
+  } | null;
   createdAt: Date;
   updatedAt: Date;
 }): MedicalRecord {
@@ -35,19 +44,36 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
     try {
       const row = await this.prisma.medicalRecord.findUnique({
         where: { id },
-        include: { patient: { select: { id: true, name: true, phone: true, email: true } } },
+        include: {
+          patient: {
+            select: { id: true, name: true, phone: true, email: true },
+          },
+        },
       });
-      return row ? toDomain(row) : null;
+
+      if (!row) return null;
+
+      if (!row?.appointmentId) {
+        throw new Error("MedicalRecord sem appointmentId não é permitido");
+      }
+
+      return toDomain(row)
     } catch (err) {
       throw new DomainError(`Erro ao buscar prontuário: ${String(err)}`, 500);
     }
   }
 
-  async findByAppointmentId(appointmentId: string): Promise<MedicalRecord | null> {
+  async findByAppointmentId(
+    appointmentId: string,
+  ): Promise<MedicalRecord | null> {
     try {
       const row = await this.prisma.medicalRecord.findUnique({
         where: { appointmentId },
-        include: { patient: { select: { id: true, name: true, phone: true, email: true } } },
+        include: {
+          patient: {
+            select: { id: true, name: true, phone: true, email: true },
+          },
+        },
       });
       return row ? toDomain(row) : null;
     } catch (err) {
@@ -59,7 +85,11 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
     try {
       const rows = await this.prisma.medicalRecord.findMany({
         where: { patientId },
-        include: { patient: { select: { id: true, name: true, phone: true, email: true } } },
+        include: {
+          patient: {
+            select: { id: true, name: true, phone: true, email: true },
+          },
+        },
         orderBy: { createdAt: "desc" },
       });
       return rows.map(toDomain);
@@ -71,7 +101,11 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
   async findAll(pagination?: PaginationQuery): Promise<MedicalRecord[]> {
     try {
       const rows = await this.prisma.medicalRecord.findMany({
-        include: { patient: { select: { id: true, name: true, phone: true, email: true } } },
+        include: {
+          patient: {
+            select: { id: true, name: true, phone: true, email: true },
+          },
+        },
         orderBy: { createdAt: "desc" },
         ...(pagination && {
           skip: (pagination.page - 1) * pagination.limit,
@@ -101,12 +135,21 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
     }
   }
 
-  async update(id: string, data: UpdateMedicalRecordData): Promise<MedicalRecord> {
+  async update(
+    id: string,
+    data: UpdateMedicalRecordData,
+  ): Promise<MedicalRecord> {
     try {
-      const row = await this.prisma.medicalRecord.update({ where: { id }, data });
+      const row = await this.prisma.medicalRecord.update({
+        where: { id },
+        data,
+      });
       return toDomain(row);
     } catch (err) {
-      throw new DomainError(`Erro ao atualizar prontuário: ${String(err)}`, 500);
+      throw new DomainError(
+        `Erro ao atualizar prontuário: ${String(err)}`,
+        500,
+      );
     }
   }
 

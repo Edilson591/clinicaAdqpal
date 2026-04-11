@@ -30,7 +30,7 @@ export function NovoRegistroModal({ patientId, onClose }: NovoRegistroModalProps
     setValue,
     formState: { errors },
   } = useZodForm(patientHistorySchema, {
-    defaultValues: { type: "CONSULTA", title: "", description: "" },
+    defaultValues: { type: "EXAME", title: "", description: "" },
   });
 
   const descriptionValue = watch("description");
@@ -54,17 +54,17 @@ export function NovoRegistroModal({ patientId, onClose }: NovoRegistroModalProps
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="bg-[#1E293B] rounded-xl border border-[#334155] w-full max-w-lg mx-4 shadow-2xl">
+      <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-[#334155] w-full max-w-lg mx-4 shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#334155]">
-          <h2 className="text-[16px] font-semibold text-[#F1F5F9]">
+          <h2 className="text-[16px] font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
             Novo Registro
           </h2>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="w-8 h-8 p-0 text-[#94A3B8] hover:bg-[#263548]"
+            className="w-8 h-8 p-0 text-[#94A3B8] hover:opacity-80 transition-colors"
           >
             <X size={18} />
           </Button>

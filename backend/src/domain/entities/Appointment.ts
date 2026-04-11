@@ -29,6 +29,7 @@ export interface Appointment {
   meetingLink: string | null;
   address: string | null;
   notes: string | null;
+  medicalRecordId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -6,10 +6,12 @@ import {
 const validUUID = "550e8400-e29b-41d4-a716-446655440000";
 
 describe("CreateAppointmentSchema", () => {
+  // IN_PERSON is the default type and requires roomId
   const base = {
     userId: validUUID,
     patientId: validUUID,
     scheduledAt: new Date().toISOString(),
+    roomId: "Sala 01",
   };
 
   it("accepts valid payload", () => {

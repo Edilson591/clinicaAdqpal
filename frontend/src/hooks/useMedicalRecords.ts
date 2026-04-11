@@ -7,6 +7,7 @@ export const MEDICAL_RECORD_KEYS = {
   paginated: (page: number) => ["medical-records", "page", page] as const,
   detail: (id: string) => ["medical-records", id] as const,
   byPatient: (patientId: string) => ["medical-records", "patient", patientId] as const,
+  byPatients: () => ["medical-records"] as const,
 };
 
 export function useMedicalRecords() {
@@ -31,14 +32,13 @@ export function useMedicalRecord(id: string) {
   });
 }
 
-export function useMedicalRecordsByPatient(patientId: string) {
+export function useMedicalRecordsByPatients(patientIds: string[]) {
   return useQuery({
-    queryKey: MEDICAL_RECORD_KEYS.byPatient(patientId),
-    queryFn: () => medicalRecordService.getByPatient(patientId),
-    enabled: !!patientId,
+    queryKey: MEDICAL_RECORD_KEYS.byPatients(),
+    queryFn: () => medicalRecordService.getByPatient(patientIds),
+    enabled: patientIds.length > 0,
   });
 }
-
 export function useCreateMedicalRecord() {
   const queryClient = useQueryClient();
   return useMutation({

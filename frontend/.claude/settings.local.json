@@ -20,7 +20,8 @@
       "Bash(npm show:*)",
       "mcp__plugin_context-mode_context-mode__ctx_index",
       "Read(//c/Users/edils/programacao/clinica adqpal/backend/src/interfaces/routes/**)",
-      "Read(//c/Users/edils/programacao/clinica adqpal/backend/src/interfaces/controllers/**)"
+      "Read(//c/Users/edils/programacao/clinica adqpal/backend/src/interfaces/controllers/**)",
+      "Bash(npx vitest:*)"
     ]
   }
 }

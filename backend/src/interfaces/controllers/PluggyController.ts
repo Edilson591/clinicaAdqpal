@@ -1,7 +1,20 @@
 import { Request, Response, NextFunction } from "express";
 import { PluggyService } from "../../infrastructure/services/PluggyService";
+import { MockPluggyService } from "../../infrastructure/services/MockPluggyService";
 import prisma from "../../infrastructure/database/prismaClient";
 import { DomainError } from "../../domain/errors/DomainError";
+
+function isMockMode(): boolean {
+  return (
+    process.env.PLUGGY_MOCK === "true" ||
+    !process.env.PLUGGY_CLIENT_ID ||
+    !process.env.PLUGGY_CLIENT_SECRET
+  );
+}
+
+function getPluggyService(): PluggyService | MockPluggyService {
+  return isMockMode() ? new MockPluggyService() : new PluggyService();
+}
 
 // Mapeamento de tipos de conta Pluggy → nosso AccountType
 function mapAccountType(pluggyType: string): string {
@@ -34,11 +47,12 @@ export class PluggyController {
   // Cria um token temporário para o widget Pluggy Connect
   async createConnectToken(req: Request, res: Response, next: NextFunction) {
     try {
-      const pluggy = new PluggyService();
+      const pluggy = getPluggyService();
       const { itemId } = req.query as { itemId?: string };
+      const mock = isMockMode();
       const accessToken = await pluggy.createConnectToken(itemId);
-      const sandbox = process.env.PLUGGY_SANDBOX === "true" || process.env.NODE_ENV !== "production";
-      res.json({ success: true, data: { accessToken, sandbox } });
+      const sandbox = mock || process.env.PLUGGY_SANDBOX === "true" || process.env.NODE_ENV !== "production";
+      res.json({ success: true, data: { accessToken, sandbox, mock } });
     } catch (err) {
       next(err);
     }
@@ -46,7 +60,7 @@ export class PluggyController {
 
   // GET /pluggy/items
   // Lista todos os itens conectados armazenados localmente
-  async listItems(req: Request, res: Response, next: NextFunction) {
+  async listItems(_: Request, res: Response, next: NextFunction) {
     try {
       const items = await prisma.pluggyItem.findMany({
         orderBy: { createdAt: "desc" },
@@ -64,7 +78,7 @@ export class PluggyController {
       const { itemId } = req.params;
       const userId = (req as Request & { userId: string }).userId;
 
-      const pluggy = new PluggyService();
+      const pluggy = getPluggyService();
 
       // 1. Busca detalhes do item no Pluggy
       const item = await pluggy.fetchItem(itemId as string);
@@ -208,7 +222,7 @@ export class PluggyController {
       }
 
       // Remove no Pluggy
-      const pluggy = new PluggyService();
+      const pluggy = getPluggyService();
       await pluggy.deleteItem(itemId as string);
 
       // Remove localmente

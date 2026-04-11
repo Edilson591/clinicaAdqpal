@@ -16,6 +16,7 @@ export function toAppointmentResponseDTO(appointment: Appointment): AppointmentR
     meetingLink: appointment.meetingLink,
     address: appointment.address,
     notes: appointment.notes,
+    medicalRecordId: appointment.medicalRecordId ?? null,
     createdAt: appointment.createdAt.toISOString(),
     updatedAt: appointment.updatedAt.toISOString(),
   };

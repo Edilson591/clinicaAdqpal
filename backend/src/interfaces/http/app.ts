@@ -10,6 +10,7 @@ import specialtyRoutes from "../routes/specialtyRoutes";
 import financialAccountRoutes from "../routes/financialAccountRoutes";
 import financialCategoryRoutes from "../routes/financialCategoryRoutes";
 import transactionRoutes from "../routes/transactionRoutes";
+import financialDashboardRoutes from "../routes/financialDashboardRoutes";
 import pluggyRoutes from "../routes/pluggyRoutes";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import cors from "cors";
@@ -54,6 +55,7 @@ app.use("/specialties", specialtyRoutes);
 app.use("/financial/accounts", financialAccountRoutes);
 app.use("/financial/categories", financialCategoryRoutes);
 app.use("/financial/transactions", transactionRoutes);
+app.use("/financial/dashboard", financialDashboardRoutes);
 app.use("/pluggy", pluggyRoutes);
 
 app.use(errorMiddleware);

@@ -1,6 +1,9 @@
-import { prisma } from "../database/prismaClient";
+import prisma from "../database/prismaClient";
 import type { IFinancialCategoryRepository } from "../../domain/repositories/IFinancialCategoryRepository";
-import type { FinancialCategory, FinancialCategoryFilters } from "../../domain/entities/FinancialCategory";
+import type {
+  FinancialCategory,
+  FinancialCategoryFilters,
+} from "../../domain/entities/FinancialCategory";
 
 type PrismaCategoryRow = {
   id: string;
@@ -24,13 +27,21 @@ export class PrismaFinancialCategoryRepository implements IFinancialCategoryRepo
   };
 
   async create(
-    data: Omit<FinancialCategory, "id" | "parent" | "children" | "createdAt" | "updatedAt">
+    data: Omit<
+      FinancialCategory,
+      "id" | "parent" | "children" | "createdAt" | "updatedAt"
+    >,
   ): Promise<FinancialCategory> {
-    const row = await prisma.financialCategory.create({ data, include: this.include });
+    const row = await prisma.financialCategory.create({
+      data,
+      include: this.include,
+    });
     return this.toDomain(row);
   }
 
-  async findAll(filters?: FinancialCategoryFilters): Promise<FinancialCategory[]> {
+  async findAll(
+    filters?: FinancialCategoryFilters,
+  ): Promise<FinancialCategory[]> {
     const where: Record<string, unknown> = {};
     if (filters?.type) where.type = filters.type;
     if (filters?.isActive !== undefined) where.isActive = filters.isActive;
@@ -45,15 +56,27 @@ export class PrismaFinancialCategoryRepository implements IFinancialCategoryRepo
   }
 
   async findById(id: string): Promise<FinancialCategory | null> {
-    const row = await prisma.financialCategory.findUnique({ where: { id }, include: this.include });
+    const row = await prisma.financialCategory.findUnique({
+      where: { id },
+      include: this.include,
+    });
     return row ? this.toDomain(row) : null;
   }
 
   async update(
     id: string,
-    data: Partial<Omit<FinancialCategory, "id" | "parent" | "children" | "createdAt" | "updatedAt">>
+    data: Partial<
+      Omit<
+        FinancialCategory,
+        "id" | "parent" | "children" | "createdAt" | "updatedAt"
+      >
+    >,
   ): Promise<FinancialCategory> {
-    const row = await prisma.financialCategory.update({ where: { id }, data, include: this.include });
+    const row = await prisma.financialCategory.update({
+      where: { id },
+      data,
+      include: this.include,
+    });
     return this.toDomain(row);
   }
 

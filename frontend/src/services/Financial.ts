@@ -121,3 +121,19 @@ export const TransactionService = {
     await api.delete(`/financial/transactions/${id}`);
   },
 };
+
+// ─── Dashboard ─────────────────────────────────────────────────────────────────
+
+export interface DashboardMonthData {
+  month: string;  // "YYYY-MM"
+  label: string;  // "Abr"
+  income: number;
+  expense: number;
+}
+
+export const DashboardService = {
+  async getDashboard(month: string): Promise<DashboardMonthData[]> {
+    const res = await api.get(`/financial/dashboard?month=${month}`);
+    return res.data.data;
+  },
+};

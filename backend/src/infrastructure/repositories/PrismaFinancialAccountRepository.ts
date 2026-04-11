@@ -1,19 +1,34 @@
-import { prisma } from "../database/prismaClient";
+import prisma from "../database/prismaClient";
 import type { IFinancialAccountRepository } from "../../domain/repositories/IFinancialAccountRepository";
-import type { FinancialAccount, FinancialAccountFilters } from "../../domain/entities/FinancialAccount";
+import type {
+  FinancialAccount,
+  FinancialAccountFilters,
+} from "../../domain/entities/FinancialAccount";
 
 export class PrismaFinancialAccountRepository implements IFinancialAccountRepository {
-  async create(data: Omit<FinancialAccount, "id" | "createdAt" | "updatedAt">): Promise<FinancialAccount> {
+  async create(
+    data: Omit<FinancialAccount, "id" | "createdAt" | "updatedAt">,
+  ): Promise<FinancialAccount> {
     const row = await prisma.financialAccount.create({ data });
     return this.toDomain(row);
   }
 
-  async findAll(filters?: FinancialAccountFilters): Promise<FinancialAccount[]> {
+  async findAll(
+    filters?: FinancialAccountFilters,
+  ): Promise<FinancialAccount[]> {
     const where: Record<string, unknown> = {};
     if (filters?.isActive !== undefined) where.isActive = filters.isActive;
     if (filters?.type) where.type = filters.type;
 
-    const rows = await prisma.financialAccount.findMany({ where, orderBy: { name: "asc" } });
+    const rows = await prisma.financialAccount.findMany({
+      where,
+      orderBy: { name: "asc" },
+    });
+    console.log(rows);
+
+    if (!rows || rows.length === 0) {
+      return []; 
+    }
     return rows.map(this.toDomain);
   }
 
@@ -24,7 +39,7 @@ export class PrismaFinancialAccountRepository implements IFinancialAccountReposi
 
   async update(
     id: string,
-    data: Partial<Omit<FinancialAccount, "id" | "createdAt" | "updatedAt">>
+    data: Partial<Omit<FinancialAccount, "id" | "createdAt" | "updatedAt">>,
   ): Promise<FinancialAccount> {
     const row = await prisma.financialAccount.update({ where: { id }, data });
     return this.toDomain(row);
@@ -39,19 +54,39 @@ export class PrismaFinancialAccountRepository implements IFinancialAccountReposi
     if (!account) return 0;
 
     const income = await prisma.transaction.aggregate({
-      where: { accountId: id, status: "CONFIRMED", deletedAt: null, type: "INCOME" },
+      where: {
+        accountId: id,
+        status: "CONFIRMED",
+        deletedAt: null,
+        type: "INCOME",
+      },
       _sum: { amount: true },
     });
     const expense = await prisma.transaction.aggregate({
-      where: { accountId: id, status: "CONFIRMED", deletedAt: null, type: "EXPENSE" },
+      where: {
+        accountId: id,
+        status: "CONFIRMED",
+        deletedAt: null,
+        type: "EXPENSE",
+      },
       _sum: { amount: true },
     });
     const transferOut = await prisma.transaction.aggregate({
-      where: { accountId: id, status: "CONFIRMED", deletedAt: null, type: "TRANSFER" },
+      where: {
+        accountId: id,
+        status: "CONFIRMED",
+        deletedAt: null,
+        type: "TRANSFER",
+      },
       _sum: { amount: true },
     });
     const transferIn = await prisma.transaction.aggregate({
-      where: { transferToAccountId: id, status: "CONFIRMED", deletedAt: null, type: "TRANSFER" },
+      where: {
+        transferToAccountId: id,
+        status: "CONFIRMED",
+        deletedAt: null,
+        type: "TRANSFER",
+      },
       _sum: { amount: true },
     });
 
@@ -61,7 +96,9 @@ export class PrismaFinancialAccountRepository implements IFinancialAccountReposi
     const transferOutTotal = Number(transferOut._sum.amount ?? 0);
     const transferInTotal = Number(transferIn._sum.amount ?? 0);
 
-    return initial + incomeTotal - expenseTotal - transferOutTotal + transferInTotal;
+    return (
+      initial + incomeTotal - expenseTotal - transferOutTotal + transferInTotal
+    );
   }
 
   private toDomain(row: {

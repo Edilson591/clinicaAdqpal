@@ -1,5 +1,5 @@
-import { FileText } from "lucide-react";
-import { Link } from "react-router-dom";
+import { FileText, ClipboardList } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import type { PatientResponse } from "../../types/api";
 import { formatCpf } from "../../utils/formatCpf";
 import { formatPhone } from "../../utils/formatPhone";
@@ -14,6 +14,7 @@ interface PatientCardProps {
 }
 
 export function PatientCard({ patient }: PatientCardProps) {
+  const navigate = useNavigate();
   return (
     // pen: lV5VV / PhFNz rows · hover #263548 dark
     <tr className="border-b border-[#E2E8F0] dark:border-[#334155] last:border-0 hover:bg-[#F8FAFC] dark:hover:bg-[#263548] transition-colors">
@@ -46,15 +47,37 @@ export function PatientCard({ patient }: PatientCardProps) {
         {formatDate(patient.updatedAt ?? null)}
       </td>
 
-      {/* Ações — pen: Xuvv4 · border #38a169, text #38a169 */}
+      {/* Ações */}
       <td className="px-4 py-3.5 text-right">
-        <Link
-          to={`/pacientes/${patient.id}/editar`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#38A169] border border-[#38A169] bg-transparent hover:bg-[#38A169] hover:text-white transition-colors"
-        >
-          <FileText size={12} />
-          Ver
-        </Link>
+        <div className="flex items-center justify-end gap-2">
+          <Link
+            to={`/pacientes/${patient.id}/historico`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#3B82F6] border border-[#3B82F6] bg-transparent hover:bg-[#3B82F6] hover:text-white transition-colors"
+            title="Ver histórico do paciente"
+          >
+            <ClipboardList size={12} />
+            Histórico
+          </Link>
+          <button
+            onClick={() =>
+              patient.latestMedicalRecordId
+                ? navigate(`/prontuarios/${patient.latestMedicalRecordId}/editar`)
+                : navigate(`/prontuarios?patientId=${patient.id}`)
+            }
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#38A169] border border-[#38A169] bg-transparent hover:bg-[#38A169] hover:text-white transition-colors cursor-pointer"
+            title="Ver prontuário"
+          >
+            <FileText size={12} />
+            Prontuário
+          </button>
+          <Link
+            to={`/pacientes/${patient.id}/editar`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#64748B] border border-[#64748B] bg-transparent hover:bg-[#64748B] hover:text-white transition-colors"
+            title="Ver cadastro"
+          >
+            Ver
+          </Link>
+        </div>
       </td>
     </tr>
   );

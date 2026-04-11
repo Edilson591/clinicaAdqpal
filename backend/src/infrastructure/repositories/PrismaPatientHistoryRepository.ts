@@ -10,7 +10,7 @@ export class PrismaPatientHistoryRepository implements IPatientHistoryRepository
       data: {
         patientId: data.patientId,
         doctorId: data.doctorId,
-        appointmentId: data.appointmentId ?? null,
+        appointmentId: data.appointmentId! ?? null,
         type: data.type,
         title: data.title,
         description: data.description,

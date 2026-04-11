@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { PrismaFinancialAccountRepository } from "../../infrastructure/repositories/PrismaFinancialAccountRepository";
 import { PrismaFinancialCategoryRepository } from "../../infrastructure/repositories/PrismaFinancialCategoryRepository";
 import { PrismaTransactionRepository } from "../../infrastructure/repositories/PrismaTransactionRepository";
+import prisma from "../../infrastructure/database/prismaClient";
 import { CreateFinancialAccount } from "../../application/use-cases/CreateFinancialAccount";
 import { ListFinancialAccounts } from "../../application/use-cases/ListFinancialAccounts";
 import { UpdateFinancialAccount } from "../../application/use-cases/UpdateFinancialAccount";
@@ -46,7 +47,7 @@ export class FinancialAccountController {
 
   async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const account = await accountRepo.findById(req.params.id);
+      const account = await accountRepo.findById(req.params.id as string);
       if (!account) throw new NotFoundError("Conta financeira não encontrada");
       const balance = await accountRepo.getBalance(account.id);
       res.json({ success: true, data: { ...account, currentBalance: balance } });
@@ -57,7 +58,7 @@ export class FinancialAccountController {
 
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const result = await new UpdateFinancialAccount(accountRepo).execute(req.params.id, req.body);
+      const result = await new UpdateFinancialAccount(accountRepo).execute(req.params.id as string, req.body);
       res.json({ success: true, data: result });
     } catch (err) {
       next(err);
@@ -66,7 +67,7 @@ export class FinancialAccountController {
 
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await new DeleteFinancialAccount(accountRepo).execute(req.params.id);
+      await new DeleteFinancialAccount(accountRepo).execute(req.params.id as string);
       res.status(204).send();
     } catch (err) {
       next(err);
@@ -99,7 +100,7 @@ export class FinancialCategoryController {
 
   async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const category = await categoryRepo.findById(req.params.id);
+      const category = await categoryRepo.findById(req.params.id as string);
       if (!category) throw new NotFoundError("Categoria não encontrada");
       res.json({ success: true, data: category });
     } catch (err) {
@@ -109,7 +110,7 @@ export class FinancialCategoryController {
 
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const result = await new UpdateFinancialCategory(categoryRepo).execute(req.params.id, req.body);
+      const result = await new UpdateFinancialCategory(categoryRepo).execute(req.params.id as string, req.body);
       res.json({ success: true, data: result });
     } catch (err) {
       next(err);
@@ -118,7 +119,7 @@ export class FinancialCategoryController {
 
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await new DeleteFinancialCategory(categoryRepo).execute(req.params.id);
+      await new DeleteFinancialCategory(categoryRepo).execute(req.params.id as string);
       res.status(204).send();
     } catch (err) {
       next(err);
@@ -150,7 +151,7 @@ export class TransactionController {
 
   async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const tx = await transactionRepo.findById(req.params.id);
+      const tx = await transactionRepo.findById(req.params.id as string);
       if (!tx || tx.deletedAt) throw new NotFoundError("Transação não encontrada");
       res.json({ success: true, data: tx });
     } catch (err) {
@@ -160,7 +161,7 @@ export class TransactionController {
 
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const result = await new UpdateTransaction(transactionRepo).execute(req.params.id, req.body);
+      const result = await new UpdateTransaction(transactionRepo).execute(req.params.id as string, req.body);
       res.json({ success: true, data: result });
     } catch (err) {
       next(err);
@@ -169,8 +170,82 @@ export class TransactionController {
 
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await new DeleteTransaction(transactionRepo).execute(req.params.id);
+      await new DeleteTransaction(transactionRepo).execute(req.params.id as string);
       res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  }
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
+const PT_MONTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+function startOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0);
+}
+function endOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+function subMonths(d: Date, n: number): Date {
+  const result = new Date(d);
+  result.setMonth(result.getMonth() - n);
+  return result;
+}
+function toYearMonth(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+export class FinancialDashboardController {
+  async getDashboard(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const monthParam = req.query.month as string | undefined; // "YYYY-MM"
+
+      // Mês de referência (último mês da janela)
+      const refDate = monthParam ? new Date(`${monthParam}-15`) : new Date();
+      const rangeStart = startOfMonth(subMonths(refDate, 5));
+      const rangeEnd = endOfMonth(refDate);
+
+      // Monta os 6 buckets na ordem correta
+      const buckets: Record<string, { label: string; income: number; expense: number }> = {};
+      for (let i = 5; i >= 0; i--) {
+        const d = subMonths(refDate, i);
+        const key = toYearMonth(d);
+        buckets[key] = {
+          label: PT_MONTHS[d.getMonth()],
+          income: 0,
+          expense: 0,
+        };
+      }
+
+      // Busca transações confirmadas no intervalo (INCOME e EXPENSE)
+      const transactions = await prisma.transaction.findMany({
+        where: {
+          status: "CONFIRMED",
+          deletedAt: null,
+          type: { in: ["INCOME", "EXPENSE"] },
+          dueDate: { gte: rangeStart, lte: rangeEnd },
+        },
+        select: { type: true, amount: true, dueDate: true },
+      });
+
+      for (const tx of transactions) {
+        const key = toYearMonth(tx.dueDate);
+        if (!buckets[key]) continue;
+        const val = Number(tx.amount);
+        if (tx.type === "INCOME") buckets[key].income += val;
+        else buckets[key].expense += val;
+      }
+
+      const data = Object.entries(buckets).map(([month, v]) => ({
+        month,
+        label: v.label,
+        income: Math.round(v.income * 100) / 100,
+        expense: Math.round(v.expense * 100) / 100,
+      }));
+
+      res.json({ success: true, data });
     } catch (err) {
       next(err);
     }

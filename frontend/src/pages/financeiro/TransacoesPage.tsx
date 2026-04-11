@@ -9,10 +9,12 @@ import {
   Filter,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { Header } from "../../components/Dashboard/Header";
 import { FinanceiroHeader } from "../../components/Financeiro/FinanceiroHeader";
 import { useTransactions, useDeleteTransaction } from "../../hooks/useFinancial";
 import type { TransactionResponse, TransactionType, TransactionStatus } from "../../types/api";
+import { useSelectedMonth } from "../../components/Financeiro/useSelectedMonth";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -162,16 +164,23 @@ function TransactionRow({
 
 export default function TransacoesPage() {
   const navigate = useNavigate();
+  const { selectedMonth } = useSelectedMonth();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TransactionType | "">("");
   const [statusFilter, setStatusFilter] = useState<TransactionStatus | "">("");
   const [page, setPage] = useState(1);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
+  const monthDate = parseISO(`${selectedMonth}-01`);
+  const dateStart = format(startOfMonth(monthDate), "yyyy-MM-dd");
+  const dateEnd = format(endOfMonth(monthDate), "yyyy-MM-dd");
+
   const { data, isLoading } = useTransactions({
     search: search || undefined,
     type: typeFilter || undefined,
     status: statusFilter || undefined,
+    dateStart,
+    dateEnd,
     page,
     limit: 20,
   });

@@ -28,8 +28,8 @@ export const medicalRecordService = {
     return res.data.data!;
   },
 
-  getByPatient: async (patientId: string): Promise<MedicalRecordResponse[]> => {
-    const res = await api.get<ApiResponse<MedicalRecordResponse[]>>(`/medical-records/patient/${patientId}`);
+  getByPatient: async (patientId: string[]): Promise<MedicalRecordResponse[]> => {
+    const res = await api.get<ApiResponse<MedicalRecordResponse[]>>(`/medical-records/${patientId}`);
     return res.data.data!;
   },
 

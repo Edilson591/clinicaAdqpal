@@ -3,6 +3,7 @@ import {
   FinancialAccountService,
   FinancialCategoryService,
   TransactionService,
+  DashboardService,
   type TransactionFilters,
 } from "../services/Financial";
 
@@ -141,6 +142,14 @@ export function useUpdateTransaction() {
       qc.invalidateQueries({ queryKey: financialKeys.transactions.all });
       qc.invalidateQueries({ queryKey: financialKeys.accounts.all });
     },
+  });
+}
+
+export function useDashboardFinance(month: string) {
+  return useQuery({
+    queryKey: ["financial", "dashboard", month],
+    queryFn: () => DashboardService.getDashboard(month),
+    enabled: !!month,
   });
 }
 

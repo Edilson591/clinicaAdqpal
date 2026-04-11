@@ -64,6 +64,7 @@ export interface AppointmentResponseDTO {
   meetingLink: string | null;
   address: string | null;
   notes: string | null;
+  medicalRecordId: string | null;
   createdAt: string;
   updatedAt: string;
 }

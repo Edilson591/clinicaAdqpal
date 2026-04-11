@@ -25,6 +25,7 @@ export default function DashboardPage() {
 
 
   const { data: novosPacientes = 0 } = usePatientsCountToday();
+  
 
   return (
     // bg: #F5F6FA light · #0F172A dark (pen: Km2zu)

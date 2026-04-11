@@ -28,7 +28,7 @@ export type UpdateMedicalRecordDTO = z.infer<typeof UpdateMedicalRecordSchema>;
 
 export interface MedicalRecordResponseDTO {
   id: string;
-  appointmentId: string;
+  appointmentId: string | null;
   patientId: string;
   diagnosis: string | null;
   prescription: string | null;

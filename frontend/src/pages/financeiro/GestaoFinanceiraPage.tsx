@@ -1,48 +1,70 @@
 import { useMemo } from "react";
 import { TrendingUp, TrendingDown, Wallet, Stethoscope } from "lucide-react";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { FinanceiroHeader } from "../../components/Financeiro/FinanceiroHeader";
 import { KPICard } from "../../components/Financeiro/KPICard";
 import { ReceitaDespesasChart } from "../../components/Financeiro/ReceitaDespesasChart";
 import { TransacoesRecentes } from "../../components/Financeiro/TransacoesRecentes";
 import { PluggyConnect } from "../../components/Financeiro/PluggyConnect";
 import { Header } from "../../components/Dashboard/Header";
-import { useTransactions } from "../../hooks/useFinancial";
+import { useTransactions, useDashboardFinance } from "../../hooks/useFinancial";
+import { useSelectedMonth } from "../../components/Financeiro/useSelectedMonth";
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
 }
 
 export default function GestaoFinanceiraPage() {
-  const now = new Date();
-  const dateStart = format(startOfMonth(now), "yyyy-MM-dd");
-  const dateEnd = format(endOfMonth(now), "yyyy-MM-dd");
+  const { selectedMonth } = useSelectedMonth();
+  const monthDate = parseISO(`${selectedMonth}-01`);
+  const dateStart = format(startOfMonth(monthDate), "yyyy-MM-dd");
+  const dateEnd = format(endOfMonth(monthDate), "yyyy-MM-dd");
 
-  const { data: txData, isLoading } = useTransactions({ dateStart, dateEnd, limit: 100 });
+  const { data: txData, isLoading } = useTransactions({
+    dateStart,
+    dateEnd,
+    limit: 100,
+  });
+  const { data: dashboardData, isLoading: dashboardLoading } =
+    useDashboardFinance(selectedMonth);
 
   const transactions = txData?.data ?? [];
 
-  const { totalIncome, totalExpense, netBalance, paidAppointments, recentTransactions } =
-    useMemo(() => {
-      const confirmed = transactions.filter((t) => t.status === "CONFIRMED");
-      const income = confirmed
-        .filter((t) => t.type === "INCOME")
-        .reduce((s, t) => s + t.amount, 0);
-      const expense = confirmed
-        .filter((t) => t.type === "EXPENSE")
-        .reduce((s, t) => s + t.amount, 0);
-      const paid = confirmed.filter((t) => t.type === "INCOME" && t.patientId).length;
-      const recent = [...transactions]
-        .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime())
-        .slice(0, 5);
-      return {
-        totalIncome: income,
-        totalExpense: expense,
-        netBalance: income - expense,
-        paidAppointments: paid,
-        recentTransactions: recent,
-      };
-    }, [transactions]);
+  console.log(txData);
+
+  const {
+    totalIncome,
+    totalExpense,
+    netBalance,
+    paidAppointments,
+    recentTransactions,
+  } = useMemo(() => {
+    const confirmed = transactions.filter((t) => t.status === "CONFIRMED");
+    const income = confirmed
+      .filter((t) => t.type === "INCOME")
+      .reduce((s, t) => s + t.amount, 0);
+    const expense = confirmed
+      .filter((t) => t.type === "EXPENSE")
+      .reduce((s, t) => s + t.amount, 0);
+    const paid = confirmed.filter(
+      (t) => t.type === "INCOME" && t.patientId,
+    ).length;
+    const recent = [...transactions]
+      .sort(
+        (a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime(),
+      )
+      .slice(0, 5);
+    return {
+      totalIncome: income,
+      totalExpense: expense,
+      netBalance: income - expense,
+      paidAppointments: paid,
+      recentTransactions: recent,
+    };
+  }, [transactions]);
 
   return (
     <main className="flex-1 bg-[#F8FAFC] dark:bg-[#0F172A] overflow-y-auto transition-colors duration-200">
@@ -93,8 +115,9 @@ export default function GestaoFinanceiraPage() {
         {/* Bottom Row: Chart + Transactions */}
         <div className="flex flex-col lg:flex-row gap-4">
           <ReceitaDespesasChart
-            currentIncome={totalIncome}
-            currentExpense={totalExpense}
+            data={dashboardData}
+            isLoading={dashboardLoading}
+            selectedMonth={selectedMonth}
           />
           <TransacoesRecentes
             transactions={recentTransactions}
