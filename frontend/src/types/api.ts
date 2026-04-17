@@ -35,7 +35,6 @@ export interface UserResponse {
 }
 
 export interface LoginResponse {
-  token: string;
   user: UserResponse;
 }
 
@@ -321,4 +320,34 @@ export interface TransactionResponse {
   patient: { id: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
+}
+
+// ─── Nota Fiscal ──────────────────────────────────────────────────────────────
+
+export type NotaFiscalStatus = "PENDENTE" | "EMITIDA" | "CANCELADA";
+
+export interface NotaFiscalResponse {
+  id: string;
+  numero: string;
+  patientId: string;
+  appointmentId: string | null;
+  transactionId: string | null;
+  createdBy: string;
+  servico: string;
+  valor: number;
+  status: NotaFiscalStatus;
+  dataEmissao: string | null;
+  pdfUrl: string | null;
+  observacoes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateNotaFiscalInput {
+  patientId: string;
+  servico: string;
+  valor: number;
+  observacoes?: string | null;
+  appointmentId?: string | null;
+  transactionId?: string | null;
 }

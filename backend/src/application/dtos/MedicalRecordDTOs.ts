@@ -3,7 +3,7 @@ import { z } from "zod";
 // ─── Create ───────────────────────────────────────────────────────────────────
 
 export const CreateMedicalRecordSchema = z.object({
-  appointmentId: z.string({ required_error: "appointmentId é obrigatório" }).uuid(),
+  appointmentId: z.string().uuid().nullable().optional(),
   patientId: z.string({ required_error: "patientId é obrigatório" }).uuid(),
   diagnosis: z.string().max(2000).nullable().optional(),
   prescription: z.string().max(2000).nullable().optional(),

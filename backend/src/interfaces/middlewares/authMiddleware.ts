@@ -19,13 +19,18 @@ export function authMiddleware(
   _res: Response,
   next: NextFunction,
 ): void {
-  const authHeader = req.headers.authorization;
+  // Lê o token do cookie httpOnly (preferencial — JS do cliente não acessa)
+  const cookieToken: string | undefined = req.cookies?.adqpal_token;
 
-  if (!authHeader?.startsWith("Bearer ")) {
+  // Fallback: Authorization header (compatibilidade com clientes que não usam cookie)
+  const authHeader = req.headers.authorization;
+  const headerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+
+  const token = cookieToken ?? headerToken;
+
+  if (!token) {
     return next(new UnauthorizedError("Token de acesso não fornecido."));
   }
-
-  const token = authHeader.slice(7);
 
   try {
     const payload = tokenService.verify(token);

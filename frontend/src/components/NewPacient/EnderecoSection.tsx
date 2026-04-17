@@ -1,23 +1,27 @@
-import type { FieldErrors, FieldValues, Path, UseFormRegister } from "react-hook-form";
+import type {
+  FieldErrors,
+  FieldValues,
+  Path,
+  UseFormRegister,
+} from "react-hook-form";
 import { InputGroup } from "../ui/Input";
 import { FormSection } from "../Form/FormSection";
-import { Locate } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { SelectGroup } from "../ui/Select";
 import { formatCep } from "../../utils/formatCep";
+import { ESTADOS } from "../../data/state";
 
 interface Props<T extends FieldValues> {
   register: UseFormRegister<T>;
   errors: FieldErrors<T>;
 }
 
-const ESTADOS = [
-  "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
-  "PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO",
-];
-
-export const EnderecoSection = <T extends FieldValues>({ register, errors }: Props<T>) => {
+export const EnderecoSection = <T extends FieldValues>({
+  register,
+  errors,
+}: Props<T>) => {
   return (
-    <FormSection icon={Locate} title="Endereço">
+    <FormSection icon={MapPin} title="Endereço">
       {/* Rua + Número */}
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-4">
         <InputGroup
@@ -38,6 +42,9 @@ export const EnderecoSection = <T extends FieldValues>({ register, errors }: Pro
             placeholder: "123",
             ...register("streetNumber" as Path<T>),
             className: "bg-[#F8FAFC]",
+            onChange: (e) => {
+              e.target.value = e.target.value.replace(/\D/g, "");
+            },
           }}
           helperText={errors["streetNumber"]?.message as string}
           error={errors["streetNumber"]?.message as string}
@@ -64,7 +71,6 @@ export const EnderecoSection = <T extends FieldValues>({ register, errors }: Pro
             ...register("state" as Path<T>),
             className: "bg-[#F8FAFC]",
             options: ESTADOS.map((uf) => ({ value: uf, label: uf })),
-            defaultValue: ESTADOS[0],
           }}
           helperText={errors["state"]?.message as string}
           error={errors["state"]?.message as string}

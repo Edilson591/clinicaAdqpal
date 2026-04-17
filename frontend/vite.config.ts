@@ -1,5 +1,5 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/postcss'
 import path from 'path'
@@ -18,7 +18,7 @@ export default defineConfig({
   },
   server: {
      host: true,
-    port: 5173,
+    port: 5174,
   },
   test: {
     globals: true,

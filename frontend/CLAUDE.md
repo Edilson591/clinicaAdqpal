@@ -6,6 +6,68 @@ Este documento descreve os componentes reutilizáveis do design system da aplica
 
 ---
 
+## Padrão de Loading com Skeleton
+
+**Regra obrigatória:** nunca usar texto de carregamento (ex: "Carregando..."). Sempre usar skeletons animados com `animate-pulse`.
+
+### Componente base: `FieldSkeleton`
+
+**Arquivo:** `src/components/ui/FieldSkeleton.tsx`
+
+Usado em listas de cards/formulários (ex: `ProntuariosList`).
+
+```tsx
+import { FieldSkeleton } from "@/components/ui/FieldSkeleton";
+
+{isLoading && (
+  <div className="flex flex-col gap-4 p-6">
+    {Array.from({ length: 5 }).map((_, i) => <FieldSkeleton key={i} />)}
+  </div>
+)}
+```
+
+### Skeleton para tabelas
+
+Tabelas devem renderizar `<thead>` real + `<tbody>` com linhas skeleton. As células devem espelhar as colunas da tabela para evitar layout shift.
+
+```tsx
+{isLoading ? (
+  <table className="w-full text-sm">
+    <thead>{/* cabeçalho real */}</thead>
+    <tbody>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <tr key={i} className="animate-pulse">
+          <td className="px-5 py-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-[#E2E8F0] dark:bg-[#334155] shrink-0" />
+              <div className="h-4 w-32 bg-[#E2E8F0] dark:bg-[#334155] rounded" />
+            </div>
+          </td>
+          {/* demais células */}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+) : (/* tabela real */)}
+```
+
+### Cores dos skeletons
+
+| Tema | Cor |
+|------|-----|
+| Light | `bg-[#E2E8F0]` |
+| Dark | `dark:bg-[#334155]` |
+
+### Referências implementadas
+
+| Arquivo | Tipo |
+|---------|------|
+| `src/components/Prontuarios/ProntuariosList.tsx` | Cards com `FieldSkeleton` |
+| `src/pages/configuracao/UsersTable.tsx` | Skeleton de tabela |
+| `src/pages/rh/RhTable.tsx` | Skeleton de tabela |
+
+---
+
 ## Arquitetura de Formulários
 
 ### Visão geral
@@ -1445,3 +1507,254 @@ onClick={() => {
 | Ícone perfil bg | `#DCFCE7` (verde claro) |
 | Ícone segurança bg | `#EFF6FF` (azul claro) |
 
+---
+
+## Separação de Componentes por Página
+
+### Regra obrigatória
+
+Cada página em `src/pages/` deve ser organizada em arquivos separados. **Nunca coloque múltiplos componentes no mesmo arquivo de página.**
+
+### Estrutura padrão
+
+```
+src/pages/<contexto>/
+├── <Contexto>Page.tsx      # Orquestrador — só importa, monta o layout
+├── <Contexto>Form.tsx      # Formulário — lógica de form + mutação
+├── AvatarHeader.tsx        # Componente de display puro (sem lógica)
+├── FeedbackMessage.tsx     # Componente de display puro (sem lógica)
+└── ...
+```
+
+### Responsabilidades por camada
+
+| Arquivo | O que contém | O que NÃO contém |
+|---------|-------------|-----------------|
+| `Page.tsx` | `<Header>`, título, layout, instancia componentes | `useState`, `useMutation`, `useQuery`, lógica de negócio |
+| `use<Contexto>Page.ts` | `useQuery`, `useMutation`, `useState`, processamento de dados, stats | JSX de qualquer tipo |
+| `use<Contexto>Form.ts` | `useZodForm`, `useMutation`, `useState` para feedback | JSX de qualquer tipo |
+| Componentes de display | Apenas props + JSX | Qualquer hook de dados |
+
+### Padrão de hook de página (`use<Contexto>Page.ts`)
+
+Toda lógica da página fica isolada em um hook dedicado em `src/hooks/`. O hook:
+- Chama os serviços via `useQuery` / `useMutation`
+- Processa e filtra os dados (search, stats, mapeamentos)
+- Expõe estado de UI (confirmações, loading, erros)
+- **Não retorna JSX**
+
+O componente de página apenas desestrutura o hook e distribui as props.
+
+```ts
+// src/hooks/useUsersPage.ts
+export function useUsersPage() {
+  const { data: raw = [] } = useUsers();
+  const [search, setSearch] = useState("");
+  // ... processamento, delete mutation, stats
+  return { users, isLoading, search, setSearch, total, ... };
+}
+
+// src/pages/configuracao/UsersPage.tsx
+export default function UsersPage() {
+  const { users, isLoading, ... } = useUsersPage();
+  return <main>...</main>;  // só JSX, zero lógica
+}
+```
+
+### Exemplo — `pages/perfil`
+
+```
+src/hooks/usePerfilForm.ts   → useZodForm + useMutation + useSpecialties + feedback state
+src/pages/perfil/
+├── PerfilPage.tsx           → importa AvatarHeader + PerfilForm, monta layout
+├── PerfilForm.tsx           → chama usePerfilForm(), distribui props no JSX
+├── AvatarHeader.tsx         → recebe { username }, renderiza avatar
+└── FeedbackMessage.tsx      → recebe { type, message }, renderiza alerta
+```
+
+### Exemplo — `pages/configuracao/usuarios`
+
+```
+src/hooks/useUsersPage.ts    → fetch + delete + search + stats calculados
+src/pages/configuracao/
+├── UsersPage.tsx            → chama useUsersPage(), monta layout
+├── UsersStats.tsx           → recebe { total, totalDoctors, ... }, renderiza cards
+└── UsersTable.tsx           → recebe { users, onRequestDelete, ... }, renderiza tabela
+```
+
+> **Por que?** Facilita leitura, teste e reutilização. Um arquivo de página com 300+ linhas misturando lógica e UI é difícil de manter.
+
+---
+
+## Módulo Notas Fiscais
+
+Implementado em 2026-04-16. Emissão e controle de NFS-e (Nota Fiscal de Serviços Eletrônica) seguindo padrão brasileiro.
+
+### Páginas
+
+| Rota | Componente | Descrição |
+|------|-----------|-----------|
+| `/notas-fiscais` | `NotasFiscaisPage` | Listagem paginada com filtros, KPIs, emissão e viewer |
+
+### Arquivos
+
+```
+src/pages/notasfiscais/
+├── NotasFiscaisPage.tsx       # Orquestrador — monta layout, instancia viewer
+├── NotasFiscaisStats.tsx      # 4 KPI cards (emitidas, valor, pendentes, canceladas)
+├── NotasFiscaisTable.tsx      # Tabela com filtros de status e ações inline
+├── NovaNotaFiscalModal.tsx    # Modal de criação com useZodForm + useCreateNotaFiscal
+└── NotaFiscalViewer.tsx       # Viewer NFS-e padrão brasileiro com impressão
+```
+
+### Componentes (`src/pages/notasfiscais/`)
+
+| Componente | Props principais | Descrição |
+|-----------|-----------------|-----------|
+| `NotasFiscaisStats` | `totalEmitidas, valorTotal, totalPendentes, totalCanceladas, isLoading` | 4 cards de KPI com skeleton inline |
+| `NotasFiscaisTable` | `notas, patientMap, onViewNF, onRequestEmitir, onRequestCancelar, onRequestDelete, ...` | Tabela com abas de filtro e confirm inline por ação |
+| `NovaNotaFiscalModal` | `open, onClose` | Modal com SearchableSelect de paciente, servico, valor, observacoes |
+| `NotaFiscalViewer` | `nf, patient, onClose` | Modal NFS-e com seções Prestador/Tomador/Valores e botão imprimir |
+
+### Ações por status na tabela
+
+| Status | Ações disponíveis |
+|--------|-----------------|
+| `PENDENTE` | Emitir (confirm inline), Excluir (confirm inline) |
+| `EMITIDA` | Ver (abre viewer), Download (se pdfUrl), Cancelar (confirm inline) |
+| `CANCELADA` | Excluir (confirm inline) |
+
+### Hooks (`src/hooks/useNotasFiscais.ts`)
+
+| Hook | Retorna |
+|------|---------|
+| `useNotasFiscaisPaginated(page, limit, search, status)` | `PaginatedResponse<NotaFiscalResponse>` |
+| `useNotasFiscaisStats()` | `{ totalEmitidas, valorTotal, totalPendentes, totalCanceladas, isLoading }` |
+| `useCreateNotaFiscal()` | Mutation de criação |
+| `useEmitirNotaFiscal()` | Mutation — retorna `NotaFiscalResponse` emitida |
+| `useCancelarNotaFiscal()` | Mutation de cancelamento |
+| `useDeleteNotaFiscal()` | Mutation de exclusão |
+| `useNotasFiscaisPage()` | Hook completo de página com todo estado de UI |
+
+### Lógica de stats
+
+Três queries paralelas (sem endpoint de agregação no backend):
+
+| Query | `status` | `limit` | Uso |
+|-------|----------|---------|-----|
+| emitidas | `EMITIDA` | 500 | `totalEmitidas` + soma `valorTotal` |
+| pendentes | `PENDENTE` | 1 | `totalPendentes` via `pagination.total` |
+| canceladas | `CANCELADA` | 1 | `totalCanceladas` via `pagination.total` |
+
+### Serviço (`src/services/NotaFiscal.ts`)
+
+Base: `/fiscal/notas-fiscais`
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| `getAll(filters?)` | `GET /` | Lista paginada com search, status, patientId, datas |
+| `getById(id)` | `GET /:id` | NF por ID |
+| `create(data)` | `POST /` | Cria NF com status PENDENTE |
+| `emitir(id)` | `POST /:id/emitir` | Emite NF — retorna objeto completo |
+| `cancelar(id)` | `POST /:id/cancelar` | Cancela NF |
+| `delete(id)` | `DELETE /:id` | Exclui NF (só PENDENTE ou CANCELADA) |
+
+### Schema de Validação (`src/validate/notaFiscal.schema.ts`)
+
+| Campo | Tipo | Regras |
+|-------|------|--------|
+| `patientId` | string | obrigatório, min 1 |
+| `servico` | string | obrigatório, 2–255 chars |
+| `valor` | string | obrigatório, numérico > 0 (aceita vírgula como decimal) |
+| `observacoes` | string | opcional, max 2000 chars |
+
+> `valor` é string no form e convertido para `Number` antes de chamar a API: `Number(valor.replace(",", "."))`.
+
+### Tipos (`src/types/api.ts`)
+
+```ts
+type NotaFiscalStatus = "PENDENTE" | "EMITIDA" | "CANCELADA";
+
+interface NotaFiscalResponse {
+  id: string;
+  numero: string;
+  patientId: string;
+  appointmentId: string | null;
+  transactionId: string | null;
+  createdBy: string;
+  servico: string;
+  valor: number;
+  status: NotaFiscalStatus;
+  dataEmissao: string | null;
+  pdfUrl: string | null;
+  observacoes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CreateNotaFiscalInput {
+  patientId: string;
+  servico: string;
+  valor: number;
+  observacoes?: string | null;
+  appointmentId?: string | null;
+  transactionId?: string | null;
+}
+```
+
+### Viewer NFS-e (`NotaFiscalViewer.tsx`)
+
+Segue o padrão brasileiro de Nota Fiscal de Serviços Eletrônica:
+
+| Seção | Conteúdo |
+|-------|---------|
+| Cabeçalho | Nome da prefeitura, cidade, número e data de emissão |
+| Código de verificação | Primeiros 12 chars do UUID sem hífens (maiúsculo) |
+| Prestador | Razão social, CNPJ, endereço, inscrição municipal da clínica |
+| Tomador | Nome e CPF do paciente (lookup via `patientDetailsMap`) |
+| Discriminação | Descrição do serviço prestado + observações |
+| Valores | Valor bruto, deduções (R$ 0,00), base de cálculo, ISS (5%), valor líquido |
+
+**Impressão**: `window.open()` com documento HTML completo gerado inline — não depende de CSS da aplicação.
+
+**Constante CLINIC**: dados da clínica hardcoded em `NotaFiscalViewer.tsx`. Atualizar ao mudar dados cadastrais.
+
+### Nome do paciente na NF
+
+O backend retorna apenas `patientId`. O frontend resolve o nome em `NotasFiscaisPage`:
+
+```tsx
+const patientMap = useMemo(
+  () => Object.fromEntries(patients.map((p) => [p.id, p.name])),
+  [patients],
+);
+const patientDetailsMap = useMemo(
+  () => Object.fromEntries(patients.map((p) => [p.id, { name: p.name, cpf: p.cpf }])),
+  [patients],
+);
+```
+
+### Cores do módulo
+
+| Status | Background badge | Texto badge |
+|--------|-----------------|-------------|
+| `EMITIDA` | `#DCFCE7` | `#16A34A` |
+| `PENDENTE` | `#FEF3C7` | `#D97706` |
+| `CANCELADA` | `#FEE2E2` | `#DC2626` |
+
+### Testes (`src/__tests__/`)
+
+| Arquivo | Cobertura |
+|---------|-----------|
+| `validate/notaFiscalSchema.test.ts` | Todos os campos — valid/invalid, bordas de limite, vírgula decimal |
+| `hooks/useNotasFiscais.test.ts` | Todas as queries/mutations + useNotasFiscaisPage (estado, viewer, confirms) |
+
+### Sidebar
+
+Item adicionado em `src/components/Dashboard/Sidebar.tsx`:
+
+```ts
+{ label: "Notas Fiscais", icon: Receipt, path: "/notas-fiscais" }
+```
+
+Posicionado entre **Financeiro** e **RH** no menu lateral.

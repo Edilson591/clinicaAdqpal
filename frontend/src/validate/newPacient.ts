@@ -28,7 +28,7 @@ export const newPacientSchema = z.object({
   city: z.string().nullable().optional(),
   state: z.string().nullable().optional(),
   zipCode: z.string().nullable().optional(),
-  additionalInfo: z.string().nullable().optional(),
+  additionalInfo: z.string().optional()
 });
 
 export type NewPacientInput = z.infer<typeof newPacientSchema>;

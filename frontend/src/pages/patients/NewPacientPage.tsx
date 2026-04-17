@@ -19,6 +19,7 @@ import { InformacoesAdicionais } from "../../components/NewPacient/InformacoesAd
 import { FormHeader } from "../../components/Form/FormHeader";
 import { FormContent } from "../../components/Form/FormContent";
 import { Button } from "../../components/ui/Button";
+import { ESTADOS } from "../../data/state";
 
 function NovoPacienteContent() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ function NovoPacienteContent() {
       gender: "",
       phone: "",
       email: "",
-      state: "",
+      state: ESTADOS[1],
       streetNumber: "",
       city: "",
       street: "",

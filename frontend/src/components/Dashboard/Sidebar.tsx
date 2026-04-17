@@ -4,18 +4,44 @@ import {
   Calendar,
   FileText,
   Settings,
-  DollarSign 
+  DollarSign,
+  Briefcase,
+  UserCog,
+  Receipt,
+  type LucideIcon,
 } from "lucide-react";
 
 // =============================================================================
 // NAV ITEMS (matches design node 34qfs)
 // =============================================================================
 
-export const navItems = [
+export interface NavChild {
+  label: string;
+  icon: LucideIcon;
+  path: string;
+}
+
+export interface NavItem {
+  label: string;
+  icon: LucideIcon;
+  path: string;
+  children?: NavChild[];
+}
+
+export const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { label: "Pacientes", icon: Users, path: "/pacientes" },
   { label: "Agenda", icon: Calendar, path: "/agenda" },
   { label: "Prontuários", icon: FileText, path: "/prontuarios" },
   { label: "Financeiro", icon: DollarSign, path: "/financeiro" },
-  { label: "Configurações", icon: Settings, path: "/configuracoes" },
+  { label: "Notas Fiscais", icon: Receipt, path: "/notas-fiscais" },
+  { label: "Recursos Humanos", icon: Briefcase, path: "/rh" },
+  {
+    label: "Configurações",
+    icon: Settings,
+    path: "/configuracoes",
+    children: [
+      { label: "Usuários", icon: UserCog, path: "/configuracoes/usuarios" },
+    ],
+  },
 ];

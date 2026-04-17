@@ -1,30 +1,28 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { UserResponse, LoginResponse } from "../types/api";
-
-
-
+import type { UserResponse } from "../types/api";
 
 // =============================================================================
 // COOKIE HELPERS
+// Apenas para o cookie de dados do usuário (display).
+// O token JWT fica em cookie httpOnly gerenciado pelo servidor.
 // =============================================================================
 
-const TOKEN_COOKIE = "adqpal_token";
 const USER_COOKIE = "adqpal_user";
 const COOKIE_OPTS = "path=/; SameSite=Strict";
-const COOKIE_DAYS = 1;
-
-export function setCookie(name: string, value: string): void {
-  const expires = new Date(Date.now() + COOKIE_DAYS * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; ${COOKIE_OPTS}`;
-}
+const COOKIE_DAYS = 7;
 
 export function getCookie(name: string): string | null {
   const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-export function deleteCookie(name: string): void {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${COOKIE_OPTS}`;
+function setUserCookie(user: UserResponse): void {
+  const expires = new Date(Date.now() + COOKIE_DAYS * 864e5).toUTCString();
+  document.cookie = `${USER_COOKIE}=${encodeURIComponent(JSON.stringify(user))}; expires=${expires}; ${COOKIE_OPTS}`;
+}
+
+function deleteUserCookie(): void {
+  document.cookie = `${USER_COOKIE}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${COOKIE_OPTS}`;
 }
 
 // =============================================================================
@@ -33,41 +31,36 @@ export function deleteCookie(name: string): void {
 
 interface AuthState {
   user: UserResponse | null;
-  token: string | null;
 }
 
 function loadInitialState(): AuthState {
   try {
-    const token = getCookie(TOKEN_COOKIE);
     const raw = getCookie(USER_COOKIE);
     const user = raw ? (JSON.parse(raw) as UserResponse) : null;
-    return { user, token };
+    return { user };
   } catch {
-    return { user: null, token: null };
+    return { user: null };
   }
 }
 
 // =============================================================================
 // SLICE
-// Login/loading/error são responsabilidade do React Query (useMutation).
-// O Redux só armazena o estado autenticado persistido em cookie.
+// Token JWT é httpOnly — gerenciado pelo servidor via Set-Cookie.
+// O Redux armazena apenas os dados do usuário para exibição na UI.
 // =============================================================================
 
 const authSlice = createSlice({
   name: "auth",
   initialState: loadInitialState(),
   reducers: {
-    setCredentials(state, action: PayloadAction<LoginResponse>) {
-      state.token = action.payload.token;
+    setCredentials(state, action: PayloadAction<{ user: UserResponse }>) {
       state.user = action.payload.user;
-      setCookie(TOKEN_COOKIE, action.payload.token);
-      setCookie(USER_COOKIE, JSON.stringify(action.payload.user));
+      setUserCookie(action.payload.user);
     },
     logout(state) {
       state.user = null;
-      state.token = null;
-      deleteCookie(TOKEN_COOKIE);
-      deleteCookie(USER_COOKIE);
+      deleteUserCookie();
+      // O cookie httpOnly adqpal_token é removido pela chamada POST /users/logout
     },
   },
 });

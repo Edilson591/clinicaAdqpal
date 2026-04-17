@@ -30,18 +30,38 @@ export class UserController {
     try {
       const dto = req.body as LoginUserDTO;
       const result = await new LoginUser(userRepository, hashService, tokenService).execute(dto);
-      res.status(200).json({ success: true, message: "Login realizado com sucesso.", data: result });
+
+      // Token em cookie httpOnly — JavaScript do cliente não consegue ler
+      res.cookie("adqpal_token", result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+        path: "/",
+      });
+
+      // Retorna apenas os dados do usuário (sem o token no body)
+      res.status(200).json({ success: true, message: "Login realizado com sucesso.", data: { user: result.user } });
     } catch (err) {
       next(err);
     }
   }
 
+  async logout(_req: Request, res: Response): Promise<void> {
+    res.clearCookie("adqpal_token", { httpOnly: true, sameSite: "strict", path: "/" });
+    res.status(200).json({ success: true, message: "Logout realizado com sucesso." });
+  }
+
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const pagination = parsePagination(req.query);
+      const search = req.query.search as string | undefined;
+      const roleId = req.query.roleId ? Number(req.query.roleId) : undefined;
+      const filters = { search, roleId };
+
       const [users, total] = await Promise.all([
-        userRepository.findAll(pagination),
-        userRepository.count(),
+        userRepository.findAll(pagination, filters),
+        userRepository.count(filters),
       ]);
       const sanitized = users.map(u => ({ ...u, passwordHash: undefined }));
       res.status(200).json({ success: true, ...toPaginatedResult(sanitized, total, pagination) });

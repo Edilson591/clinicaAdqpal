@@ -61,7 +61,6 @@ export function useDashboard(
 
   const appointmentsToday = data?.data;
 
-  console.log(data)
 
   const agendaDoDia = useMemo<DashboardAppointment[]>(() => {
     if (!user || !appointmentsToday) return [];

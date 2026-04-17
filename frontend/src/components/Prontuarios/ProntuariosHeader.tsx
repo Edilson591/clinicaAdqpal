@@ -23,13 +23,6 @@ export function ProntuariosHeader({
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            {/* <button
-              onClick={toggleMobile}
-              className="lg:hidden cursor-pointer p-1 rounded text-[#94A3B8] dark:text-[#64748B] hover:opacity-70 transition-colors"
-              aria-label="Abrir menu"
-            >
-              <Menu size={20} />
-            </button> */}
             <FileText size={20} className="text-[#38A169]" />
             <h1 className="text-2xl font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
               Prontuários
@@ -43,12 +36,12 @@ export function ProntuariosHeader({
 
         <div className="flex items-center gap-3">
           {/* Novo Prontuário */}
-          <button 
+          {/* <button 
           onClick={() => navigate('/prontuarios/novo')}
           className="flex items-center gap-2 h-11 px-5 bg-[#38A169] hover:bg-[#2F9259] text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer">
             <Plus size={16} />
             Novo Prontuário
-          </button>
+          </button> */}
         </div>
       </div>
 

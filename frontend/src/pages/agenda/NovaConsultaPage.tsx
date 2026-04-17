@@ -21,7 +21,7 @@ import { FormContent } from "../../components/Form/FormContent";
 import { FormHeader } from "../../components/Form/FormHeader";
 import { FormCard } from "../../components/Form/FormCard";
 import { FormSection } from "../../components/Form/FormSection";
-
+import { InputGroup } from "../../components/ui/Input";
 
 // ── Page content ──────────────────────────────────────────────────────────────
 
@@ -49,7 +49,8 @@ function NovaConsultaContent() {
   const selectedType = watch("type");
   const selectedPacient = watch("patientId");
 
-  const { options: patientOptions, setQuery: setPatientQuery } = usePatientSearch();
+  const { options: patientOptions, setQuery: setPatientQuery } =
+    usePatientSearch();
   const { data: patient } = usePatient(selectedPacient);
   const { data: users } = useDoctors();
   const { data: specialties } = useSpecialtiesByDoctor(selectedDoctorId);
@@ -139,7 +140,11 @@ function NovaConsultaContent() {
                   label="Especialidade"
                   required
                   error={errors.specialtyId?.message}
-                  placeholder={selectedDoctorId ? "Buscar especialidade..." : "Selecione um médico primeiro"}
+                  placeholder={
+                    selectedDoctorId
+                      ? "Buscar especialidade..."
+                      : "Selecione um médico primeiro"
+                  }
                   options={specialtyOptions}
                   value={field.value}
                   onChange={field.onChange}
@@ -211,56 +216,65 @@ function NovaConsultaContent() {
             {/* Sala — IN_PERSON */}
             {selectedType === "IN_PERSON" && (
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-[#2D3748] dark:text-[#F1F5F9]">
-                  Sala / Consultório <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register("roomId")}
-                  placeholder="Ex: Consultório 01"
-                  className="h-14 w-full rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-4 text-sm text-[#2D3748] dark:text-[#F1F5F9] placeholder:text-[#A0AEC0] dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#38A169]"
+                 <InputGroup
+                  label="Sala / Consultório"
+                  required
+                  error={errors.roomId?.message}
+                  inputProps={{
+                    placeholder:"Ex: Consultório 01",
+                    className: "bg-[#F8FAFC]",
+                    ...register("roomId"),
+                  }}
                 />
-                {errors.roomId && (
-                  <p className="text-xs text-red-500">{errors.roomId.message}</p>
-                )}
               </div>
             )}
 
             {/* Link — ONLINE */}
             {selectedType === "ONLINE" && (
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-[#2D3748] dark:text-[#F1F5F9]">
-                  Link da Reunião <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register("meetingLink")}
-                  placeholder="Ex: https://meet.google.com/abc-def"
-                  className="h-14 w-full rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-4 text-sm text-[#2D3748] dark:text-[#F1F5F9] placeholder:text-[#A0AEC0] dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#38A169]"
+                <InputGroup
+                  label=" Link do agendamento"
+                  required
+                  error={errors.meetingLink?.message}
+                  inputProps={{
+                    placeholder:"Ex: https://meet.google.com/abc-def",
+                    className: "bg-[#F8FAFC]",
+                    ...register("meetingLink"),
+                  }}
                 />
-                {errors.meetingLink && (
-                  <p className="text-xs text-red-500">{errors.meetingLink.message}</p>
-                )}
               </div>
             )}
 
             {/* Endereço — HOME_CARE */}
             {selectedType === "HOME_CARE" && (
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-[#2D3748] dark:text-[#F1F5F9]">
+                <InputGroup
+                  label="Endereço do Atendimento"
+                  required
+                  error={errors.address?.message}
+                  inputProps={{
+                    placeholder: "Nome completo",
+                    className: "bg-[#F8FAFC]",
+                    ...register("address"),
+                  }}
+                />
+                {/* <label className="text-sm font-semibold text-[#2D3748] dark:text-[#F1F5F9]">
                   Endereço do Atendimento <span className="text-red-500">*</span>
                 </label>
                 <input
                   {...register("address")}
                   placeholder="Ex: Rua das Flores, 123 — São Paulo, SP"
                   className="h-14 w-full rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] px-4 text-sm text-[#2D3748] dark:text-[#F1F5F9] placeholder:text-[#A0AEC0] dark:placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#38A169]"
-                />
+                />  */}
                 {patient?.street && (
                   <p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
-                    Endereço preenchido automaticamente do cadastro do paciente. Você pode editar.
+                    Endereço preenchido automaticamente do cadastro do paciente.
+                    Você pode editar.
                   </p>
                 )}
-                {errors.address && (
+                {/* {errors.address && (
                   <p className="text-xs text-red-500">{errors.address.message}</p>
-                )}
+                )} */}
               </div>
             )}
           </FormSection>
@@ -275,7 +289,7 @@ function NovaConsultaContent() {
               render={({ field }) => (
                 <VoiceTextarea
                   label="Anotações / Motivo da consulta"
-                  required={false}
+                  required={true}
                   error={errors.notes?.message}
                   placeholder="Motivo da consulta, histórico relevante, orientações..."
                   currentValue={field.value ?? ""}

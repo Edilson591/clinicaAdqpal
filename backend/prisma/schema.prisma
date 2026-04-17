@@ -1,8 +1,3 @@
-// =============================================================================
-// Prisma Schema — ADQPAL Backend
-// Banco de dados: PostgreSQL (Supabase)
-// =============================================================================
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
@@ -13,8 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Role ─────────────────────────────────────────────────────────────────────
-
 model Role {
   id    Int    @id @default(autoincrement())
   name  String @unique
@@ -23,72 +16,50 @@ model Role {
   @@map("roles")
 }
 
-// ─── User ─────────────────────────────────────────────────────────────────────
-
 model User {
-  id           String   @id @default(uuid())
-  username     String   @unique
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  roleId       Int      @map("role_id")
-  role         Role     @relation(fields: [roleId], references: [id])
-  cpf          String?  @unique
-  cnpj         String?  @unique
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
+  id               String            @id @default(uuid())
+  email            String            @unique
+  passwordHash     String            @map("password_hash")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  cnpj             String?           @unique
+  cpf              String?           @unique
+  roleId           Int               @map("role_id")
+  username         String            @unique
   appointments     Appointment[]
-  patientHistories PatientHistory[] @relation("DoctorHistories")
   specialties      DoctorSpecialty[]
-  transactions     Transaction[]    @relation("TransactionCreator")
+  patientHistories PatientHistory[]  @relation("DoctorHistories")
+  transactions     Transaction[]     @relation("TransactionCreator")
+  notasFiscais     NotaFiscal[]      @relation("NotaFiscalCreator")
+  role             Role              @relation(fields: [roleId], references: [id])
 
   @@map("users")
 }
 
-// ─── Patient ──────────────────────────────────────────────────────────────────
-
 model Patient {
-  id             String    @id @default(uuid())
-  name           String
-  email          String?   @unique
-  phone          String?
-  cpf            String?   @unique
-  dateOfBirth    DateTime? @map("date_of_birth")
-  street         String?
-  gender         String?
-  agreement      String?
-  streetNumber   String?   @map("street_number")
-  city           String?
-  state          String?
-  zipCode        String?   @map("zip_code")
-  additionalInfo String?   @map("additional_info")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
-
+  id               String           @id @default(uuid())
+  name             String
+  email            String?          @unique
+  phone            String?
+  cpf              String?          @unique
+  dateOfBirth      DateTime?        @map("date_of_birth")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  additionalInfo   String?          @map("additional_info")
+  city             String?
+  state            String?
+  street           String?
+  streetNumber     String?          @map("street_number")
+  zipCode          String?          @map("zip_code")
+  agreement        String?
+  gender           String?
   appointments     Appointment[]
   medicalRecords   MedicalRecord[]
   patientHistories PatientHistory[]
   transactions     Transaction[]
+  notasFiscais     NotaFiscal[]
 
   @@map("patients")
-}
-
-// ─── Appointment ──────────────────────────────────────────────────────────────
-
-enum AppointmentStatus {
-  SCHEDULED
-  CONFIRMED
-  IN_PROGRESS
-  COMPLETED
-  CANCELED
-  NO_SHOW
-  CANCELLED
-}
-
-enum AppointmentType {
-  IN_PERSON
-  ONLINE
-  HOME_CARE
 }
 
 model Specialty {
@@ -111,56 +82,44 @@ model DoctorSpecialty {
 }
 
 model Appointment {
-  id           String            @id @default(uuid())
-  userId       String            @map("user_id")
-  patientId    String            @map("patient_id")
-  user         User              @relation(fields: [userId], references: [id])
-  patient      Patient           @relation(fields: [patientId], references: [id])
-  scheduledAt  DateTime          @map("scheduled_at")
-  medico       String?
-  status       AppointmentStatus @default(SCHEDULED)
-  type         AppointmentType   @default(IN_PERSON)
-  specialtyId  String?           @map("specialty_id")
-  specialty    Specialty?        @relation(fields: [specialtyId], references: [id])
-  roomId       String?           @map("room_id")
-  meetingLink  String?           @map("meeting_link")
-  address      String?
-  notes        String?
-  createdAt    DateTime          @default(now()) @map("created_at")
-  updatedAt    DateTime          @updatedAt @map("updated_at")
-
+  id               String            @id @default(uuid())
+  userId           String            @map("user_id")
+  patientId        String            @map("patient_id")
+  scheduledAt      DateTime          @map("scheduled_at")
+  status           AppointmentStatus @default(SCHEDULED)
+  notes            String?
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  medico           String?
+  address          String?
+  meetingLink      String?           @map("meeting_link")
+  roomId           String?           @map("room_id")
+  specialtyId      String?           @map("specialty_id")
+  type             AppointmentType   @default(IN_PERSON)
+  patient          Patient           @relation(fields: [patientId], references: [id])
+  specialty        Specialty?        @relation(fields: [specialtyId], references: [id])
+  user             User              @relation(fields: [userId], references: [id])
   medicalRecord    MedicalRecord?
   patientHistories PatientHistory[]
   transactions     Transaction[]
+  notasFiscais     NotaFiscal[]
 
   @@map("appointments")
 }
 
-// ─── MedicalRecord ────────────────────────────────────────────────────────────
-
 model MedicalRecord {
   id            String      @id @default(uuid())
-  appointmentId String      @unique @map("appointment_id")
+  appointmentId String?      @unique @map("appointment_id")
   patientId     String      @map("patient_id")
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
-  patient       Patient     @relation(fields: [patientId], references: [id])
   diagnosis     String?
   prescription  String?
   notes         String?
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  patient       Patient     @relation(fields: [patientId], references: [id])
 
   @@map("medical_records")
-}
-
-// ─── PatientHistory ───────────────────────────────────────────────────────────
-
-enum PatientHistoryType {
-  CONSULTA
-  EXAME
-  PRESCRICAO
-  OBSERVACAO
-  SOLICITACAO
 }
 
 model PatientHistory {
@@ -175,15 +134,170 @@ model PatientHistory {
   deletedAt     DateTime?          @map("deleted_at")
   createdAt     DateTime           @default(now()) @map("created_at")
   updatedAt     DateTime           @updatedAt @map("updated_at")
-
-  patient     Patient      @relation(fields: [patientId], references: [id])
-  doctor      User         @relation("DoctorHistories", fields: [doctorId], references: [id])
-  appointment Appointment? @relation(fields: [appointmentId], references: [id])
+  appointment   Appointment?       @relation(fields: [appointmentId], references: [id])
+  doctor        User               @relation("DoctorHistories", fields: [doctorId], references: [id])
+  patient       Patient            @relation(fields: [patientId], references: [id])
 
   @@map("patient_history")
 }
 
-// ─── Financial ────────────────────────────────────────────────────────────────
+model FinancialAccount {
+  id                   String        @id @default(uuid())
+  name                 String
+  type                 AccountType
+  bank                 String?
+  initialBalance       Decimal       @default(0) @map("initial_balance") @db.Decimal(10, 2)
+  currency             String        @default("BRL")
+  isActive             Boolean       @default(true) @map("is_active")
+  isDefault            Boolean       @default(false) @map("is_default")
+  color                String?
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+  pluggyAccountId      String?       @unique @map("pluggy_account_id")
+  transactions         Transaction[] @relation("AccountTransactions")
+  transferTransactions Transaction[] @relation("TransferTarget")
+
+  @@map("financial_accounts")
+}
+
+model PluggyItem {
+  id            String    @id @default(uuid())
+  pluggyItemId  String    @unique @map("pluggy_item_id")
+  connectorName String    @map("connector_name")
+  connectorLogo String?   @map("connector_logo")
+  status        String    @default("UPDATED")
+  lastSync      DateTime? @map("last_sync")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("pluggy_items")
+}
+
+model FinancialCategory {
+  id           String              @id @default(uuid())
+  name         String
+  type         CategoryType
+  color        String?
+  icon         String?
+  parentId     String?             @map("parent_id")
+  isDefault    Boolean             @default(false) @map("is_default")
+  isActive     Boolean             @default(true) @map("is_active")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+  parent       FinancialCategory?  @relation("CategoryParent", fields: [parentId], references: [id])
+  children     FinancialCategory[] @relation("CategoryParent")
+  transactions Transaction[]
+
+  @@map("financial_categories")
+}
+
+model Employee {
+  id           String         @id @default(uuid())
+  name         String
+  cpf          String?        @unique
+  email        String?        @unique
+  phone        String?
+  position     String
+  department   String?
+  hireDate     DateTime?      @map("hire_date")
+  salary       Decimal?       @db.Decimal(10, 2)
+  status       EmployeeStatus @default(ACTIVE)
+  dateOfBirth  DateTime?      @map("date_of_birth")
+  gender       String?
+  street       String?
+  streetNumber String?        @map("street_number")
+  city         String?
+  state        String?
+  zipCode      String?        @map("zip_code")
+  notes        String?
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  @@map("employees")
+}
+
+model NotaFiscal {
+  id            String           @id @default(uuid())
+  numero        String           @unique
+  patientId     String           @map("patient_id")
+  appointmentId String?          @map("appointment_id")
+  transactionId String?          @map("transaction_id")
+  createdBy     String           @map("created_by")
+  servico       String
+  valor         Decimal          @db.Decimal(10, 2)
+  status        NotaFiscalStatus @default(PENDENTE)
+  dataEmissao   DateTime?        @map("data_emissao")
+  pdfUrl        String?          @map("pdf_url")
+  observacoes   String?
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  patient       Patient          @relation(fields: [patientId], references: [id])
+  appointment   Appointment?     @relation(fields: [appointmentId], references: [id])
+  transaction   Transaction?     @relation(fields: [transactionId], references: [id])
+  createdByUser User             @relation("NotaFiscalCreator", fields: [createdBy], references: [id])
+
+  @@map("notas_fiscais")
+}
+
+model Transaction {
+  id                  String            @id @default(uuid())
+  accountId           String            @map("account_id")
+  categoryId          String            @map("category_id")
+  patientId           String?           @map("patient_id")
+  appointmentId       String?           @map("appointment_id")
+  createdBy           String            @map("created_by")
+  type                TransactionType
+  amount              Decimal           @db.Decimal(10, 2)
+  description         String
+  status              TransactionStatus @default(PENDING)
+  paymentMethod       PaymentMethod     @default(OTHER) @map("payment_method")
+  dueDate             DateTime          @map("due_date")
+  paidAt              DateTime?         @map("paid_at")
+  reference           String?
+  isRecurring         Boolean           @default(false) @map("is_recurring")
+  recurringGroupId    String?           @map("recurring_group_id")
+  installmentNumber   Int?              @map("installment_number")
+  totalInstallments   Int?              @map("total_installments")
+  transferToAccountId String?           @map("transfer_to_account_id")
+  tags                String[]          @default([])
+  attachmentUrl       String?           @map("attachment_url")
+  deletedAt           DateTime?         @map("deleted_at")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+  account             FinancialAccount  @relation("AccountTransactions", fields: [accountId], references: [id])
+  appointment         Appointment?      @relation(fields: [appointmentId], references: [id])
+  category            FinancialCategory @relation(fields: [categoryId], references: [id])
+  createdByUser       User              @relation("TransactionCreator", fields: [createdBy], references: [id])
+  patient             Patient?          @relation(fields: [patientId], references: [id])
+  transferToAccount   FinancialAccount? @relation("TransferTarget", fields: [transferToAccountId], references: [id])
+  notasFiscais        NotaFiscal[]
+
+  @@map("transactions")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  CONFIRMED
+  IN_PROGRESS
+  CANCELED
+  NO_SHOW
+}
+
+enum AppointmentType {
+  IN_PERSON
+  ONLINE
+  HOME_CARE
+}
+
+enum PatientHistoryType {
+  CONSULTA
+  EXAME
+  PRESCRICAO
+  OBSERVACAO
+  SOLICITACAO
+}
 
 enum TransactionType {
   INCOME
@@ -221,92 +335,15 @@ enum CategoryType {
   BOTH
 }
 
-model FinancialAccount {
-  id              String      @id @default(uuid())
-  name            String
-  type            AccountType
-  bank            String?
-  initialBalance  Decimal     @default(0) @db.Decimal(10, 2) @map("initial_balance")
-  currency        String      @default("BRL")
-  isActive        Boolean     @default(true) @map("is_active")
-  isDefault       Boolean     @default(false) @map("is_default")
-  color           String?
-  pluggyAccountId String?     @unique @map("pluggy_account_id")
-  createdAt       DateTime    @default(now()) @map("created_at")
-  updatedAt       DateTime    @updatedAt @map("updated_at")
-
-  transactions         Transaction[] @relation("AccountTransactions")
-  transferTransactions Transaction[] @relation("TransferTarget")
-
-  @@map("financial_accounts")
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  TERMINATED
 }
 
-// ─── Pluggy Open Banking ───────────────────────────────────────────────────────
-
-model PluggyItem {
-  id            String    @id @default(uuid())
-  pluggyItemId  String    @unique @map("pluggy_item_id")
-  connectorName String    @map("connector_name")
-  connectorLogo String?   @map("connector_logo")
-  status        String    @default("UPDATED")
-  lastSync      DateTime? @map("last_sync")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  @@map("pluggy_items")
-}
-
-model FinancialCategory {
-  id        String       @id @default(uuid())
-  name      String
-  type      CategoryType
-  color     String?
-  icon      String?
-  parentId  String?            @map("parent_id")
-  parent    FinancialCategory? @relation("CategoryParent", fields: [parentId], references: [id])
-  children  FinancialCategory[] @relation("CategoryParent")
-  isDefault Boolean      @default(false) @map("is_default")
-  isActive  Boolean      @default(true) @map("is_active")
-  createdAt DateTime     @default(now()) @map("created_at")
-  updatedAt DateTime     @updatedAt @map("updated_at")
-
-  transactions Transaction[]
-
-  @@map("financial_categories")
-}
-
-model Transaction {
-  id                  String            @id @default(uuid())
-  accountId           String            @map("account_id")
-  categoryId          String            @map("category_id")
-  patientId           String?           @map("patient_id")
-  appointmentId       String?           @map("appointment_id")
-  createdBy           String            @map("created_by")
-  type                TransactionType
-  amount              Decimal           @db.Decimal(10, 2)
-  description         String
-  status              TransactionStatus @default(PENDING)
-  paymentMethod       PaymentMethod     @default(OTHER) @map("payment_method")
-  dueDate             DateTime          @map("due_date")
-  paidAt              DateTime?         @map("paid_at")
-  reference           String?
-  isRecurring         Boolean           @default(false) @map("is_recurring")
-  recurringGroupId    String?           @map("recurring_group_id")
-  installmentNumber   Int?              @map("installment_number")
-  totalInstallments   Int?              @map("total_installments")
-  transferToAccountId String?           @map("transfer_to_account_id")
-  tags                String[]          @default([])
-  attachmentUrl       String?           @map("attachment_url")
-  deletedAt           DateTime?         @map("deleted_at")
-  createdAt           DateTime          @default(now()) @map("created_at")
-  updatedAt           DateTime          @updatedAt @map("updated_at")
-
-  account           FinancialAccount  @relation("AccountTransactions", fields: [accountId], references: [id])
-  category          FinancialCategory @relation(fields: [categoryId], references: [id])
-  patient           Patient?          @relation(fields: [patientId], references: [id])
-  appointment       Appointment?      @relation(fields: [appointmentId], references: [id])
-  createdByUser     User              @relation("TransactionCreator", fields: [createdBy], references: [id])
-  transferToAccount FinancialAccount? @relation("TransferTarget", fields: [transferToAccountId], references: [id])
-
-  @@map("transactions")
+enum NotaFiscalStatus {
+  PENDENTE
+  EMITIDA
+  CANCELADA
 }

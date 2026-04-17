@@ -25,14 +25,12 @@ function EditPacienteContent() {
     setValue,
     formState: { errors },
     onSubmit,
-    getValues,
     isLoadingPatient,
     isSaving,
     generalError,
   } = useEditPacienteForm(id ?? "");
 
 
-  console.log(getValues())
 
   return (
     <FormContent>

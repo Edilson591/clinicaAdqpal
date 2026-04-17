@@ -71,10 +71,10 @@ export const VoiceTextarea = forwardRef<
             className={twMerge(
               "flex w-full min-h-24",
               "rounded-lg resize-none",
-              "border border-border-input",
+              "border border-border-input dark:text-muted-foreground",
               "bg-[#F8FAFC] dark:bg-[#263548] dark:border-[#334155]",
               "px-4 py-3 pr-12", // pr-12 reserva espaço para o botão
-              "text-base font-normal text-foreground dark:text-[#F1F5F9]",
+              "text-base font-normal text-foreground ",
               "placeholder:text-muted-foreground",
               "transition-all duration-150 ease-in-out",
               "focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent",

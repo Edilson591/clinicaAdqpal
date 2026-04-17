@@ -12,7 +12,6 @@ export const specialtyService = {
       `/specialties/doctor/${doctorId}`,
     );
 
-    console.log(res)
     return res.data.data!;
   },
 };

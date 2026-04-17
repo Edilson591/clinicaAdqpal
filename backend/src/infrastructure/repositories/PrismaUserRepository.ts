@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import type { IUserRepository } from "../../domain/repositories/IUserRepository";
+import type { IUserRepository, UserFilters } from "../../domain/repositories/IUserRepository";
 import type {
   User,
   CreateUserData,
@@ -35,6 +35,20 @@ function toDomain(row: {
 export class PrismaUserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
+  private buildWhere(filters?: UserFilters) {
+    const where: Record<string, unknown> = {};
+    if (filters?.search) {
+      where.OR = [
+        { username: { contains: filters.search, mode: "insensitive" } },
+        { email: { contains: filters.search, mode: "insensitive" } },
+      ];
+    }
+    if (filters?.roleId !== undefined) {
+      where.roleId = filters.roleId;
+    }
+    return where;
+  }
+
   async findById(id: string): Promise<User | null> {
     try {
       const row = await this.prisma.user.findUnique({ where: { id } });
@@ -65,9 +79,11 @@ export class PrismaUserRepository implements IUserRepository {
     }
   }
 
-  async findAll(pagination?: PaginationQuery): Promise<User[]> {
+  async findAll(pagination?: PaginationQuery, filters?: UserFilters): Promise<User[]> {
     try {
+      const where = this.buildWhere(filters);
       const rows = await this.prisma.user.findMany({
+        where,
         ...(pagination && {
           skip: (pagination.page - 1) * pagination.limit,
           take: pagination.limit,
@@ -80,9 +96,10 @@ export class PrismaUserRepository implements IUserRepository {
     }
   }
 
-  async count(): Promise<number> {
+  async count(filters?: UserFilters): Promise<number> {
     try {
-      return await this.prisma.user.count();
+      const where = this.buildWhere(filters);
+      return await this.prisma.user.count({ where });
     } catch (err) {
       throw new DomainError(`Erro ao contar usuários: ${String(err)}`, 500);
     }

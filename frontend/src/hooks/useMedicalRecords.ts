@@ -1,12 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { medicalRecordService } from "../services/MedicalRecord";
-import type { CreateMedicalRecordInput, UpdateMedicalRecordInput } from "../types/api";
+import type {
+  CreateMedicalRecordInput,
+  UpdateMedicalRecordInput,
+} from "../types/api";
 
 export const MEDICAL_RECORD_KEYS = {
   all: ["medical-records"] as const,
-  paginated: (page: number) => ["medical-records", "page", page] as const,
+  paginated: (page: number, limit: number, search?: string) =>
+    ["medical-records", "page", page, limit, search] as const,
   detail: (id: string) => ["medical-records", id] as const,
-  byPatient: (patientId: string) => ["medical-records", "patient", patientId] as const,
+  byPatient: (patientId: string) =>
+    ["medical-records", "patient", patientId] as const,
   byPatients: () => ["medical-records"] as const,
 };
 
@@ -17,10 +22,14 @@ export function useMedicalRecords() {
   });
 }
 
-export function useMedicalRecordsPaginated(page: number) {
+export function useMedicalRecordsPaginated(
+  page: number,
+  limit: number,
+  search?: string,
+) {
   return useQuery({
-    queryKey: MEDICAL_RECORD_KEYS.paginated(page),
-    queryFn: () => medicalRecordService.getAllPaginated(page),
+    queryKey: MEDICAL_RECORD_KEYS.paginated(page, limit, search),
+    queryFn: () => medicalRecordService.getAllPaginated(page, limit, search ?? ""),
   });
 }
 
@@ -42,10 +51,13 @@ export function useMedicalRecordsByPatients(patientIds: string[]) {
 export function useCreateMedicalRecord() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateMedicalRecordInput) => medicalRecordService.create(data),
+    mutationFn: (data: CreateMedicalRecordInput) =>
+      medicalRecordService.create(data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: MEDICAL_RECORD_KEYS.all });
-      queryClient.invalidateQueries({ queryKey: MEDICAL_RECORD_KEYS.byPatient(data.patientId) });
+      queryClient.invalidateQueries({
+        queryKey: MEDICAL_RECORD_KEYS.byPatient(data.patientId),
+      });
     },
   });
 }
@@ -53,12 +65,21 @@ export function useCreateMedicalRecord() {
 export function useUpdateMedicalRecord() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateMedicalRecordInput }) =>
-      medicalRecordService.update(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateMedicalRecordInput;
+    }) => medicalRecordService.update(id, data),
     onSuccess: (updated, { id }) => {
       queryClient.invalidateQueries({ queryKey: MEDICAL_RECORD_KEYS.all });
-      queryClient.invalidateQueries({ queryKey: MEDICAL_RECORD_KEYS.detail(id) });
-      queryClient.invalidateQueries({ queryKey: MEDICAL_RECORD_KEYS.byPatient(updated.patientId) });
+      queryClient.invalidateQueries({
+        queryKey: MEDICAL_RECORD_KEYS.detail(id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: MEDICAL_RECORD_KEYS.byPatient(updated.patientId),
+      });
     },
   });
 }

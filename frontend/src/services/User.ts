@@ -1,6 +1,7 @@
 import api from "./api";
 import type {
   ApiResponse,
+  PaginatedResponse,
   UserResponse,
   LoginResponse,
   RegisterUserInput,
@@ -16,13 +17,25 @@ export const userService = {
 
   login: async (data: LoginUserInput): Promise<LoginResponse> => {
     const res = await api.post<ApiResponse<LoginResponse>>("/users/login", data);
-    console.log(res)
     return res.data.data!;
   },
 
   getAll: async (): Promise<UserResponse[]> => {
-    const res = await api.get<ApiResponse<UserResponse[]>>("/users");
-    return res.data.data!;
+    const res = await api.get<PaginatedResponse<UserResponse>>("/users?limit=9999");
+    return res.data.data;
+  },
+
+  getAllPaginated: async (
+    page: number,
+    limit: number,
+    search?: string,
+    roleId?: number,
+  ): Promise<PaginatedResponse<UserResponse>> => {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (search) params.set("search", search);
+    if (roleId !== undefined) params.set("roleId", String(roleId));
+    const res = await api.get<PaginatedResponse<UserResponse>>(`/users?${params}`);
+    return res.data;
   },
 
   getById: async (id: string): Promise<UserResponse> => {

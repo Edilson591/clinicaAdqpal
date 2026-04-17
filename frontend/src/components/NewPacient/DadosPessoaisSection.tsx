@@ -50,9 +50,6 @@ export const DadosPessoaisSection = <T extends FieldValues>({ register, errors, 
               required
               error={errors.dateOfBirth?.message as string}
               selected={field.value ? new Date(field.value) : new Date()}
-              // selected={
-              //   field.value ? new Date(field.value + "T00:00:00") : new Date()
-              // }
               onChange={(date) =>
                 field.onChange(date ? date.toISOString().split("T")[0] : "")
               }

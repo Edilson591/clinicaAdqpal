@@ -7,19 +7,20 @@ import { useMedicalRecordsPaginated } from "../../hooks/useMedicalRecords";
 function ProntuariosContent() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const { data, isLoading } = useMedicalRecordsPaginated(page);
-  const records = useMemo(() => data?.data ?? [], [data]);
+  const { data, isLoading } = useMedicalRecordsPaginated(page, 20, search);
+  // const records = useMemo(() => data?.data ?? [], [data]);
   const pagination = data?.pagination;
+  const prontuarios = useMemo(() => data?.data ?? [], [data]);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return records;
-    return records.filter((r) => {
-      const name = r.patient.name.toLowerCase();
-      const diag = (r.diagnosis ?? "").toLowerCase();
-      return name.includes(q) || diag.includes(q);
-    });
-  }, [search, records]);
+  // const filtered = useMemo(() => {
+  //   const q = search.toLowerCase().trim();
+  //   if (!q) return records;
+  //   return records.filter((r) => {
+  //     const name = r.patient.name.toLowerCase();
+  //     const diag = (r.diagnosis ?? "").toLowerCase();
+  //     return name.includes(q) || diag.includes(q);
+  //   });
+  // }, [search, records]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -37,12 +38,12 @@ function ProntuariosContent() {
 
         {search && (
           <p className="text-xs text-[#94A3B8] dark:text-[#64748B] -mt-2">
-            {filtered.length} resultado{filtered.length !== 1 ? "s" : ""} para
+            {prontuarios.length} resultado{prontuarios.length !== 1 ? "s" : ""} para
             &ldquo;{search}&rdquo;
           </p>
         )}
 
-        <ProntuariosList records={filtered} isLoading={isLoading} />
+        <ProntuariosList records={prontuarios} isLoading={isLoading} />
 
         <Pagination
           currentPage={page}

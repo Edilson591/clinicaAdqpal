@@ -22,7 +22,7 @@ const inputVariants = tv({
     "border border-border-input", // Border from design system
     "bg-surface px-4", // Background white, 16px padding
     "text-base font-normal text-foreground",
-    "transition-all duration-150 ease-in-out",
+    "transition-all duration-150 ease-in-out bg-[#F8FAFC]",
 
     "invalid:text-muted-foreground",
     "focus:invalid:text-foreground",

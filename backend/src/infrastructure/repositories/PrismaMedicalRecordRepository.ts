@@ -4,6 +4,7 @@ import type {
   MedicalRecord,
   CreateMedicalRecordData,
   UpdateMedicalRecordData,
+  MedicalRecordFilters,
 } from "../../domain/entities/MedicalRecord";
 import type { PaginationQuery } from "../../domain/shared/pagination";
 import { DomainError } from "../../domain/errors/DomainError";
@@ -40,6 +41,20 @@ function toDomain(row: {
 export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
+  private buildWhere(filters?: MedicalRecordFilters) {
+    const where: Record<string, unknown> = {};
+    if (filters?.search) {
+      where.patient = { name: { contains: filters.search, mode: "insensitive" } };
+    }
+    if (filters?.createdToday) {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date();
+      end.setHours(23, 59, 59, 999);
+      where.createdAt = { gte: start, lte: end };
+    }
+    return where;
+  }
   async findById(id: string): Promise<MedicalRecord | null> {
     try {
       const row = await this.prisma.medicalRecord.findUnique({
@@ -53,11 +68,11 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
 
       if (!row) return null;
 
-      if (!row?.appointmentId) {
-        throw new Error("MedicalRecord sem appointmentId não é permitido");
-      }
+      // if (!row?.appointmentId) {
+      //   throw new Error("MedicalRecord sem appointmentId não é permitido");
+      // }
 
-      return toDomain(row)
+      return toDomain(row);
     } catch (err) {
       throw new DomainError(`Erro ao buscar prontuário: ${String(err)}`, 500);
     }
@@ -98,9 +113,10 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
     }
   }
 
-  async findAll(pagination?: PaginationQuery): Promise<MedicalRecord[]> {
+  async findAll(pagination?: PaginationQuery, filters?: MedicalRecordFilters): Promise<MedicalRecord[]> {
     try {
       const rows = await this.prisma.medicalRecord.findMany({
+        where: this.buildWhere(filters),
         include: {
           patient: {
             select: { id: true, name: true, phone: true, email: true },
@@ -118,9 +134,11 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
     }
   }
 
-  async count(): Promise<number> {
+  async count(filters?: MedicalRecordFilters): Promise<number> {
     try {
-      return await this.prisma.medicalRecord.count();
+      return await this.prisma.medicalRecord.count({
+        where: this.buildWhere(filters),
+      });
     } catch (err) {
       throw new DomainError(`Erro ao contar prontuários: ${String(err)}`, 500);
     }
@@ -128,7 +146,16 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
 
   async create(data: CreateMedicalRecordData): Promise<MedicalRecord> {
     try {
-      const row = await this.prisma.medicalRecord.create({ data });
+      const createData: any = { ...data,appointmentId: data.appointmentId ?? null, };
+
+      const row = await this.prisma.medicalRecord.create({
+        data: createData,
+        include: {
+          patient: {
+            select: { id: true, name: true, phone: true, email: true },
+          },
+        },
+      });
       return toDomain(row);
     } catch (err) {
       throw new DomainError(`Erro ao criar prontuário: ${String(err)}`, 500);

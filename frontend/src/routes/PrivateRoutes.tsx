@@ -12,11 +12,19 @@ import ProntuariosPage from "../pages/prontuarios/ProntuariosPage";
 import NovoProntuarioPage from "../pages/prontuarios/NovoProntuarioPage";
 import EditProntuarioPage from "../pages/prontuarios/EditProntuarioPage";
 import ConfiguracaoPage from "../pages/configuracao/ConfiguracaoPage";
+import UsersPage from "../pages/configuracao/UsersPage";
+import EditUserPage from "../pages/configuracao/EditUserPage";
+import NewUserPage from "../pages/configuracao/NewUserPage";
 import PerfilPage from "../pages/perfil/PerfilPage";
 import GestaoFinanceiraPage from "../pages/financeiro/GestaoFinanceiraPage";
 import NovaTransacaoPage from "../pages/financeiro/NovaTransacaoPage";
 import TransacoesPage from "../pages/financeiro/TransacoesPage";
 import { FinanceiroGuard } from "../components/ui/FinanceiroGuard";
+import { UsersGuard } from "../components/ui/UsersGuard";
+import RhPage from "../pages/rh/RhPage";
+import NewEmployeePage from "../pages/rh/NewEmployeePage";
+import EditEmployeePage from "../pages/rh/EditEmployeePage";
+import NotasFiscaisPage from "../pages/notasfiscais/NotasFiscaisPage";
 
 export const privateRoutes = (
   <Route element={<ProtectedRoute />}>
@@ -31,7 +39,19 @@ export const privateRoutes = (
       <Route path="/prontuarios" element={<ProntuariosPage />} />
       <Route path="/prontuarios/novo" element={<NovoProntuarioPage />} />
       <Route path="/prontuarios/:id/editar" element={<EditProntuarioPage />} />
+      <Route path="/notas-fiscais" element={<NotasFiscaisPage />} />
+      <Route path="/rh" element={<RhPage />} />
+      <Route path="/rh/novo" element={<NewEmployeePage />} />
+      <Route path="/rh/:id/editar" element={<EditEmployeePage />} />
+
       <Route path="/configuracoes" element={<ConfiguracaoPage />} />
+
+      {/* Gerenciamento de usuários — restrito a Admin e Suporte de TI */}
+      <Route element={<UsersGuard />}>
+        <Route path="/configuracoes/usuarios" element={<UsersPage />} />
+        <Route path="/configuracoes/usuarios/novo" element={<NewUserPage />} />
+        <Route path="/configuracoes/usuarios/:id/editar" element={<EditUserPage />} />
+      </Route>
       <Route path="/perfil" element={<PerfilPage />} />
 
       {/* Área Financeira — restrita a Admin, Recepcionista e Suporte de TI */}

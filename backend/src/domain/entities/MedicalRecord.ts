@@ -27,3 +27,10 @@ export interface UpdateMedicalRecordData {
   prescription?: string | null;
   notes?: string | null;
 }
+
+export interface MedicalRecordFilters {
+  /** Busca por nome do paciente (case-insensitive) */
+  search?: string;
+  /** Retorna apenas pacientes criados hoje */
+  createdToday?: boolean;
+}

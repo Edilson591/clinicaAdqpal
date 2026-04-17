@@ -11,14 +11,20 @@ import type { AppDispatch, RootState } from "../store";
 
 export function useAuth() {
   const dispatch = useDispatch<AppDispatch>();
-  const { user, token } = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
 
-  const logout = () => dispatch(logoutAction());
+  const logout = () => {
+    // Limpa o cookie httpOnly no servidor, depois limpa Redux
+    fetch(`${import.meta.env.VITE_API_URL}/users/logout`, {
+      method: "POST",
+      credentials: "include",
+    }).finally(() => dispatch(logoutAction()));
+  };
 
   return {
     user,
-    token,
-    isAuthenticated: !!token,
+    token: null, // token é httpOnly — não acessível via JS
+    isAuthenticated: !!user,
     logout,
   };
 }

@@ -30,6 +30,12 @@ const STATUS_OPTIONS: {
     text: "text-[#1D4ED8]",
   },
   {
+    value: "CONFIRMED",
+    label: "Confirmado",
+    bg: "bg-[#DBEAFE]",
+    text: "text-[#1D4ED8]",
+  },
+  {
     value: "COMPLETED",
     label: "Concluída",
     bg: "bg-[#DCFCE7]",
@@ -73,6 +79,8 @@ export function AppointmentDetailModal({
     (s) => s.value === appointment.status,
   )!;
 
+  // console.log(appointment);
+  // console.log(STATUS_OPTIONS);
   const handleSave = () => {
     if (selectedStatus === appointment.status) {
       onClose();
@@ -99,7 +107,7 @@ export function AppointmentDetailModal({
           <h2 className="text-lg font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
             Detalhes da Consulta
           </h2>
-            <Button
+          <Button
             variant="ghost"
             size="sm"
             onClick={onClose}

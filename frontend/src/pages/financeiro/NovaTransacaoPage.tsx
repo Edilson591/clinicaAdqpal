@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Save, ArrowLeft, ArrowDownLeft, ArrowUpRight, ArrowLeftRight } from "lucide-react";
+import { Save, ArrowDownLeft, ArrowUpRight, ArrowLeftRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Controller } from "react-hook-form";
 import { Header } from "../../components/Dashboard/Header";
@@ -183,16 +183,45 @@ function NovaTransacaoContent() {
                 />
               </div>
               <div className="w-full sm:w-44">
-                <InputGroup
-                  label="Valor (R$)"
-                  required
-                  error={errors.amount?.message}
-                  inputProps={{
-                    placeholder: "0,00",
-                    inputMode: "decimal",
-                    ...register("amount"),
-                  }}
-                />
+                <Controller
+                    name={"amount"}
+                    control={control}
+                    rules={{
+                      pattern: {
+                        value: /^(\d{1,3}(\.\d{3})*|\d+)(,\d{1,2})?$/,
+                        message: "Formato inválido",
+                      },
+                    }}
+                    render={({ field }) => (
+                      <InputGroup
+                        label=" Valor (R$)"
+                        error={errors.amount?.message as string}
+                        inputProps={{
+                          type: "text",
+                          placeholder: "0,00",
+                          className: "bg-[#F8FAFC]",
+                          value: field.value || "",
+                          onChange: (e) => {
+                            let value = e.target.value;
+
+                            // remove tudo que não for número, . ou ,
+                            value = value.replace(/[^0-9.,]/g, "");
+
+                            // impede começar com . ou ,
+                            value = value.replace(/^[.,]+/, "");
+
+                            const parts = value.split(/[.,]/);
+
+                            if (parts.length > 2) {
+                              value = parts.slice(0, 2).join(".");
+                            }
+
+                            field.onChange(value);
+                          },
+                        }}
+                      />
+                    )}
+                  />
               </div>
             </div>
 
@@ -204,6 +233,7 @@ function NovaTransacaoContent() {
                   error={errors.accountId?.message}
                   selectProps={{
                     placeholder: "Selecione a conta",
+                    className: "bg-[#F8FAFC]",
                     options: accountOptions,
                     ...register("accountId"),
                   }}
@@ -216,6 +246,7 @@ function NovaTransacaoContent() {
                   error={errors.categoryId?.message}
                   selectProps={{
                     placeholder: "Selecione a categoria",
+                    className: "bg-[#F8FAFC]",
                     options: categoryOptions,
                     ...register("categoryId"),
                   }}
@@ -248,6 +279,7 @@ function NovaTransacaoContent() {
                   error={errors.paymentMethod?.message}
                   selectProps={{
                     placeholder: "Selecione",
+                    className: "bg-[#F8FAFC]",
                     options: PAYMENT_OPTIONS,
                     ...register("paymentMethod"),
                   }}
@@ -260,6 +292,7 @@ function NovaTransacaoContent() {
                   error={errors.status?.message}
                   selectProps={{
                     placeholder: "Status",
+                    className: "bg-[#F8FAFC]",
                     options: STATUS_OPTIONS,
                     ...register("status"),
                   }}
@@ -293,7 +326,7 @@ function NovaTransacaoContent() {
               className="h-11 px-6 rounded-lg text-sm font-medium border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-[#64748B] dark:text-[#94A3B8] hover:opacity-80 transition-all cursor-pointer"
               onClick={() => navigate("/financeiro")}
             >
-              <ArrowLeft size={15} />
+              {/* <ArrowLeft size={15} /> */}
               Cancelar
             </Button>
           </div>

@@ -99,7 +99,7 @@ export const TransactionService = {
     if (filters?.limit) params.set("limit", String(filters.limit));
 
     const res = await api.get(`/financial/transactions?${params}`);
-    return { data: res.data.data, pagination: res.data.pagination };
+    return { data: res.data.data, pagination: res.data.pagination, success: res.data.success };
   },
 
   async getById(id: string): Promise<TransactionResponse> {

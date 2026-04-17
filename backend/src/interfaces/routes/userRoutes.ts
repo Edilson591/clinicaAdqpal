@@ -11,6 +11,7 @@ const controller = new UserController();
 
 router.post("/register", validateBody(RegisterUserSchema), controller.register.bind(controller));
 router.post("/login", validateBody(LoginUserSchema), controller.login.bind(controller));
+router.post("/logout", controller.logout.bind(controller));
 
 // ─── Privadas ─────────────────────────────────────────────────────────────────
 

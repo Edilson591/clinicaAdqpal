@@ -85,14 +85,14 @@ export function PerfilSection({
             Especialidade
           </label>
           <input
-            {...register("especialidade")}
+            {...register("specialtyIds")}
             type="text"
             placeholder="Ex: Clínico Geral"
-            className={errors.especialidade ? inputErrCls : inputCls}
+            className={errors.specialtyIds ? inputErrCls : inputCls}
           />
-          {errors.especialidade && (
+          {errors.specialtyIds && (
             <p className="text-xs text-red-500">
-              {errors.especialidade.message}
+              {errors.specialtyIds.message}
             </p>
           )}
         </div>

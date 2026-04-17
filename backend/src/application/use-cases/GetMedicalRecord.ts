@@ -2,11 +2,17 @@ import type { IMedicalRecordRepository } from "../../domain/repositories/IMedica
 import type { MedicalRecordResponseDTO } from "../dtos/MedicalRecordDTOs";
 import { NotFoundError } from "../../domain/errors/DomainError";
 import { toMedicalRecordResponseDTO } from "../mappers/medicalRecordMapper";
-import type { PaginationQuery, PaginatedResult } from "../../domain/shared/pagination";
+import type {
+  PaginationQuery,
+  PaginatedResult,
+} from "../../domain/shared/pagination";
 import { toPaginatedResult } from "../../domain/shared/pagination";
+import { MedicalRecordFilters } from "../../domain/entities/MedicalRecord";
 
 export class GetMedicalRecord {
-  constructor(private readonly medicalRecordRepository: IMedicalRecordRepository) {}
+  constructor(
+    private readonly medicalRecordRepository: IMedicalRecordRepository,
+  ) {}
 
   async execute(id: string): Promise<MedicalRecordResponseDTO> {
     const record = await this.medicalRecordRepository.findById(id);
@@ -16,23 +22,36 @@ export class GetMedicalRecord {
 }
 
 export class ListMedicalRecords {
-  constructor(private readonly medicalRecordRepository: IMedicalRecordRepository) {}
+  constructor(
+    private readonly medicalRecordRepository: IMedicalRecordRepository,
+  ) {}
 
-  async execute(pagination?: PaginationQuery): Promise<PaginatedResult<MedicalRecordResponseDTO>> {
+  async execute(
+    pagination?: PaginationQuery,
+    filters?: MedicalRecordFilters,
+  ): Promise<PaginatedResult<MedicalRecordResponseDTO>> {
     const pg: PaginationQuery = pagination ?? { page: 1, limit: 20 };
+    
     const [records, total] = await Promise.all([
-      this.medicalRecordRepository.findAll(pg),
-      this.medicalRecordRepository.count(),
+      this.medicalRecordRepository.findAll(pg, filters),
+      this.medicalRecordRepository.count(filters),
     ]);
-    return toPaginatedResult(records.map(toMedicalRecordResponseDTO), total, pg);
+    return toPaginatedResult(
+      records.map(toMedicalRecordResponseDTO),
+      total,
+      pg,
+    );
   }
 }
 
 export class ListMedicalRecordsByPatient {
-  constructor(private readonly medicalRecordRepository: IMedicalRecordRepository) {}
+  constructor(
+    private readonly medicalRecordRepository: IMedicalRecordRepository,
+  ) {}
 
   async execute(patientId: string): Promise<MedicalRecordResponseDTO[]> {
-    const records = await this.medicalRecordRepository.findByPatientId(patientId);
+    const records =
+      await this.medicalRecordRepository.findByPatientId(patientId);
     return records.map(toMedicalRecordResponseDTO);
   }
 }

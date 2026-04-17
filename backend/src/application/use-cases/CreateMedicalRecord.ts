@@ -7,11 +7,14 @@ export class CreateMedicalRecord {
   constructor(private readonly medicalRecordRepository: IMedicalRecordRepository) {}
 
   async execute(dto: CreateMedicalRecordDTO): Promise<MedicalRecordResponseDTO> {
-    const existing = await this.medicalRecordRepository.findByAppointmentId(dto.appointmentId);
-    if (existing) throw new ConflictError("Já existe um prontuário para esta consulta.");
+    // Verifica duplicata por consulta apenas quando appointmentId é informado
+    if (dto.appointmentId) {
+      const existing = await this.medicalRecordRepository.findByAppointmentId(dto.appointmentId);
+      if (existing) throw new ConflictError("Já existe um prontuário para esta consulta.");
+    }
 
     const record = await this.medicalRecordRepository.create({
-      appointmentId: dto.appointmentId,
+      appointmentId: dto.appointmentId ?? null,
       patientId: dto.patientId,
       diagnosis: dto.diagnosis ?? null,
       prescription: dto.prescription ?? null,

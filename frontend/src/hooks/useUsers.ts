@@ -6,6 +6,8 @@ export const USER_KEYS = {
   all: ["users"] as const,
   detail: (id: string) => ["users", id] as const,
   byRole: (roleId: number) => ["users", "role", roleId] as const,
+  paginated: (page: number, limit: number, search: string, roleId: string) =>
+    ["users", "paginated", page, limit, search, roleId] as const,
 };
 
 export function useUsers() {
@@ -13,8 +15,14 @@ export function useUsers() {
     queryKey: USER_KEYS.all,
     queryFn: userService.getAll,
   });
+}
 
-  
+export function useUsersPaginated(page: number, limit: number, search: string, roleId: string) {
+  return useQuery({
+    queryKey: USER_KEYS.paginated(page, limit, search, roleId),
+    queryFn: () =>
+      userService.getAllPaginated(page, limit, search || undefined, roleId ? Number(roleId) : undefined),
+  });
 }
 
 /**

@@ -34,7 +34,7 @@ function NovoProntuarioContent() {
       {/* Header — pen: K8hmy */}
       <FormHeader
         title="Prontuários"
-        link="/protuario"
+        link="/prontuarios"
         subTitle="Novo Prontuário"
         description="Preencha os dados do prontuário abaixo"
       />

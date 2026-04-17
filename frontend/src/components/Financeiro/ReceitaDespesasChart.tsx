@@ -37,8 +37,6 @@ export function ReceitaDespesasChart({
     ? Math.max(...data.map((d) => Math.max(d.income, d.expense)), 1)
     : 1;
 
-    console.log(data)
-
   // Índice do mês selecionado (ou último se não especificado)
   const selectedIdx = data && selectedMonth
     ? data.findIndex((d) => d.month === selectedMonth)

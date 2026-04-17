@@ -806,3 +806,72 @@ Para adicionar, por exemplo, `Paciente`:
 4. **Application**: `src/application/use-cases/` (CRUD do paciente) + DTOs
 5. **Interfaces**: controller + rotas em `src/interfaces/`
 6. **App**: registre a rota em `src/interfaces/http/app.ts`
+
+---
+
+## RH — Funcionários (Employees)
+
+Implementado em 2026-04-13. Gerencia o cadastro e ciclo de vida dos funcionários da clínica.
+
+### Modelo `Employee`
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| id | String (UUID) | sim | Gerado automaticamente |
+| name | String | sim | Nome completo |
+| cpf | String? | não | CPF único (11 dígitos) |
+| email | String? | não | E-mail único |
+| phone | String? | não | Telefone |
+| position | String | sim | Cargo/função |
+| department | String? | não | Departamento/setor |
+| hireDate | DateTime? | não | Data de admissão |
+| salary | Decimal? | não | Salário (10,2) |
+| status | Enum | sim | `ACTIVE` \| `INACTIVE` \| `ON_LEAVE` \| `TERMINATED` (padrão: `ACTIVE`) |
+| dateOfBirth | DateTime? | não | Data de nascimento |
+| gender | String? | não | Gênero |
+| street | String? | não | Logradouro |
+| streetNumber | String? | não | Número |
+| city | String? | não | Cidade |
+| state | String? | não | UF (2 letras) |
+| zipCode | String? | não | CEP (8 dígitos) |
+| notes | String? | não | Observações livres |
+| createdAt | DateTime | auto | Timestamp de criação |
+| updatedAt | DateTime | auto | Timestamp de atualização |
+
+### Rotas (`/employees`) — requerem `Authorization: Bearer <token>`
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/employees` | Criar funcionário |
+| `GET` | `/employees` | Listar funcionários (com filtros) |
+| `GET` | `/employees/:id` | Buscar funcionário por ID |
+| `PUT` | `/employees/:id` | Atualizar funcionário |
+| `DELETE` | `/employees/:id` | Deletar funcionário |
+
+### Filtros disponíveis em `GET /employees`
+
+`?search=` (nome, cargo, departamento) `?status=` `?department=` `?page=` `?limit=`
+
+### Regras de negócio
+
+- CPF e e-mail são únicos — retorna `ConflictError` 409 se duplicado
+- `status` padrão é `ACTIVE` na criação
+- `DELETE` é permanente (sem soft delete)
+
+### Arquivos criados
+
+| Camada | Arquivo |
+|--------|---------|
+| Domain | `src/domain/entities/Employee.ts` |
+| Domain | `src/domain/repositories/IEmployeeRepository.ts` |
+| Application | `src/application/dtos/EmployeeDTOs.ts` |
+| Application | `src/application/mappers/employeeMapper.ts` |
+| Application | `src/application/use-cases/CreateEmployee.ts` |
+| Application | `src/application/use-cases/GetEmployee.ts` |
+| Application | `src/application/use-cases/UpdateEmployee.ts` |
+| Application | `src/application/use-cases/DeleteEmployee.ts` |
+| Infrastructure | `src/infrastructure/repositories/PrismaEmployeeRepository.ts` |
+| Interfaces | `src/interfaces/controllers/EmployeeController.ts` |
+| Interfaces | `src/interfaces/routes/employeeRoutes.ts` |
+| Prisma | `prisma/schema.prisma` → model `Employee` + enum `EmployeeStatus` |
+6. **App**: registre a rota em `src/interfaces/http/app.ts`

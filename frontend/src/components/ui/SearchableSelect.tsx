@@ -112,15 +112,15 @@ export function SearchableSelect({
         onClick={handleOpen}
         className={twMerge(
           "flex w-full items-center justify-between",
-          "h-14 rounded-lg border px-4",
+          "h-14 rounded-lg border px-4 cursor-pointer",
           "text-base transition-all duration-150",
-          " bg-[#F8FAFC] dark:bg-[#263548]",
+          " bg-[#F8FAFC] dark:bg-[#263548] ",
           error
             ? "border-destructive focus:ring-destructive/20"
             : "border-border-input dark:border-[#334155]",
           "focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent",
           !value && "text-muted-foreground",
-          value && "text-foreground dark:text-[#F1F5F9]",
+          value && "text-foreground dark:text-muted-foreground",
           "disabled:cursor-not-allowed disabled:opacity-50",
           `${className}`
         )}

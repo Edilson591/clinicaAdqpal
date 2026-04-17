@@ -5,7 +5,6 @@ import { FinanceiroHeader } from "../../components/Financeiro/FinanceiroHeader";
 import { KPICard } from "../../components/Financeiro/KPICard";
 import { ReceitaDespesasChart } from "../../components/Financeiro/ReceitaDespesasChart";
 import { TransacoesRecentes } from "../../components/Financeiro/TransacoesRecentes";
-import { PluggyConnect } from "../../components/Financeiro/PluggyConnect";
 import { Header } from "../../components/Dashboard/Header";
 import { useTransactions, useDashboardFinance } from "../../hooks/useFinancial";
 import { useSelectedMonth } from "../../components/Financeiro/useSelectedMonth";
@@ -127,8 +126,6 @@ export default function GestaoFinanceiraPage() {
           />
         </div>
 
-        {/* Open Banking */}
-        <PluggyConnect />
       </div>
     </main>
   );
