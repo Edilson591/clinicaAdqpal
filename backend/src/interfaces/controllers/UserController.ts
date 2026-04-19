@@ -34,8 +34,9 @@ export class UserController {
       // Token em cookie httpOnly — JavaScript do cliente não consegue ler
       res.cookie("adqpal_token", result.token, {
         httpOnly: true,
+        // secure: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "none",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
         path: "/",
       });

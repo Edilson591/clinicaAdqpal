@@ -8,6 +8,7 @@ declare global {
     interface Request {
       userId: string;
       userEmail: string;
+      userRoleId: number;
     }
   }
 }
@@ -36,6 +37,7 @@ export function authMiddleware(
     const payload = tokenService.verify(token);
     req.userId = payload.sub;
     req.userEmail = payload.email;
+    req.userRoleId = payload.roleId;
     next();
   } catch (err) {
     next(err);
@@ -62,6 +64,7 @@ export function authMiddlewareSSE(
     const payload = tokenService.verify(token);
     req.userId = payload.sub;
     req.userEmail = payload.email;
+    req.userRoleId = payload.roleId;
     next();
   } catch (err) {
     next(err);

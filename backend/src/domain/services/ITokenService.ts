@@ -2,6 +2,7 @@
 export interface TokenPayload {
   sub: string; // user id
   email: string;
+  roleId: number;
 }
 
 export interface ITokenService {

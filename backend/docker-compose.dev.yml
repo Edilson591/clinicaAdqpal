@@ -18,3 +18,5 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
     ports:
       - "${PORT:-3333}:${PORT:-3333}"
+
+    

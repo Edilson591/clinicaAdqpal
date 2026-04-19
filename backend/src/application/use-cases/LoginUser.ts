@@ -25,7 +25,7 @@ export class LoginUser {
       throw new UnauthorizedError("E-mail ou senha incorretos.");
     }
 
-    const token = this.tokenService.sign({ sub: user.id, email: user.email });
+    const token = this.tokenService.sign({ sub: user.id, email: user.email, roleId: user.roleId });
 
     return {
       token,
