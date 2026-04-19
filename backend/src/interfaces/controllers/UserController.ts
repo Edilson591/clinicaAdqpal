@@ -49,7 +49,7 @@ export class UserController {
   }
 
   async logout(_req: Request, res: Response): Promise<void> {
-    res.clearCookie("adqpal_token", { httpOnly: true, sameSite: "strict", path: "/" });
+    res.clearCookie("adqpal_token", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "none", path: "/" });
     res.status(200).json({ success: true, message: "Logout realizado com sucesso." });
   }
 
