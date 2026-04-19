@@ -22,6 +22,7 @@ import cors from "cors";
 
 const app = express();
 
+app.set("trust proxy", 1);
 // ── Segurança: headers HTTP ───────────────────────────────────────────────────
 app.use(
   helmet({
