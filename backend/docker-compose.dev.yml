@@ -1,4 +1,16 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: clinica_redis_dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     image: node:22
     container_name: clinica_backend
@@ -16,7 +28,10 @@ services:
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
       - PORT=${PORT:-3333}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - REDIS_URL=redis://redis:6379
     ports:
       - "${PORT:-3333}:${PORT:-3333}"
+    depends_on:
+      redis:
+        condition: service_healthy
 
-    

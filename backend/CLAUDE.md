@@ -874,4 +874,61 @@ Implementado em 2026-04-13. Gerencia o cadastro e ciclo de vida dos funcionário
 | Interfaces | `src/interfaces/controllers/EmployeeController.ts` |
 | Interfaces | `src/interfaces/routes/employeeRoutes.ts` |
 | Prisma | `prisma/schema.prisma` → model `Employee` + enum `EmployeeStatus` |
+
+---
+
+## Cache Redis — Consultas (Appointments)
+
+Implementado em 2026-04-20. Adiciona uma camada de cache Redis às operações de leitura de consultas, reduzindo latência e carga no banco para os endpoints mais acessados.
+
+### Variável de Ambiente
+
+| Variável | Descrição |
+|----------|-----------|
+| `REDIS_URL` | Connection string do Redis (padrão: `redis://localhost:6379`) |
+
+### Padrão: Cache-Aside (Lazy Loading) com Decorator
+
+O `CachedAppointmentRepository` implementa `IAppointmentRepository` e envolve o `PrismaAppointmentRepository`. Os casos de uso e o domínio **não foram alterados** — recebem a interface sem saber do cache.
+
+```
+GET /appointments/:id
+  → Controller → GetAppointment (use case)
+      → CachedAppointmentRepository.findById(id)
+          ↓ Redis.get("appt:id:{id}")
+          ├── HIT  → deserializa JSON → retorna
+          └── MISS → PrismaRepository.findById → Redis.set (EX 300s) → retorna
+```
+
+### Chaves e TTL
+
+| Operação | Chave Redis | TTL |
+|----------|-------------|-----|
+| `findById` | `appt:id:{id}` | 300s (5 min) |
+| `findByIdWithRelations` | `appt:id-rel:{id}` | 300s (5 min) |
+| `findByPatientId` (sem filtros) | `appt:patient:{patientId}` | 120s (2 min) |
+| `findByUserId` (sem filtros) | `appt:user:{userId}` | 120s (2 min) |
+| `findAll` / `count` | **não cacheado** | — |
+
+> Listas com filtros (`status`, `dateStart`, `dateEnd`) também **não são cacheadas** — a variação de parâmetros tornaria a invalidação complexa sem ganho proporcional.
+
+### Invalidação nas mutações
+
+| Operação | Chaves invalidadas |
+|----------|--------------------|
+| `create` | `appt:patient:{pid}`, `appt:user:{uid}` |
+| `update` | `appt:id:{id}`, `appt:id-rel:{id}`, `appt:patient:{pid}`, `appt:user:{uid}` |
+| `delete` | lê o appointment do cache → invalida `appt:id:{id}`, `appt:id-rel:{id}`, `appt:patient:{pid}`, `appt:user:{uid}` |
+
+### Degradação graciosa
+
+Todo acesso ao Redis é envolto em `try/catch`. Se o Redis estiver fora do ar, o sistema continua funcionando normalmente — todas as leituras e escritas caem silenciosamente para o banco sem lançar erros para o cliente.
+
+### Arquivos criados/modificados
+
+| Tipo | Arquivo |
+|------|---------|
+| Novo | `src/infrastructure/cache/RedisClient.ts` — singleton `ioredis` com reconexão automática |
+| Novo | `src/infrastructure/cache/CachedAppointmentRepository.ts` — decorator com lógica de cache |
+| Modificado | `src/interfaces/controllers/AppointmentController.ts` — usa `CachedAppointmentRepository` |
 6. **App**: registre a rota em `src/interfaces/http/app.ts`

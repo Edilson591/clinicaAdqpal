@@ -115,6 +115,10 @@ export const SendWhatsAppSchema = z.object({
   telefone: z
     .string({ required_error: "telefone é obrigatório" })
     .regex(/^\+?[1-9]\d{7,14}$/, "Telefone inválido. Use formato internacional: +5511999999999"),
+  channels: z
+    .array(z.enum(["whatsapp", "sms"]))
+    .min(1, "Informe ao menos um canal: whatsapp ou sms")
+    .default(["whatsapp"]),
 });
 
 export type SendWhatsAppDTO = z.infer<typeof SendWhatsAppSchema>;

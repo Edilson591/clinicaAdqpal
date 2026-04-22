@@ -22,12 +22,16 @@ import {
 } from "../../application/use-cases/GetAppointment";
 import { UpdateAppointment } from "../../application/use-cases/UpdateAppointment";
 import { DeleteAppointment } from "../../application/use-cases/DeleteAppointment";
-import { SendAppointmentWhatsApp } from "../../application/use-cases/SendAppointmentWhatsApp";
-import { WhatsAppService } from "../../infrastructure/services/WhatsAppService";
+import { getNotificationQueue } from "../../infrastructure/queue/NotificationQueue";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaAppointmentRepository } from "../../infrastructure/repositories/PrismaAppointmentRepository";
+import { CachedAppointmentRepository } from "../../infrastructure/cache/CachedAppointmentRepository";
+import { getRedisClient } from "../../infrastructure/cache/RedisClient";
 
-const appointmentRepository = new PrismaAppointmentRepository(prisma);
+const appointmentRepository = new CachedAppointmentRepository(
+  new PrismaAppointmentRepository(prisma),
+  getRedisClient(),
+);
 
 export class AppointmentController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -147,18 +151,22 @@ export class AppointmentController {
     next: NextFunction,
   ): Promise<void> {
     try {
-      const { telefone } = req.body as SendWhatsAppDTO;
+      const { telefone, channels } = req.body as SendWhatsAppDTO;
       const { id } = req.params as { id: string };
 
-      const whatsAppService = new WhatsAppService();
-      await new SendAppointmentWhatsApp(
-        appointmentRepository,
-        whatsAppService,
-      ).execute(id, telefone);
+      // Verify appointment exists before enqueuing
+      await new GetAppointment(appointmentRepository).execute(id);
 
-      res.status(200).json({
+      const job = await getNotificationQueue().add("send-notification", {
+        appointmentId: id,
+        telefone,
+        channels,
+      });
+
+      res.status(202).json({
         success: true,
-        message: "Mensagem WhatsApp enviada com sucesso.",
+        message: "Notificação enfileirada com sucesso.",
+        data: { jobId: job.id, channels },
       });
     } catch (err) {
       next(err);
