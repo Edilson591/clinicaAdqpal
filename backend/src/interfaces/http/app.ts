@@ -15,6 +15,7 @@ import financialCategoryRoutes from "../routes/financialCategoryRoutes";
 import transactionRoutes from "../routes/transactionRoutes";
 import financialDashboardRoutes from "../routes/financialDashboardRoutes";
 import employeeRoutes from "../routes/employeeRoutes";
+import transcribeRoutes from "../routes/transcribeRoutes";
 import notaFiscalRoutes from "../routes/notaFiscalRoutes";
 import patientNotaFiscalRoutes from "../routes/patientNotaFiscalRoutes";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
@@ -101,6 +102,7 @@ app.use("/financial/transactions", transactionRoutes);
 app.use("/financial/dashboard", financialDashboardRoutes);
 app.use("/employees", employeeRoutes);
 app.use("/fiscal/notas-fiscais", notaFiscalRoutes);
+app.use("/transcribe", transcribeRoutes);
 app.use("/patients/:patientId/notas-fiscais", patientNotaFiscalRoutes);
 
 app.use(errorMiddleware);

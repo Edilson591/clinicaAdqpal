@@ -31,15 +31,17 @@ function deleteUserCookie(): void {
 
 interface AuthState {
   user: UserResponse | null;
+  token: string | null;
 }
 
 function loadInitialState(): AuthState {
   try {
     const raw = getCookie(USER_COOKIE);
     const user = raw ? (JSON.parse(raw) as UserResponse) : null;
-    return { user };
+    const token = localStorage.getItem("adqpal_token");
+    return { user, token };
   } catch {
-    return { user: null };
+    return { user: null, token: null };
   }
 }
 
@@ -53,13 +55,17 @@ const authSlice = createSlice({
   name: "auth",
   initialState: loadInitialState(),
   reducers: {
-    setCredentials(state, action: PayloadAction<{ user: UserResponse }>) {
+    setCredentials(state, action: PayloadAction<{ user: UserResponse; token: string }>) {
       state.user = action.payload.user;
+      state.token = action.payload.token;
       setUserCookie(action.payload.user);
+      localStorage.setItem("adqpal_token", action.payload.token);
     },
     logout(state) {
       state.user = null;
+      state.token = null;
       deleteUserCookie();
+      localStorage.removeItem("adqpal_token");
       // O cookie httpOnly adqpal_token é removido pela chamada POST /users/logout
     },
   },

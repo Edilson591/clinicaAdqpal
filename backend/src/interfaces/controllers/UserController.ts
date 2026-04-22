@@ -41,8 +41,7 @@ export class UserController {
         path: "/",
       });
 
-      // Retorna apenas os dados do usuário (sem o token no body)
-      res.status(200).json({ success: true, message: "Login realizado com sucesso.", data: { user: result.user } });
+      res.status(200).json({ success: true, message: "Login realizado com sucesso.", data: { token: result.token, user: result.user } });
     } catch (err) {
       next(err);
     }
