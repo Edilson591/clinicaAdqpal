@@ -34,7 +34,7 @@ app.use(
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",")
-  : ["http://localhost:5174","http://localhost:8080","http://localhost:3000","http://localhost"];
+  : ["http://localhost:5174","http://localhost:8080","http://localhost:3000","http://localhost","https://lightgoldenrodyellow-mole-188248.hostingersite.com"];
 
 app.use(
   cors({
