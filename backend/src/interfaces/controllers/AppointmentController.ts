@@ -12,7 +12,9 @@ import {
   ListAppointmentsQuerySchema,
   ListByPartyQuerySchema,
 } from "../../application/dtos/AppointmentDTOs";
-import { DomainError } from "../../domain/errors/DomainError";
+import { DomainError, NotFoundError } from "../../domain/errors/DomainError";
+
+const ROLE_DOCTOR = 3;
 import { CreateAppointment } from "../../application/use-cases/CreateAppointment";
 import {
   GetAppointment,
@@ -71,6 +73,12 @@ export class AppointmentController {
         throw new DomainError(parsed.error.errors[0].message, 400);
       }
       const filters: ListAppointmentsQuery = parsed.data;
+
+      // Médico só enxerga as próprias consultas
+      if (req.userRoleId === ROLE_DOCTOR) {
+        filters.userId = req.userId;
+      }
+
       const pagination = parsePagination(req.query);
       const result = await new ListAppointments(appointmentRepository).execute(filters, pagination);
       res.status(200).json({ success: true, ...result });
@@ -88,6 +96,11 @@ export class AppointmentController {
       const appointment = await new GetAppointment(
         appointmentRepository,
       ).execute(req.params.id as string);
+
+      if (req.userRoleId === ROLE_DOCTOR && appointment.userId !== req.userId) {
+        throw new NotFoundError("Consulta");
+      }
+
       res.status(200).json({ success: true, data: appointment });
     } catch (err) {
       next(err);
@@ -104,10 +117,16 @@ export class AppointmentController {
       if (!parsed.success) {
         throw new DomainError(parsed.error.errors[0].message, 400);
       }
-      const appointments = await new ListAppointmentsByPatient(appointmentRepository).execute(
+      let appointments = await new ListAppointmentsByPatient(appointmentRepository).execute(
         req.params.patientId as string,
         parsed.data as ListByPartyQuery,
       );
+
+      // Médico vê apenas suas próprias consultas com esse paciente
+      if (req.userRoleId === ROLE_DOCTOR) {
+        appointments = appointments.filter((a) => a.userId === req.userId);
+      }
+
       res.status(200).json({ success: true, data: appointments });
     } catch (err) {
       next(err);
@@ -116,6 +135,13 @@ export class AppointmentController {
 
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      if (req.userRoleId === ROLE_DOCTOR) {
+        const existing = await new GetAppointment(appointmentRepository).execute(req.params.id as string);
+        if (existing.userId !== req.userId) {
+          throw new NotFoundError("Consulta");
+        }
+      }
+
       const dto = req.body as UpdateAppointmentDTO;
       const appointment = await new UpdateAppointment(
         appointmentRepository,
@@ -133,6 +159,13 @@ export class AppointmentController {
 
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      if (req.userRoleId === ROLE_DOCTOR) {
+        const existing = await new GetAppointment(appointmentRepository).execute(req.params.id as string);
+        if (existing.userId !== req.userId) {
+          throw new NotFoundError("Consulta");
+        }
+      }
+
       await new DeleteAppointment(appointmentRepository).execute(
         req.params.id as string,
       );
@@ -199,8 +232,13 @@ export class AppointmentController {
       if (!parsed.success) {
         throw new DomainError(parsed.error.errors[0].message, 400);
       }
+
+      // Médico só pode listar as próprias consultas
+      const targetUserId =
+        req.userRoleId === ROLE_DOCTOR ? req.userId : (req.params.userId as string);
+
       const appointments = await new ListAppointmentsByUser(appointmentRepository).execute(
-        req.params.userId as string,
+        targetUserId,
         parsed.data as ListByPartyQuery,
       );
       res.status(200).json({ success: true, data: appointments });

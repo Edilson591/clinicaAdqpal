@@ -10,6 +10,7 @@ import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaUserRepository } from "../../infrastructure/repositories/PrismaUserRepository";
 import { BcryptHashService } from "../../infrastructure/services/BcryptHashService";
 import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
+import { tokenBlacklist } from "../../infrastructure/cache/TokenBlacklist";
 
 const userRepository = new PrismaUserRepository(prisma);
 const hashService = new BcryptHashService();
@@ -47,8 +48,28 @@ export class UserController {
     }
   }
 
-  async logout(_req: Request, res: Response): Promise<void> {
-    res.clearCookie("adqpal_token", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "none", path: "/" });
+  async logout(req: Request, res: Response): Promise<void> {
+    // Tenta revogar o token antes de limpar o cookie
+    const rawToken =
+      req.cookies?.adqpal_token ??
+      (req.headers.authorization?.startsWith("Bearer ")
+        ? req.headers.authorization.slice(7)
+        : undefined);
+
+    if (rawToken) {
+      const payload = tokenService.decode(rawToken);
+      const now = Math.floor(Date.now() / 1000);
+      if (payload?.jti && payload.exp && payload.exp > now) {
+        await tokenBlacklist.add(payload.jti, payload.exp);
+      }
+    }
+
+    res.clearCookie("adqpal_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      path: "/",
+    });
     res.status(200).json({ success: true, message: "Logout realizado com sucesso." });
   }
 

@@ -12,6 +12,19 @@ import type {
 import type { PaginationQuery } from "../../domain/shared/pagination";
 import { DomainError } from "../../domain/errors/DomainError";
 
+const VALID_STATUSES: AppointmentStatus[] = ["SCHEDULED", "COMPLETED", "CANCELLED"];
+const VALID_TYPES: AppointmentType[] = ["IN_PERSON", "ONLINE", "HOME_CARE"];
+
+function toStatus(raw: string): AppointmentStatus {
+  if ((VALID_STATUSES as string[]).includes(raw)) return raw as AppointmentStatus;
+  throw new DomainError(`Status de consulta inválido no banco: "${raw}"`, 500);
+}
+
+function toType(raw: string): AppointmentType {
+  if ((VALID_TYPES as string[]).includes(raw)) return raw as AppointmentType;
+  throw new DomainError(`Tipo de consulta inválido no banco: "${raw}"`, 500);
+}
+
 function toDomain(row: {
   id: string;
   userId: string;
@@ -36,8 +49,8 @@ function toDomain(row: {
     patientId: row.patientId,
     scheduledAt: row.scheduledAt,
     medico: row.medico,
-    status: row.status as AppointmentStatus,
-    type: row.type as AppointmentType,
+    status: toStatus(row.status),
+    type: toType(row.type),
     pacient: row.pacient || null,
     specialtyId: row.specialtyId,
     roomId: row.roomId,

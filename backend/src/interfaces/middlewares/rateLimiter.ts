@@ -30,7 +30,7 @@ export const whatsAppRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    const userId = (req as Request & { user?: { id: string } }).user?.id;
+    const userId = req.userId;
 
     if (userId) return userId;
 

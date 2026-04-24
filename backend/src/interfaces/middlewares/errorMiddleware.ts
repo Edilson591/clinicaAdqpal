@@ -40,13 +40,21 @@ export const errorMiddleware: ErrorRequestHandler = (
   }
 
   // Erros inesperados
-  const message =
-    process.env.NODE_ENV === "production"
-      ? "Erro interno do servidor."
-      : err instanceof Error
-        ? err.message
-        : "Erro desconhecido.";
+  const isProd = process.env.NODE_ENV === "production";
+  const message = isProd
+    ? "Erro interno do servidor."
+    : err instanceof Error
+      ? err.message
+      : "Erro desconhecido.";
 
-  console.error("[ERROR]", err);
+  if (err instanceof Error) {
+    console.error(
+      `[ERROR] ${err.name}: ${err.message}`,
+      isProd ? undefined : err.stack,
+    );
+  } else {
+    console.error("[ERROR] Erro desconhecido:", err);
+  }
+
   res.status(500).json({ success: false, message });
 };

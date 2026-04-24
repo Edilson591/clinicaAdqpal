@@ -11,14 +11,14 @@ export class RegisterUser {
   ) {}
 
   async execute(dto: RegisterUserDTO): Promise<UserResponseDTO> {
-    const existingEmail = await this.userRepository.findByEmail(dto.email);
-    if (existingEmail) {
-      throw new ConflictError("Já existe uma conta com este e-mail.");
-    }
+    const [existingEmail, existingUsername] = await Promise.all([
+      this.userRepository.findByEmail(dto.email),
+      this.userRepository.findByUsername(dto.username),
+    ]);
 
-    const existingUsername = await this.userRepository.findByUsername(dto.username);
-    if (existingUsername) {
-      throw new ConflictError("Este username já está em uso.");
+    // Mensagem genérica — não revela qual campo já existe (anti-enumeração)
+    if (existingEmail || existingUsername) {
+      throw new ConflictError("Já existe uma conta com os dados fornecidos.");
     }
 
     const passwordHash = await this.hashService.hash(dto.password);

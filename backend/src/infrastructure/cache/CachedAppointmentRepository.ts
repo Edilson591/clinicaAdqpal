@@ -8,6 +8,7 @@ import type {
   UpdateAppointmentData,
 } from "../../domain/entities/Appointment";
 import type { PaginationQuery } from "../../domain/shared/pagination";
+import { ConflictError } from "../../domain/errors/DomainError";
 
 const TTL_SINGLE = 300; // 5 min — consulta por ID
 const TTL_LIST = 120; // 2 min — listas por paciente/usuário
@@ -48,6 +49,7 @@ export class CachedAppointmentRepository implements IAppointmentRepository {
   ) {}
 
   // ── helpers internos ─────────────────────────────────────────────────────────
+
 
   private async getCached<T>(
     cacheKey: string,
@@ -145,23 +147,42 @@ export class CachedAppointmentRepository implements IAppointmentRepository {
 
   async create(data: CreateAppointmentData): Promise<Appointment> {
     const normalized = this.normalizeDate(data.scheduledAt);
-
     const lockKey = key.lockSlot(data.userId, normalized);
 
-    console.log("LOCK:", lockKey);
+    // Tenta adquirir lock distribuído (Redis SET NX).
+    // TTL de 30s: safety net caso o processo morra antes do DEL explícito.
+    let redisUp = true;
+    let lockAcquired = false;
 
-    const lock = await this.redis.set(lockKey, "1", "EX", 300, "NX");
-
-    if (!lock) {
-      throw new Error("Horário indisponível");
+    try {
+      const result = await this.redis.set(lockKey, "1", "EX", 30, "NX");
+      lockAcquired = result === "OK";
+    } catch {
+      // Redis indisponível — prossegue sem lock (degradação graciosa).
+      // Colisões remanescentes são contidas pela constraint do banco.
+      redisUp = false;
     }
-    
-    const appointment = await this.repo.create(data);
-    await this.invalidate(
-      key.byPatient(appointment.patientId),
-      key.byUser(appointment.userId),
-    );
-    return appointment;
+
+    // Só rejeita quando o Redis está UP e o lock já pertence a outra requisição
+    if (redisUp && !lockAcquired) {
+      throw new ConflictError("Este horário já está sendo agendado. Tente novamente em instantes.");
+    }
+
+    try {
+      const appointment = await this.repo.create(data);
+
+      await this.invalidate(
+        key.byPatient(appointment.patientId),
+        key.byUser(appointment.userId),
+      );
+
+      return appointment;
+    } finally {
+      // Libera o lock imediatamente — não espera o TTL expirar
+      if (lockAcquired) {
+        await this.invalidate(lockKey);
+      }
+    }
   }
 
   async update(id: string, data: UpdateAppointmentData): Promise<Appointment> {
@@ -188,7 +209,7 @@ export class CachedAppointmentRepository implements IAppointmentRepository {
     await this.invalidate(...toDelete);
   }
 
-  normalizeDate(date: Date | string) {
+  private normalizeDate(date: Date | string) {
     const d = new Date(date);
 
     const iso = d.toISOString(); // UTC

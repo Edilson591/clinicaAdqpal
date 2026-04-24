@@ -23,7 +23,18 @@ import cors from "cors";
 
 const app = express();
 
-app.set("trust proxy", 1);
+// TRUST_PROXY deve ser configurado por ambiente:
+//   "1"        → 1 hop (Railway, Render, Vercel, Heroku)
+//   "127.0.0.1"→ Nginx local
+//   "false"    → sem proxy (desenvolvimento direto)
+const rawTrustProxy = process.env.TRUST_PROXY ?? "1";
+const trustProxy =
+  rawTrustProxy === "false"
+    ? false
+    : /^\d+$/.test(rawTrustProxy)
+      ? parseInt(rawTrustProxy, 10)
+      : rawTrustProxy;
+app.set("trust proxy", trustProxy);
 // ── Segurança: headers HTTP ───────────────────────────────────────────────────
 app.use(
   helmet({
@@ -80,9 +91,15 @@ const authLimiter = rateLimit({
 
 app.use(globalLimiter);
 app.use("/users/login", authLimiter);
+app.use("/users/register", authLimiter); // previne criação em massa de contas
 
 if (process.env.NODE_ENV !== "test") {
-  app.use(morgan("dev"));
+  // Formato customizado: loga apenas o path (sem query string) para não
+  // expor tokens SSE (?token=...) ou dados de pacientes em query params
+  morgan.token("path-only", (req) => (req as { path?: string }).path ?? "/");
+  app.use(
+    morgan(":method :path-only :status :res[content-length] - :response-time ms"),
+  );
 }
 
 app.get("/health", (_req, res) => {

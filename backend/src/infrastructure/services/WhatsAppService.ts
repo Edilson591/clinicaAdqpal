@@ -1,4 +1,5 @@
-import axios from "axios";
+import axios, { type AxiosError } from "axios";
+import { DomainError } from "../../domain/errors/DomainError";
 
 // =============================================================================
 // WHATSAPP CLOUD API SERVICE
@@ -46,22 +47,35 @@ export class WhatsAppService {
   async sendTextMessage(message: WhatsAppMessage): Promise<void> {
     const normalizedPhone = WhatsAppService.normalizePhone(message.to);
 
-    await axios.post(
-      this.apiUrl,
-      {
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to: normalizedPhone,
-        type: "text",
-        text: { preview_url: false, body: message.body },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-          "Content-Type": "application/json",
+    try {
+      await axios.post(
+        this.apiUrl,
+        {
+          messaging_product: "whatsapp",
+          recipient_type: "individual",
+          to: normalizedPhone,
+          type: "text",
+          text: { preview_url: false, body: message.body },
         },
-        timeout: 10_000,
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 10_000,
+        },
+      );
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ error?: { message?: string } }>;
+      const apiMessage =
+        axiosErr.response?.data?.error?.message ?? axiosErr.message;
+      console.error(
+        `[WhatsApp] falha ao enviar para ${normalizedPhone}: ${apiMessage}`,
+      );
+      throw new DomainError(
+        `Falha ao enviar mensagem WhatsApp: ${apiMessage}`,
+        502,
+      );
+    }
   }
 }

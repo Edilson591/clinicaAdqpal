@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { randomUUID } from "crypto";
 import type { ITokenService, TokenPayload } from "../../domain/services/ITokenService";
 import { UnauthorizedError } from "../../domain/errors/DomainError";
 
@@ -13,18 +14,25 @@ export class JwtTokenService implements ITokenService {
     this.expiresIn = process.env.JWT_EXPIRES_IN ?? "7d";
   }
 
-  sign(payload: TokenPayload): string {
-    return jwt.sign(payload, this.secret, {
+  sign(payload: Omit<TokenPayload, "jti" | "exp" | "iat">): string {
+    return jwt.sign({ ...payload, jti: randomUUID() }, this.secret, {
       expiresIn: this.expiresIn as jwt.SignOptions["expiresIn"],
     });
   }
 
   verify(token: string): TokenPayload {
     try {
-      const decoded = jwt.verify(token, this.secret) as TokenPayload;
-      return decoded;
+      return jwt.verify(token, this.secret) as TokenPayload;
     } catch {
       throw new UnauthorizedError("Token inválido ou expirado.");
+    }
+  }
+
+  decode(token: string): TokenPayload | null {
+    try {
+      return jwt.decode(token) as TokenPayload | null;
+    } catch {
+      return null;
     }
   }
 }
