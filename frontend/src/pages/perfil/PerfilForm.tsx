@@ -5,6 +5,8 @@ import { FeedbackMessage } from "./FeedbackMessage";
 import { formatCpfOrCpnj } from "../../utils/formatCpf";
 
 import usePerfilForm from "../../hooks/usePerfilForm";
+// import { USER_ROLES } from "../../types/roles";
+// import { SearchableMultiSelectGroup } from "../../components/ui/SearchableMultiSelect";
 
 export function PerfilForm() {
   const {
@@ -76,6 +78,18 @@ export function PerfilForm() {
                 className: "bg-[#F8FAFC]",
               }}
             />
+            {/* {roleId === USER_ROLES.DOCTOR && (
+              <SearchableMultiSelectGroup
+                label="Especialidades"
+                // required={user?.roleId === USER_ROLES.DOCTOR}
+                error={errors.especialidades?.message}
+                value={watch("especialidades") || []}
+                onChange={(value) => setValue("especialidades", value)}
+                options={specialties}
+                placeholder="Selecione as especialidades"
+                maxItems={5}
+              />
+            )} */}
           </div>
         </div>
 

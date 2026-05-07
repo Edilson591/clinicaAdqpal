@@ -2,7 +2,7 @@
 // DOMAIN ENTITY: NotaFiscal
 // =============================================================================
 
-export type NotaFiscalStatus = "PENDENTE" | "EMITIDA" | "CANCELADA";
+export type NotaFiscalStatus = "PENDENTE" | "PROCESSANDO"| "EMITIDA" | "CANCELADA" ;
 
 export interface NotaFiscal {
   id: string;

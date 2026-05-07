@@ -11,9 +11,6 @@ import { NovaNotaFiscalModal } from "./NovaNotaFiscalModal";
 import { NotaFiscalViewer } from "./NotaFiscalViewer";
 import { SearchableSelectGroup } from "../../components/ui/SearchableSelect";
 
-
-
-
 const STATUS_OPTIONS = [
   { label: "Todas", value: "" },
   { label: "Emitida", value: "EMITIDA" },
@@ -53,6 +50,7 @@ export default function NotasFiscaisPage() {
     viewerNF,
     openViewer,
     closeViewer,
+    error,
   } = useNotasFiscaisPage();
 
   const { data: patients = [] } = usePatients();
@@ -69,7 +67,8 @@ export default function NotasFiscaisPage() {
   );
 
   return (
-    <main className="flex-1 bg-[#F8FAFC] dark:bg-[#0F172A] overflow-y-auto transition-colors duration-200">
+    <main className="flex-1 relative dark:bg-[#0F172A] overflow-y-auto">
+      <div className="absolute inset-0 bg-[url('/bg-fundo.jpeg')] bg-no-repeat bg-cover bg-center opacity-10 z-[-1] dark:bg-none" />
       <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
         <Header />
 
@@ -169,6 +168,13 @@ export default function NotasFiscaisPage() {
           totalPages={pagination?.totalPages ?? 1}
           onPageChange={setPage}
         />
+        {error && (
+          <div className="mt-4 p-4 rounded-xl border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 transition-colors">
+            <p className="text-sm font-medium text-red-600 dark:text-red-400">
+              {error.message}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Modal nova NF */}

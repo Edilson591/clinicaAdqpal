@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import Redis from "ioredis";
+import { getBullMQRedis } from "../cache/RedisBullMQ";
 
 export type NotificationChannel = "whatsapp" | "sms";
 
@@ -10,12 +10,7 @@ export interface NotificationJobData {
 }
 
 // BullMQ requires maxRetriesPerRequest: null and enableReadyCheck: false
-function createBullMQRedis(): Redis {
-  return new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-  });
-}
+
 
 export const NOTIFICATION_QUEUE = "notifications";
 
@@ -24,7 +19,7 @@ let queue: Queue<NotificationJobData> | null = null;
 export function getNotificationQueue(): Queue<NotificationJobData> {
   if (!queue) {
     queue = new Queue<NotificationJobData>(NOTIFICATION_QUEUE, {
-      connection: createBullMQRedis(),
+      connection: getBullMQRedis(),
       defaultJobOptions: {
         attempts: 3,
         backoff: { type: "exponential", delay: 5_000 },
@@ -40,4 +35,4 @@ export function getNotificationQueue(): Queue<NotificationJobData> {
   return queue;
 }
 
-export { createBullMQRedis };
+

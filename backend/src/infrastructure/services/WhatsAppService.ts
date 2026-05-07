@@ -1,5 +1,6 @@
 import axios, { type AxiosError } from "axios";
 import { DomainError } from "../../domain/errors/DomainError";
+import { INotificationService } from "../../domain/services/INotificationService";
 
 // =============================================================================
 // WHATSAPP CLOUD API SERVICE
@@ -7,11 +8,11 @@ import { DomainError } from "../../domain/errors/DomainError";
 // =============================================================================
 
 export interface WhatsAppMessage {
-  to: string;       // international format without '+': "5511999999999"
-  body: string;     // text message content
+  to: string; // international format without '+': "5511999999999"
+  body: string; // text message content
 }
 
-export class WhatsAppService {
+export class WhatsAppService implements INotificationService {
   private readonly apiUrl: string;
   private readonly token: string;
 
@@ -22,7 +23,7 @@ export class WhatsAppService {
 
     if (!phoneNumberId || !token) {
       throw new Error(
-        "Variáveis de ambiente WHATSAPP_PHONE_NUMBER_ID e WHATSAPP_TOKEN são obrigatórias"
+        "Variáveis de ambiente WHATSAPP_PHONE_NUMBER_ID e WHATSAPP_TOKEN são obrigatórias",
       );
     }
 

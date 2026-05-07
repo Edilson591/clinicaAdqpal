@@ -14,6 +14,13 @@ export class DomainError extends Error {
   }
 }
 
+export class NotPermission extends DomainError {
+  constructor(message = "usuario") {
+    super(`${message} sem permissão`)
+    this.name = "NotPermissionUser";
+  }
+}
+
 export class NotFoundError extends DomainError {
   constructor(resource = "Recurso") {
     super(`${resource} não encontrado.`, 404);

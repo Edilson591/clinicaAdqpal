@@ -33,6 +33,7 @@ export const RegisterUserSchema = z.object({
     .regex(/^\d{14}$/, "CNPJ deve ter 14 dígitos numéricos")
     .nullable()
     .optional(),
+  specialtyIds: z.array(z.string().uuid()).optional(),
 });
 
 export type RegisterUserDTO = z.infer<typeof RegisterUserSchema>;
@@ -95,6 +96,7 @@ export interface UserResponseDTO {
   roleId: number;
   cpf: string | null;
   cnpj: string | null;
+  specialties?: string[];
   createdAt: string;
   updatedAt: string;
 }

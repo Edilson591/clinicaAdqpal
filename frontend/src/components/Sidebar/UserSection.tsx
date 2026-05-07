@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { UserResponse } from "../../types/api";
 import { useTheme } from "../../context/ThemeContext";
+import { ROLE_LABELS } from "../../types/roles";
 
 interface UserSectionProps {
   user: UserResponse;
@@ -98,7 +99,7 @@ function UserSection({ user, expanded, logout }: UserSectionProps) {
               {user.username}
             </p>
             <p className="text-xs text-[#6B7280] dark:text-[#64748B] truncate leading-tight">
-              Médico ·{" "}
+              {ROLE_LABELS[user.roleId as keyof typeof ROLE_LABELS] ?? "Não identificado"} ·{" "}
               <span className="text-[#38A169] hover:underline">Sair</span>
             </p>
           </div>

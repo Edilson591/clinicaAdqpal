@@ -23,7 +23,7 @@ export function AcessoNegado() {
           </h2>
           <p className="text-[13px] text-[#64748B] dark:text-[#94A3B8] leading-relaxed">
             Sua conta <span className="font-medium text-[#475569] dark:text-[#CBD5E1]">({roleLabel})</span>{" "}
-            não tem permissão para acessar a Gestão Financeira.
+            não tem permissão para acessar.
           </p>
           <p className="text-[12px] text-[#94A3B8]">
             Acesso permitido para: Administrador, Recepcionista e Suporte de TI.

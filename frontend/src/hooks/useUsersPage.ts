@@ -52,12 +52,11 @@ export function useUsersPage() {
   const { data: allUsers = [] } = useUsers();
 
   // Table query — server-side paginated + filtered
-  const { data: pageData, isLoading } = useUsersPaginated(page, LIMIT, search, roleFilter);
+  const { data: pageData, isLoading,error } = useUsersPaginated(page, LIMIT, search, roleFilter);
 
   const users: UserRow[] = (pageData?.data ?? []).map(toUserRow);
   const totalPages = pageData?.pagination.totalPages ?? 1;
 
-  console.log(pageData)
   // ── Stats (sempre sobre todos os usuários, ignoram filtros) ───────────────
   const total = allUsers.length;
   const totalAdmins = allUsers.filter((u) => u.roleId === 1).length;
@@ -99,6 +98,7 @@ export function useUsersPage() {
     setRoleFilter: handleSetRoleFilter,
     page,
     setPage,
+    error,
     totalPages,
     total,
     totalAdmins,

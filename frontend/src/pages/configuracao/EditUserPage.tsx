@@ -22,6 +22,8 @@ import { SelectGroup } from "../../components/ui/Select";
 import { ESTADOS } from "../../data/state";
 import { formatCep } from "../../utils/formatCep";
 import { VoiceTextarea } from "../../components/ui/VoiceTextarea";
+import { SearchableMultiSelectGroup } from "../../components/ui/SearchableMultiSelect";
+import { USER_ROLES } from "../../types/roles";
 
 const ROLE_SELECT_OPTIONS = ROLE_OPTIONS.filter((o) => o.value !== "");
 
@@ -48,7 +50,13 @@ function EditUserContent() {
     saveError,
     loadError,
     linkedEmployee,
+    allSpecialties
   } = useEditUserForm(id ?? "");
+
+  const specialties = allSpecialties.map((specialty) => ({
+  value: specialty.name,
+  label: specialty.name,
+}));
 
   const roleId = watch("roleId");
   const isEmployee = watch("isEmployee");
@@ -121,8 +129,8 @@ function EditUserContent() {
                   </label>
                   <SearchableSelect
                     options={ROLE_SELECT_OPTIONS}
-                    value={roleId}
-                    onChange={(val) => setValue("roleId", val)}
+                    value={String(roleId)}
+                    onChange={(val) => setValue("roleId", Number(val))}
                     placeholder="Selecione o perfil"
                     error={!!errors.roleId}
                     className="h-14 text-sm"
@@ -147,6 +155,18 @@ function EditUserContent() {
                     maxLength: 18,
                   }}
                 />
+                {roleId === USER_ROLES.DOCTOR && (
+                  <SearchableMultiSelectGroup
+                    label="Especialidades"
+                    // required={user?.roleId === USER_ROLES.DOCTOR}
+                    error={errors.especialidades?.message}
+                    value={watch("especialidades") || []}
+                    onChange={(value) => setValue("especialidades", value)}
+                    options={specialties}
+                    placeholder="Selecione as especialidades"
+                    maxItems={5}
+                  />
+                )}
               </div>
             </FormSection>
 

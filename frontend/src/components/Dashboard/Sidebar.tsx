@@ -7,7 +7,7 @@ import {
   DollarSign,
   Briefcase,
   UserCog,
-  Receipt,
+  // Receipt,
   type LucideIcon,
 } from "lucide-react";
 
@@ -34,7 +34,7 @@ export const navItems: NavItem[] = [
   { label: "Agenda", icon: Calendar, path: "/agenda" },
   { label: "Prontuários", icon: FileText, path: "/prontuarios" },
   { label: "Financeiro", icon: DollarSign, path: "/financeiro" },
-  { label: "Notas Fiscais", icon: Receipt, path: "/notas-fiscais" },
+  // { label: "Notas Fiscais", icon: Receipt, path: "/notas-fiscais" },
   { label: "Recursos Humanos", icon: Briefcase, path: "/rh" },
   {
     label: "Configurações",

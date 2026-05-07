@@ -5,6 +5,7 @@ import type {
   TransactionResponse,
   PaginatedResponse,
 } from "../types/api";
+import type { AxiosError } from "axios";
 
 // ─── Accounts ─────────────────────────────────────────────────────────────────
 
@@ -133,7 +134,14 @@ export interface DashboardMonthData {
 
 export const DashboardService = {
   async getDashboard(month: string): Promise<DashboardMonthData[]> {
-    const res = await api.get(`/financial/dashboard?month=${month}`);
-    return res.data.data;
+    try {
+      const res = await api.get(`/financial/dashboard?month=${month}`);
+      return res.data.data;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      throw new Error(
+        axiosError.response?.data?.message || "Erro ao buscar dashboard"
+      );
+    }
   },
 };

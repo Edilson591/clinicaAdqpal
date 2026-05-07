@@ -2,9 +2,12 @@ import type { INotaFiscalRepository } from "../../domain/repositories/INotaFisca
 import type { NotaFiscalResponseDTO } from "../dtos/NotaFiscalDTOs";
 import { NotFoundError, DomainError } from "../../domain/errors/DomainError";
 import { toNotaFiscalResponseDTO } from "../mappers/notaFiscalMapper";
+import { getNotaFiscalQueue } from "../../infrastructure/queue/NotaFiscalQueue";
 
 export class EmitirNotaFiscal {
-  constructor(private readonly notaFiscalRepository: INotaFiscalRepository) {}
+  constructor(
+    private readonly notaFiscalRepository: INotaFiscalRepository,
+  ) {}
 
   async execute(id: string): Promise<NotaFiscalResponseDTO> {
     const existing = await this.notaFiscalRepository.findById(id);
@@ -15,12 +18,21 @@ export class EmitirNotaFiscal {
     }
 
     if (existing.status === "CANCELADA") {
-      throw new DomainError("Não é possível emitir uma nota fiscal cancelada.", 422);
+      throw new DomainError(
+        "Não é possível emitir uma nota fiscal cancelada.",
+        422,
+      );
     }
 
+    // const paciente = await this.pacienteRepository.findById(existing.patientId);
+    // 🔥 muda status pra processamento
     const nf = await this.notaFiscalRepository.update(id, {
-      status: "EMITIDA",
-      dataEmissao: new Date(),
+      status: "PROCESSANDO",
+    });
+
+    // 🚀 adiciona na fila
+    await getNotaFiscalQueue().add("emitir-nota", {
+      notaFiscalId: id,
     });
 
     return toNotaFiscalResponseDTO(nf);

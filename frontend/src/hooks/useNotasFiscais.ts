@@ -58,7 +58,7 @@ export function useNotasFiscaisStats() {
     () => (emitidas.data?.data ?? []).reduce((sum, nf) => sum + nf.valor, 0),
     [emitidas.data],
   );
-  console.log(pendentes)
+ 
   const totalPendentes = pendentes.data?.pagination.total ?? 0;
   const totalCanceladas = canceladas.data?.pagination.total ?? 0;
 
@@ -140,6 +140,7 @@ export function useNotasFiscaisPage() {
     notas,
     pagination,
     isLoading: listQuery.isLoading,
+    error: listQuery.error,
     search,
     setSearch: handleSearchChange,
     statusFilter,

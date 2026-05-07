@@ -28,9 +28,9 @@ model User {
   username         String            @unique
   appointments     Appointment[]
   specialties      DoctorSpecialty[]
+  notasFiscais     NotaFiscal[]      @relation("NotaFiscalCreator")
   patientHistories PatientHistory[]  @relation("DoctorHistories")
   transactions     Transaction[]     @relation("TransactionCreator")
-  notasFiscais     NotaFiscal[]      @relation("NotaFiscalCreator")
   role             Role              @relation(fields: [roleId], references: [id])
 
   @@map("users")
@@ -55,9 +55,9 @@ model Patient {
   gender           String?
   appointments     Appointment[]
   medicalRecords   MedicalRecord[]
+  notasFiscais     NotaFiscal[]
   patientHistories PatientHistory[]
   transactions     Transaction[]
-  notasFiscais     NotaFiscal[]
 
   @@map("patients")
 }
@@ -100,24 +100,24 @@ model Appointment {
   specialty        Specialty?        @relation(fields: [specialtyId], references: [id])
   user             User              @relation(fields: [userId], references: [id])
   medicalRecord    MedicalRecord?
+  notasFiscais     NotaFiscal[]
   patientHistories PatientHistory[]
   transactions     Transaction[]
-  notasFiscais     NotaFiscal[]
 
   @@map("appointments")
 }
 
 model MedicalRecord {
-  id            String      @id @default(uuid())
+  id            String       @id @default(uuid())
   appointmentId String?      @unique @map("appointment_id")
-  patientId     String      @map("patient_id")
+  patientId     String       @map("patient_id")
   diagnosis     String?
   prescription  String?
   notes         String?
-  createdAt     DateTime    @default(now()) @map("created_at")
-  updatedAt     DateTime    @updatedAt @map("updated_at")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
   appointment   Appointment? @relation(fields: [appointmentId], references: [id])
-  patient       Patient     @relation(fields: [patientId], references: [id])
+  patient       Patient      @relation(fields: [patientId], references: [id])
 
   @@map("medical_records")
 }
@@ -231,10 +231,10 @@ model NotaFiscal {
   observacoes   String?
   createdAt     DateTime         @default(now()) @map("created_at")
   updatedAt     DateTime         @updatedAt @map("updated_at")
-  patient       Patient          @relation(fields: [patientId], references: [id])
   appointment   Appointment?     @relation(fields: [appointmentId], references: [id])
-  transaction   Transaction?     @relation(fields: [transactionId], references: [id])
   createdByUser User             @relation("NotaFiscalCreator", fields: [createdBy], references: [id])
+  patient       Patient          @relation(fields: [patientId], references: [id])
+  transaction   Transaction?     @relation(fields: [transactionId], references: [id])
 
   @@map("notas_fiscais")
 }
@@ -264,15 +264,30 @@ model Transaction {
   deletedAt           DateTime?         @map("deleted_at")
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
+  notasFiscais        NotaFiscal[]
   account             FinancialAccount  @relation("AccountTransactions", fields: [accountId], references: [id])
   appointment         Appointment?      @relation(fields: [appointmentId], references: [id])
   category            FinancialCategory @relation(fields: [categoryId], references: [id])
   createdByUser       User              @relation("TransactionCreator", fields: [createdBy], references: [id])
   patient             Patient?          @relation(fields: [patientId], references: [id])
   transferToAccount   FinancialAccount? @relation("TransferTarget", fields: [transferToAccountId], references: [id])
-  notasFiscais        NotaFiscal[]
 
   @@map("transactions")
+}
+
+model EmpresaConfig {
+  id                 String   @id(map: "EmpresaConfig_pkey") @default(uuid())
+  razaoSocial        String
+  cnpj               String
+  inscricaoMunicipal String
+  municipioCodigo    String
+  nfeLogin           String
+  nfeSenha           String
+  nfeAmbiente        String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("empresa_config")
 }
 
 enum AppointmentStatus {
@@ -344,6 +359,8 @@ enum EmployeeStatus {
 
 enum NotaFiscalStatus {
   PENDENTE
+  PROCESSANDO
+  ERRO
   EMITIDA
   CANCELADA
 }

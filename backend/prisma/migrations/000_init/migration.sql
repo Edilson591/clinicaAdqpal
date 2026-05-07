@@ -25,6 +25,9 @@ CREATE TYPE "CategoryType" AS ENUM ('INCOME', 'EXPENSE', 'BOTH');
 -- CreateEnum
 CREATE TYPE "EmployeeStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED');
 
+-- CreateEnum
+CREATE TYPE "NotaFiscalStatus" AS ENUM ('PENDENTE', 'EMITIDA', 'CANCELADA');
+
 -- CreateTable
 CREATE TABLE "roles" (
     "id" SERIAL NOT NULL,
@@ -109,7 +112,7 @@ CREATE TABLE "appointments" (
 -- CreateTable
 CREATE TABLE "medical_records" (
     "id" TEXT NOT NULL,
-    "appointment_id" TEXT NOT NULL,
+    "appointment_id" TEXT,
     "patient_id" TEXT NOT NULL,
     "diagnosis" TEXT,
     "prescription" TEXT,
@@ -212,6 +215,26 @@ CREATE TABLE "employees" (
 );
 
 -- CreateTable
+CREATE TABLE "notas_fiscais" (
+    "id" TEXT NOT NULL,
+    "numero" TEXT NOT NULL,
+    "patient_id" TEXT NOT NULL,
+    "appointment_id" TEXT,
+    "transaction_id" TEXT,
+    "created_by" TEXT NOT NULL,
+    "servico" TEXT NOT NULL,
+    "valor" DECIMAL(10,2) NOT NULL,
+    "status" "NotaFiscalStatus" NOT NULL DEFAULT 'PENDENTE',
+    "data_emissao" TIMESTAMP(3),
+    "pdf_url" TEXT,
+    "observacoes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "notas_fiscais_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "transactions" (
     "id" TEXT NOT NULL,
     "account_id" TEXT NOT NULL,
@@ -239,6 +262,22 @@ CREATE TABLE "transactions" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "transactions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "empresa_config" (
+    "id" TEXT NOT NULL,
+    "razaoSocial" TEXT NOT NULL,
+    "cnpj" TEXT NOT NULL,
+    "inscricaoMunicipal" TEXT NOT NULL,
+    "municipioCodigo" TEXT NOT NULL,
+    "nfeLogin" TEXT NOT NULL,
+    "nfeSenha" TEXT NOT NULL,
+    "nfeAmbiente" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EmpresaConfig_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -280,6 +319,9 @@ CREATE UNIQUE INDEX "employees_cpf_key" ON "employees"("cpf");
 -- CreateIndex
 CREATE UNIQUE INDEX "employees_email_key" ON "employees"("email");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "notas_fiscais_numero_key" ON "notas_fiscais"("numero");
+
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -299,7 +341,7 @@ ALTER TABLE "appointments" ADD CONSTRAINT "appointments_specialty_id_fkey" FOREI
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "medical_records" ADD CONSTRAINT "medical_records_appointment_id_fkey" FOREIGN KEY ("appointment_id") REFERENCES "appointments"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "medical_records" ADD CONSTRAINT "medical_records_appointment_id_fkey" FOREIGN KEY ("appointment_id") REFERENCES "appointments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "medical_records" ADD CONSTRAINT "medical_records_patient_id_fkey" FOREIGN KEY ("patient_id") REFERENCES "patients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -315,6 +357,18 @@ ALTER TABLE "patient_history" ADD CONSTRAINT "patient_history_patient_id_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "financial_categories" ADD CONSTRAINT "financial_categories_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "financial_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notas_fiscais" ADD CONSTRAINT "notas_fiscais_appointment_id_fkey" FOREIGN KEY ("appointment_id") REFERENCES "appointments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notas_fiscais" ADD CONSTRAINT "notas_fiscais_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notas_fiscais" ADD CONSTRAINT "notas_fiscais_patient_id_fkey" FOREIGN KEY ("patient_id") REFERENCES "patients"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notas_fiscais" ADD CONSTRAINT "notas_fiscais_transaction_id_fkey" FOREIGN KEY ("transaction_id") REFERENCES "transactions"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "financial_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -333,3 +387,4 @@ ALTER TABLE "transactions" ADD CONSTRAINT "transactions_patient_id_fkey" FOREIGN
 
 -- AddForeignKey
 ALTER TABLE "transactions" ADD CONSTRAINT "transactions_transfer_to_account_id_fkey" FOREIGN KEY ("transfer_to_account_id") REFERENCES "financial_accounts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+

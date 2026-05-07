@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useZodForm } from "./useZodForm";
 import { formatCpf, formatCpfOrCpnj } from "../utils/formatCpf";
 import { useAuth } from "../context/AuthContext";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { perfilSchema, type PerfilInput } from "../validate/perfil.schema";
 import { userService } from "../services/User";
 import { useSpecialties, useSpecialtiesByDoctor } from "./useSpecialties";
@@ -23,18 +23,19 @@ function usePerfilForm() {
 
   const { data: allSpecialties = [] } = useSpecialties();
   const { data: doctorSpecialties = [] } = useSpecialtiesByDoctor(
-    user?.id ?? ""
+    user?.id ?? "",
   );
 
-
-    const defaultSpecialtyIds = doctorSpecialties.map((s) => s.id);
-
+  const defaultSpecialtyIds = useMemo(() => {
+    return doctorSpecialties?.map((s) => s.id) ?? [];
+  }, [doctorSpecialties]);
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useZodForm(perfilSchema, {
     defaultValues: {
@@ -50,7 +51,24 @@ function usePerfilForm() {
     },
   });
 
+  useEffect(() => {
+    if (!user) return;
+
+    reset({
+      nome: user?.username ?? "",
+      email: user?.email ?? "",
+      cpfOrCnpj: user?.cpf
+        ? formatCpf(user.cpf)
+        : formatCpfOrCpnj(user?.cnpj ?? ""),
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+      specialtyIds: defaultSpecialtyIds,
+    });
+  }, [user, reset, defaultSpecialtyIds]);
+
   const selectedIds: string[] = watch("specialtyIds") ?? [];
+
 
   const toggleSpecialty = (id: string) => {
     const next = selectedIds.includes(id)
@@ -68,8 +86,8 @@ function usePerfilForm() {
         digits.length === 11
           ? { cpf: digits, cnpj: null }
           : digits.length === 14
-          ? { cnpj: digits, cpf: null }
-          : {};
+            ? { cnpj: digits, cpf: null }
+            : {};
 
       return userService.update(user!.id, {
         username: data.nome,

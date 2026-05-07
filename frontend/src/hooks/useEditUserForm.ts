@@ -2,11 +2,19 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useZodForm } from "./useZodForm";
-import { editUserSchema, type EditUserInput } from "../validate/editUser.schema";
+import {
+  editUserSchema,
+  type EditUserInput,
+} from "../validate/editUser.schema";
 import { userService } from "../services/User";
 import { employeeService } from "../services/Employee";
 import { formatCpf, formatCpfOrCpnj } from "../utils/formatCpf";
 import { USER_KEYS } from "./useUsers";
+import { USER_ROLES } from "../types/roles";
+import { z } from "zod";
+
+// import { specialtyService } from "../services/Specialty";
+import { useSpecialties, useSpecialtiesByDoctor } from "./useSpecialties";
 
 const EMPLOYEE_KEYS = {
   all: ["employees"] as const,
@@ -33,9 +41,24 @@ export function useEditUserForm(userId: string) {
     enabled: !!user,
   });
 
+  const { data: specialtiesData = [] } = useSpecialtiesByDoctor(user?.id ?? "");
+  const { data: allSpecialties = [] } = useSpecialties();
+
   const linkedEmployee = user
-    ? allEmployees.find((e) => e.email === user.email) ?? null
+    ? (allEmployees.find((e) => e.email === user.email) ?? null)
     : null;
+
+  const editUserSchemaBase = editUserSchema.superRefine((data, ctx) => {
+    if (user?.roleId === USER_ROLES.DOCTOR) {
+      if (!data.especialidades || data.especialidades.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Médico deve ter pelo menos uma especialidade",
+          path: ["especialidades"],
+        });
+      }
+    }
+  });
 
   const {
     register,
@@ -45,11 +68,11 @@ export function useEditUserForm(userId: string) {
     control,
     formState: { errors },
     reset,
-  } = useZodForm(editUserSchema, {
+  } = useZodForm(editUserSchemaBase, {
     defaultValues: {
       username: "",
       email: "",
-      roleId: "",
+      roleId: 0,
       cpfOrCnpj: "",
       newPassword: "",
       confirmPassword: "",
@@ -62,6 +85,7 @@ export function useEditUserForm(userId: string) {
       dateOfBirth: "",
       gender: "",
       street: "",
+      especialidades: [],
       streetNumber: "",
       city: "",
       state: "",
@@ -74,11 +98,12 @@ export function useEditUserForm(userId: string) {
   useEffect(() => {
     if (!user) return;
     const emp = allEmployees.find((e) => e.email === user.email) ?? null;
+    const especialidades = specialtiesData?.map((name) => name.name);
 
     reset({
       username: user.username,
       email: user.email,
-      roleId: String(user.roleId),
+      roleId: user.roleId,
       cpfOrCnpj: user.cpf
         ? formatCpf(user.cpf)
         : user.cnpj
@@ -100,8 +125,9 @@ export function useEditUserForm(userId: string) {
       state: emp?.state ?? "",
       zipCode: emp?.zipCode ?? "",
       notes: emp?.notes ?? "",
+      especialidades: especialidades,
     });
-  }, [user, allEmployees, reset]);
+  }, [user, allEmployees, reset, specialtiesData]);
 
   const mutation = useMutation({
     mutationFn: async (data: EditUserInput) => {
@@ -110,6 +136,10 @@ export function useEditUserForm(userId: string) {
       const cnpj = digits.length === 14 ? digits : null;
 
       // 1. Atualiza usuário
+      const specialtyIds = data.especialidades
+        ?.map((name) => allSpecialties?.find((s) => s.name === name)?.id)
+        .filter((id): id is string => !!id);
+
       await userService.update(userId, {
         username: data.username,
         email: data.email,
@@ -117,6 +147,7 @@ export function useEditUserForm(userId: string) {
         cpf,
         cnpj,
         ...(data.newPassword && { password: data.newPassword }),
+        ...(data.especialidades !== undefined && { specialtyIds }),
       });
 
       // 2. Funcionário: criar, atualizar ou ignorar
@@ -172,6 +203,7 @@ export function useEditUserForm(userId: string) {
       : null,
     loadError: loadError ? "Usuário não encontrado." : null,
     user,
+    allSpecialties,
     linkedEmployee,
   };
 }

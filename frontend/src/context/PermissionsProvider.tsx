@@ -11,10 +11,10 @@ const FINANCIAL_ROLES = [
 ] as const;
 
 // Roles com acesso ao gerenciamento de usuários
-const USERS_ROLES = [
-  USER_ROLES.ADMIN,
-  USER_ROLES.IT_SUPPORT,
-] as const;
+const USERS_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
+
+const NOTES_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
+const RH_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
 
 export function PermissionsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -24,11 +24,19 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     FINANCIAL_ROLES.includes(user.roleId as (typeof FINANCIAL_ROLES)[number]);
 
   const canAccessUsers =
-    !!user &&
-    USERS_ROLES.includes(user.roleId as (typeof USERS_ROLES)[number]);
+    !!user && USERS_ROLES.includes(user.roleId as (typeof USERS_ROLES)[number]);
 
+  const canAccessNotas = !!user && NOTES_ROLES.includes(user.roleId as (typeof NOTES_ROLES)[number])
+  const canAccessRh = !!user && RH_ROLES.includes(user.roleId as (typeof RH_ROLES)[number])
   return (
-    <PermissionsContext.Provider value={{ canAccessFinanceiro, canAccessUsers }}>
+    <PermissionsContext.Provider
+      value={{
+        canAccessFinanceiro,
+        canAccessUsers,
+        canAccessNotas,
+        canAccessRh,
+      }}
+    >
       {children}
     </PermissionsContext.Provider>
   );

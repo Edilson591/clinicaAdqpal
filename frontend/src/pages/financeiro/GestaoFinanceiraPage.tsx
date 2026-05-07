@@ -8,6 +8,8 @@ import { TransacoesRecentes } from "../../components/Financeiro/TransacoesRecent
 import { Header } from "../../components/Dashboard/Header";
 import { useTransactions, useDashboardFinance } from "../../hooks/useFinancial";
 import { useSelectedMonth } from "../../components/Financeiro/useSelectedMonth";
+import type { AxiosError } from "axios";
+import { DefaultMainSection } from "../../components/ui/DefaltMainSection";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
@@ -27,12 +29,15 @@ export default function GestaoFinanceiraPage() {
     dateEnd,
     limit: 100,
   });
-  const { data: dashboardData, isLoading: dashboardLoading } =
-    useDashboardFinance(selectedMonth);
+  const {
+    data: dashboardData,
+    isLoading: dashboardLoading,
+    error,
+  } = useDashboardFinance(selectedMonth);
 
-  const transactions = txData?.data ?? [];
+  const transactions = useMemo(() => txData?.data ?? [], [txData]);
 
-  console.log(txData);
+  const axiosError = error as AxiosError<{ message?: string }>;
 
   const {
     totalIncome,
@@ -66,7 +71,7 @@ export default function GestaoFinanceiraPage() {
   }, [transactions]);
 
   return (
-    <main className="flex-1 bg-[#F8FAFC] dark:bg-[#0F172A] overflow-y-auto transition-colors duration-200">
+    <DefaultMainSection>
       <div className="p-4 sm:p-8 flex flex-col gap-6 h-full">
         <Header isSearchAvaliable={false} />
         <FinanceiroHeader />
@@ -125,8 +130,14 @@ export default function GestaoFinanceiraPage() {
             isLoading={isLoading}
           />
         </div>
-
+        {axiosError && (
+          <div className="mt-4 p-4 rounded-xl border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 transition-colors">
+            <p className="text-sm font-medium text-red-600 dark:text-red-400">
+              {axiosError.message}
+            </p>
+          </div>
+        )}
       </div>
-    </main>
+    </DefaultMainSection>
   );
 }

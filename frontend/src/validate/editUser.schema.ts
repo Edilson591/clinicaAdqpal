@@ -3,9 +3,15 @@ import { z } from "zod";
 export const editUserSchema = z
   .object({
     // ── Usuário ──────────────────────────────────────────────────────────────
-    username: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100),
-    email: z.string().min(1, "E-mail é obrigatório").email("Digite um e-mail válido"),
-    roleId: z.string().min(1, "Selecione um perfil"),
+    username: z
+      .string()
+      .min(2, "Nome deve ter pelo menos 2 caracteres")
+      .max(100),
+    email: z
+      .string()
+      .min(1, "E-mail é obrigatório")
+      .email("Digite um e-mail válido"),
+    roleId: z.number().min(1, "Selecione um perfil"),
     cpfOrCnpj: z
       .string()
       .nullable()
@@ -26,6 +32,8 @@ export const editUserSchema = z
         "Senha deve ter mínimo 8 caracteres, uma maiúscula e um número",
       ),
     confirmPassword: z.string().optional(),
+
+    especialidades: z.array(z.string()).optional(),
 
     // ── Funcionário ───────────────────────────────────────────────────────────
     isEmployee: z.boolean().default(false),

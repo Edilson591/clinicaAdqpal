@@ -7,6 +7,7 @@ import { AgendaTable } from "../../components/Dashboard/AgendaTable";
 import { Pagination } from "../../components/ui/Pagination";
 import { useDashboard } from "../../hooks/useDashboard";
 import { usePatientsCountToday } from "../../hooks/usePatients";
+import { DefaultMainSection } from "../../components/ui/DefaltMainSection";
 
 export default function DashboardPage() {
   const [page, setPage] = useState(1);
@@ -18,18 +19,22 @@ export default function DashboardPage() {
 
   const date = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
 
-  const { agendaDoDia, totalPages, total: consultasHoje, isLoading, search, setSearch, proximoAtendimento } =
-    useDashboard(page, setPage, date);
-
-
-
+  const {
+    agendaDoDia,
+    totalPages,
+    total: consultasHoje,
+    isLoading,
+    search,
+    setSearch,
+    proximoAtendimento,
+  } = useDashboard(page, setPage, date);
 
   const { data: novosPacientes = 0 } = usePatientsCountToday();
-  
 
   return (
     // bg: #F5F6FA light · #0F172A dark (pen: Km2zu)
-    <main className="flex-1 bg-[#F5F6FA] dark:bg-[#0F172A] overflow-y-auto transition-colors duration-200">
+    <DefaultMainSection>
+      {/* <div className="absolute inset-0 bg-black/40"></div> */}
       <div className="p-4 sm:p-6 lg:p-8">
         <Header
           isSearchAvaliable={true}
@@ -43,7 +48,7 @@ export default function DashboardPage() {
           <ProximoAtendimentoCard
             paciente={proximoAtendimento?.paciente ?? "—"}
             horario={proximoAtendimento?.horario ?? "—"}
-          /> 
+          />
         </div>
 
         <AgendaTable
@@ -60,6 +65,6 @@ export default function DashboardPage() {
           />
         </div>
       </div>
-    </main>
+    </DefaultMainSection>
   );
 }

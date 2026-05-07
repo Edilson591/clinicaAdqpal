@@ -4,9 +4,9 @@ import { SmsService } from "../services/SmsService";
 import prisma from "../database/prismaClient";
 import {
   NOTIFICATION_QUEUE,
-  createBullMQRedis,
   type NotificationJobData,
 } from "./NotificationQueue";
+import { getBullMQRedis } from "../cache/RedisBullMQ";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -126,7 +126,7 @@ export function startNotificationWorker(): Worker<NotificationJobData> {
       }
     },
     {
-      connection: createBullMQRedis(),
+      connection: getBullMQRedis(),
       concurrency: 5,
     }
   );

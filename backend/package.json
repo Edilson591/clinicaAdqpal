@@ -41,6 +41,7 @@
     "pluggy-sdk": "^0.85.2",
     "prisma": "^5.22.0",
     "twilio": "^6.0.0",
+    "xmlbuilder2": "^4.0.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {

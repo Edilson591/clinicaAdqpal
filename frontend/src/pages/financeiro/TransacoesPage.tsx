@@ -12,12 +12,22 @@ import { useNavigate } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { Header } from "../../components/Dashboard/Header";
 import { FinanceiroHeader } from "../../components/Financeiro/FinanceiroHeader";
-import { useTransactions, useDeleteTransaction } from "../../hooks/useFinancial";
-import type { TransactionResponse, TransactionType, TransactionStatus } from "../../types/api";
+import {
+  useTransactions,
+  useDeleteTransaction,
+} from "../../hooks/useFinancial";
+import type {
+  TransactionResponse,
+  TransactionType,
+  TransactionStatus,
+} from "../../types/api";
 import { useSelectedMonth } from "../../components/Financeiro/useSelectedMonth";
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
 }
 
 function formatDate(dateStr: string) {
@@ -28,11 +38,11 @@ function formatDate(dateStr: string) {
   });
 }
 
-const TYPE_LABELS: Record<TransactionType, string> = {
-  INCOME: "Entrada",
-  EXPENSE: "Saída",
-  TRANSFER: "Transferência",
-};
+// const TYPE_LABELS: Record<TransactionType, string> = {
+//   INCOME: "Entrada",
+//   EXPENSE: "Saída",
+//   TRANSFER: "Transferência",
+// };
 
 const STATUS_LABELS: Record<TransactionStatus, string> = {
   PENDING: "Pendente",
@@ -122,10 +132,14 @@ function TransactionRow({
 
       {/* Amount */}
       <span
-        className="text-[14px] font-bold shrink-0 min-w-[80px] text-right"
+        className="text-[14px] font-bold shrink-0 min-w-20 text-right"
         style={{
           color:
-            t.type === "INCOME" ? "#38A169" : t.type === "EXPENSE" ? "#EF4444" : "#3B82F6",
+            t.type === "INCOME"
+              ? "#38A169"
+              : t.type === "EXPENSE"
+                ? "#EF4444"
+                : "#3B82F6",
         }}
       >
         {t.type === "INCOME" ? "+" : t.type === "EXPENSE" ? "-" : ""}
@@ -196,7 +210,8 @@ export default function TransacoesPage() {
   }
 
   return (
-    <main className="flex-1 bg-[#F8FAFC] dark:bg-[#0F172A] overflow-y-auto transition-colors duration-200">
+    <main className="flex-1 relative dark:bg-[#0F172A] overflow-y-auto">
+      <div className="absolute inset-0 bg-[url('/bg-fundo.jpeg')] bg-no-repeat bg-cover bg-center opacity-10 z-[-1] dark:bg-none" />
       <div className="p-4 sm:p-8 flex flex-col gap-6">
         <Header isSearchAvaliable={false} />
         <FinanceiroHeader />
@@ -213,7 +228,10 @@ export default function TransacoesPage() {
               type="text"
               placeholder="Buscar por descrição..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="w-full h-9.5 pl-8 pr-3 rounded-lg bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#334155] text-[13px] text-[#1E293B] dark:text-[#F1F5F9] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#38A169]/30"
             />
           </div>
@@ -223,7 +241,10 @@ export default function TransacoesPage() {
             <Filter size={14} className="text-[#94A3B8]" />
             <select
               value={typeFilter}
-              onChange={(e) => { setTypeFilter(e.target.value as TransactionType | ""); setPage(1); }}
+              onChange={(e) => {
+                setTypeFilter(e.target.value as TransactionType | "");
+                setPage(1);
+              }}
               className="h-9.5 px-2 rounded-lg bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#334155] text-[13px] text-[#475569] dark:text-[#CBD5E1] focus:outline-none cursor-pointer"
             >
               <option value="">Todos os tipos</option>
@@ -236,7 +257,10 @@ export default function TransacoesPage() {
           {/* Status */}
           <select
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value as TransactionStatus | ""); setPage(1); }}
+            onChange={(e) => {
+              setStatusFilter(e.target.value as TransactionStatus | "");
+              setPage(1);
+            }}
             className="h-9.5 px-2 rounded-lg bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#334155] text-[13px] text-[#475569] dark:text-[#CBD5E1] focus:outline-none cursor-pointer"
           >
             <option value="">Todos os status</option>
@@ -276,7 +300,9 @@ export default function TransacoesPage() {
             Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
           ) : transactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <p className="text-[14px] text-[#94A3B8]">Nenhuma transação encontrada.</p>
+              <p className="text-[14px] text-[#94A3B8]">
+                Nenhuma transação encontrada.
+              </p>
               <button
                 onClick={() => navigate("/financeiro/nova")}
                 className="flex items-center gap-2 h-9 px-4 rounded-lg bg-[#38A169] text-white text-[13px] font-semibold hover:bg-[#2F9259] transition-colors cursor-pointer"
@@ -304,7 +330,8 @@ export default function TransacoesPage() {
         {pagination && pagination.totalPages > 1 && (
           <div className="flex items-center justify-between">
             <span className="text-[12px] text-[#94A3B8]">
-              {pagination.total} transações · página {pagination.page} de {pagination.totalPages}
+              {pagination.total} transações · página {pagination.page} de{" "}
+              {pagination.totalPages}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -315,7 +342,9 @@ export default function TransacoesPage() {
                 Anterior
               </button>
               <button
-                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                onClick={() =>
+                  setPage((p) => Math.min(pagination.totalPages, p + 1))
+                }
                 disabled={page === pagination.totalPages}
                 className="h-8 px-3 rounded-lg border border-[#E2E8F0] dark:border-[#334155] text-[13px] text-[#475569] dark:text-[#CBD5E1] disabled:opacity-40 hover:bg-[#F8FAFC] dark:hover:bg-[#1E293B] transition-colors cursor-pointer"
               >

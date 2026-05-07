@@ -8,20 +8,28 @@ import type {
   LoginUserInput,
   UpdateUserInput,
 } from "../types/api";
+import type { AxiosError } from "axios";
 
 export const userService = {
   register: async (data: RegisterUserInput): Promise<UserResponse> => {
-    const res = await api.post<ApiResponse<UserResponse>>("/users/register", data);
+    const res = await api.post<ApiResponse<UserResponse>>(
+      "/users/register",
+      data,
+    );
     return res.data.data!;
   },
 
   login: async (data: LoginUserInput): Promise<LoginResponse> => {
-    const res = await api.post<ApiResponse<LoginResponse>>("/users/login", data);
+    const res = await api.post<ApiResponse<LoginResponse>>(
+      "/users/login",
+      data,
+    );
     return res.data.data!;
   },
 
   getAll: async (): Promise<UserResponse[]> => {
-    const res = await api.get<PaginatedResponse<UserResponse>>("/users?limit=9999");
+    const res =
+      await api.get<PaginatedResponse<UserResponse>>("/users?limit=9999");
     return res.data.data;
   },
 
@@ -31,11 +39,23 @@ export const userService = {
     search?: string,
     roleId?: number,
   ): Promise<PaginatedResponse<UserResponse>> => {
-    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-    if (search) params.set("search", search);
-    if (roleId !== undefined) params.set("roleId", String(roleId));
-    const res = await api.get<PaginatedResponse<UserResponse>>(`/users?${params}`);
-    return res.data;
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (search) params.set("search", search);
+      if (roleId !== undefined) params.set("roleId", String(roleId));
+      const res = await api.get<PaginatedResponse<UserResponse>>(
+        `/users?${params}`,
+      );
+      return res.data;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      throw new Error(
+        axiosError.response?.data?.message || "Erro ao buscar dashboard",
+      );
+    }
   },
 
   getById: async (id: string): Promise<UserResponse> => {

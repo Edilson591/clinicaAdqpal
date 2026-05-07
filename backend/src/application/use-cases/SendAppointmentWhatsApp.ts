@@ -1,6 +1,6 @@
 import type { IAppointmentRepository } from "../../domain/repositories/IAppointmentRepository";
-import { WhatsAppService } from "../../infrastructure/services/WhatsAppService";
 import { DomainError } from "../../domain/errors/DomainError";
+import { INotificationService } from "../../domain/services/INotificationService";
 
 // =============================================================================
 // USE CASE: Send appointment confirmation via WhatsApp
@@ -32,7 +32,7 @@ function formatTime(date: Date): string {
 export class SendAppointmentWhatsApp {
   constructor(
     private readonly appointmentRepository: IAppointmentRepository,
-    private readonly whatsAppService: WhatsAppService
+    private readonly notificationService: INotificationService
   ) {}
 
   async execute(appointmentId: string, telefone: string): Promise<void> {
@@ -66,7 +66,7 @@ export class SendAppointmentWhatsApp {
 
     // 4. Send via WhatsApp
     try {
-      await this.whatsAppService.sendTextMessage({ to: telefone, body: message });
+      await this.notificationService.sendTextMessage({ to: telefone, body: message });
     } catch (err: unknown) {
       const detail = err instanceof Error ? err.message : String(err);
       throw new DomainError(`Falha ao enviar mensagem WhatsApp: ${detail}`, 502);

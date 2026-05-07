@@ -10,8 +10,10 @@ import { FormHeader } from "../../components/Form/FormHeader";
 import { FormCard } from "../../components/Form/FormCard";
 import { FormSection } from "../../components/Form/FormSection";
 import { SearchableSelect } from "../../components/ui/SearchableSelect";
+import { SearchableMultiSelectGroup } from "../../components/ui/SearchableMultiSelect";
 import { useNewUserForm } from "../../hooks/useNewUserForm";
 import { ROLE_OPTIONS } from "../../hooks/useUsersPage";
+import { USER_ROLES } from "../../types/roles";
 import { VoiceTextarea } from "../../components/ui/VoiceTextarea";
 import { formatCep } from "../../utils/formatCep";
 import { ESTADOS } from "../../data/state";
@@ -43,11 +45,17 @@ export default function NewUserPage() {
     isSaving,
     saveError,
     formatCpfOrCpnj,
+    allSpecialties,
   } = useNewUserForm();
 
   const roleId = watch("roleId");
   const gender = watch("gender") ?? "";
   const phoneError = errors["phone"]?.message as string | undefined;
+
+  const specialtiesOptions = allSpecialties.map((s) => ({
+    value: s.name,
+    label: s.name,
+  }));
   const inputBase =
     "flex w-full items-center h-14 min-h-[56px] dark:bg-[#263548] dark:border-[#334155] dark:text-muted-foreground rounded-lg border border-border-input bg-surface px-4 text-base font-normal text-foreground transition-all duration-150 ease-in-out placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -112,6 +120,17 @@ export default function NewUserPage() {
                   </p>
                 )}
               </div>
+              {Number(roleId) === USER_ROLES.DOCTOR && (
+                <SearchableMultiSelectGroup
+                  label="Especialidades"
+                  error={errors.especialidades?.message}
+                  value={watch("especialidades") || []}
+                  onChange={(value) => setValue("especialidades", value)}
+                  options={specialtiesOptions}
+                  placeholder="Selecione as especialidades"
+                  maxItems={5}
+                />
+              )}
               <InputGroup
                 label="CPF ou CNPJ"
                 error={errors.cpfOrCnpj?.message}

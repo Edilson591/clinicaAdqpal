@@ -11,7 +11,7 @@ export const specialtyService = {
     const res = await api.get<ApiResponse<SpecialtyResponse[]>>(
       `/specialties/doctor/${doctorId}`,
     );
-
+    
     return res.data.data!;
   },
 };

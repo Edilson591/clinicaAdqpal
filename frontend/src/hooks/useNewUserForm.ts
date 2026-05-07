@@ -8,10 +8,13 @@ import { formatCpfOrCpnj } from "../utils/formatCpf";
 import { USER_KEYS } from "./useUsers";
 import { formatCep } from "../utils/formatCep";
 import { ESTADOS } from "../data/state";
+import { useSpecialties } from "./useSpecialties";
 
 export function useNewUserForm() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const { data: allSpecialties = [] } = useSpecialties();
 
   const {
     register,
@@ -29,6 +32,7 @@ export function useNewUserForm() {
       roleId: "",
       cpfOrCnpj: "",
       isEmployee: false,
+      especialidades: [],
       position: "",
       department: "",
       phone: "",
@@ -54,6 +58,10 @@ export function useNewUserForm() {
       const cnpj = digits.length === 14 ? digits : null;
 
       // 1. Cria o usuário
+      const specialtyIds = data.especialidades
+        ?.map((name) => allSpecialties.find((s) => s.name === name)?.id)
+        .filter((id): id is string => !!id);
+
       const newUser = await userService.register({
         username: data.username,
         email: data.email,
@@ -61,6 +69,7 @@ export function useNewUserForm() {
         roleId: Number(data.roleId),
         cpf,
         cnpj,
+        ...(specialtyIds !== undefined && specialtyIds.length > 0 && { specialtyIds }),
       });
 
       // 2. Se for funcionário, cria o employee com os mesmos dados base + campos extras
@@ -109,5 +118,6 @@ export function useNewUserForm() {
           ?.response?.data?.message ?? "Erro ao cadastrar. Tente novamente.")
       : null,
     formatCpfOrCpnj,
+    allSpecialties,
   };
 }

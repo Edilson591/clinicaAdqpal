@@ -46,6 +46,7 @@ export interface RegisterUserInput {
   roleId: number;
   cpf?: string | null;
   cnpj?: string | null;
+  specialtyIds?: string[];
 }
 
 export interface LoginUserInput {

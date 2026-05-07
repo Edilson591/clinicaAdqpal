@@ -6,11 +6,16 @@ interface PermissionsContextValue {
   canAccessFinanceiro: boolean;
   /** Usuário pode gerenciar usuários do sistema (Admin e Suporte de TI) */
   canAccessUsers: boolean;
+
+  canAccessNotas: boolean;
+  canAccessRh: boolean;
 }
 
 export const PermissionsContext = createContext<PermissionsContextValue>({
   canAccessFinanceiro: false,
   canAccessUsers: false,
+  canAccessNotas: false,
+  canAccessRh: false
 });
 
 

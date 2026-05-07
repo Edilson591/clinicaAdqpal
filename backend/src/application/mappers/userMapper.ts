@@ -1,7 +1,7 @@
 import type { User } from "../../domain/entities/User";
 import type { UserResponseDTO } from "../dtos/UserDTOs";
 
-export function toUserResponseDTO(user: User): UserResponseDTO {
+export function toUserResponseDTO(user: User, specialties?: string[]): UserResponseDTO {
   return {
     id: user.id,
     username: user.username,
@@ -9,6 +9,7 @@ export function toUserResponseDTO(user: User): UserResponseDTO {
     roleId: user.roleId,
     cpf: user.cpf,
     cnpj: user.cnpj,
+    specialties,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };

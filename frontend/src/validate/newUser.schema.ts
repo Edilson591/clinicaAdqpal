@@ -26,6 +26,8 @@ export const newUserSchema = z
         "Informe um CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00) válido",
       ),
 
+    especialidades: z.array(z.string()).optional(),
+
     // ── Funcionário ───────────────────────────────────────────────────────────
     isEmployee: z.boolean().default(false),
     position: z.string().optional(),
@@ -55,6 +57,13 @@ export const newUserSchema = z
         code: z.ZodIssueCode.custom,
         message: "Cargo é obrigatório para funcionários",
         path: ["position"],
+      });
+    }
+    if (Number(data.roleId) === 3 && (!data.especialidades || data.especialidades.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Médico deve ter pelo menos uma especialidade",
+        path: ["especialidades"],
       });
     }
   });

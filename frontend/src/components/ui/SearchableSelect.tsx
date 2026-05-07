@@ -49,7 +49,7 @@ export interface SearchableSelectGroupProps extends Omit<
 }
 
 // =============================================================================
-// SEARCHABLE SELECT
+// SEARCHABLE SELECT (SINGLE)
 // =============================================================================
 
 export function SearchableSelect({
@@ -114,7 +114,7 @@ export function SearchableSelect({
           "flex w-full items-center justify-between",
           "h-14 rounded-lg border px-4 cursor-pointer",
           "text-base transition-all duration-150",
-          " bg-[#F8FAFC] dark:bg-[#263548] ",
+          "bg-[#F8FAFC] dark:bg-[#263548]",
           error
             ? "border-destructive focus:ring-destructive/20"
             : "border-border-input dark:border-[#334155]",
@@ -122,7 +122,7 @@ export function SearchableSelect({
           !value && "text-muted-foreground",
           value && "text-foreground dark:text-muted-foreground",
           "disabled:cursor-not-allowed disabled:opacity-50",
-          `${className}`
+          className
         )}
       >
         <span className="truncate">{value ? selectedLabel : placeholder}</span>
@@ -192,7 +192,7 @@ export function SearchableSelect({
 }
 
 // =============================================================================
-// SEARCHABLE SELECT GROUP (Label + Select + Error)
+// SEARCHABLE SELECT GROUP (SINGLE)
 // =============================================================================
 
 export function SearchableSelectGroup({

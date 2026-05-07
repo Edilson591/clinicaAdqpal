@@ -32,6 +32,10 @@ export class RegisterUser {
       cnpj: dto.cnpj ?? null,
     });
 
-    return toUserResponseDTO(user);
+    if (dto.specialtyIds !== undefined) {
+      await this.userRepository.updateSpecialties(user.id, dto.specialtyIds);
+    }
+
+    return toUserResponseDTO(user, dto.specialtyIds);
   }
 }

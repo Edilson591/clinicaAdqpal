@@ -1,9 +1,8 @@
 import api from "./api";
 import type { ApiResponse, PaginatedResponse } from "../types/api";
-
+import type { AxiosError } from "axios";
 
 type Status = "ACTIVE" | "INACTIVE" | "ON_LEAVE" | "TERMINATED";
-
 
 export interface EmployeeResponse {
   id: string;
@@ -49,22 +48,26 @@ export interface CreateEmployeeInput {
 }
 
 export const employeeService = {
-  create: async (data: CreateEmployeeInput): Promise<EmployeeResponse | null> => {
+  create: async (
+    data: CreateEmployeeInput,
+  ): Promise<EmployeeResponse | null> => {
     try {
       const res = await api.post<ApiResponse<EmployeeResponse>>(
         "/employees",
         data,
       );
-      console.log(res)
+      console.log(res);
       return res.data.data!;
     } catch (error) {
       console.error(error);
-      return null
+      return null;
     }
   },
 
   getAll: async (): Promise<EmployeeResponse[]> => {
-    const res = await api.get<PaginatedResponse<EmployeeResponse>>("/employees?limit=9999");
+    const res = await api.get<PaginatedResponse<EmployeeResponse>>(
+      "/employees?limit=9999",
+    );
     return res.data.data;
   },
 
@@ -74,11 +77,23 @@ export const employeeService = {
     search?: string,
     status?: string,
   ): Promise<PaginatedResponse<EmployeeResponse>> => {
-    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-    if (search) params.set("search", search);
-    if (status) params.set("status", status);
-    const res = await api.get<PaginatedResponse<EmployeeResponse>>(`/employees?${params}`);
-    return res.data;
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (search) params.set("search", search);
+      if (status) params.set("status", status);
+      const res = await api.get<PaginatedResponse<EmployeeResponse>>(
+        `/employees?${params}`,
+      );
+      return res.data;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      throw new Error(
+        axiosError.response?.data?.message || "Erro ao buscar dashboard",
+      );
+    }
   },
 
   getById: async (id: string): Promise<EmployeeResponse> => {

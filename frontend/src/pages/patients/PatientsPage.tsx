@@ -19,7 +19,8 @@ function PatientsContent() {
 
   return (
     // pen: Km2zu · bg #F8FAFC light · #0F172A dark · padding 32 · gap 24
-    <main className="flex-1 bg-[#F8FAFC] dark:bg-[#0F172A] overflow-y-auto transition-colors duration-200">
+    <main className="flex-1 relative dark:bg-[#0F172A] overflow-y-auto">
+      <div className="absolute inset-0 bg-[url('/bg-fundo.jpeg')] bg-no-repeat bg-cover bg-center opacity-10 z-[-1] dark:bg-none" />
       <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
         {/* Header — pen: 0XXGm */}
         <PatientsPageHeader

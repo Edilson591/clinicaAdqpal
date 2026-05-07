@@ -24,7 +24,6 @@ export class PrismaFinancialAccountRepository implements IFinancialAccountReposi
       where,
       orderBy: { name: "asc" },
     });
-    console.log(rows);
 
     if (!rows || rows.length === 0) {
       return []; 

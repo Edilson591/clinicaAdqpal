@@ -49,7 +49,7 @@ export function useRhPage() {
   // ── Queries ────────────────────────────────────────────────────────────────
   const { data: allEmployees = [] } = useEmployeeGetAll();
 
-  const { data: pageData, isLoading } = useEmployeePaginated(
+  const { data: pageData, isLoading,error } = useEmployeePaginated(
     page,
     LIMIT,
     search,
@@ -123,7 +123,7 @@ export function useRhPage() {
     page,
     setPage,
     totalPages,
-
+    error,
     total,
     totalAtivos,
     totalLicenca,

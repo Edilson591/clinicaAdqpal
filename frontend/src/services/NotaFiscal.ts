@@ -1,5 +1,11 @@
 import api from "./api";
-import type { NotaFiscalResponse, NotaFiscalStatus, PaginatedResponse, CreateNotaFiscalInput } from "../types/api";
+import type {
+  NotaFiscalResponse,
+  NotaFiscalStatus,
+  PaginatedResponse,
+  CreateNotaFiscalInput,
+} from "../types/api";
+import type { AxiosError } from "axios";
 
 export interface NotaFiscalFilters {
   search?: string;
@@ -12,17 +18,26 @@ export interface NotaFiscalFilters {
 }
 
 export const NotaFiscalService = {
-  async getAll(filters?: NotaFiscalFilters): Promise<PaginatedResponse<NotaFiscalResponse>> {
-    const params = new URLSearchParams();
-    if (filters?.search) params.set("search", filters.search);
-    if (filters?.status) params.set("status", filters.status);
-    if (filters?.patientId) params.set("patientId", filters.patientId);
-    if (filters?.dateStart) params.set("dateStart", filters.dateStart);
-    if (filters?.dateEnd) params.set("dateEnd", filters.dateEnd);
-    if (filters?.page) params.set("page", String(filters.page));
-    if (filters?.limit) params.set("limit", String(filters.limit));
-    const res = await api.get(`/fiscal/notas-fiscais?${params}`);
-    return res.data;
+  async getAll(
+    filters?: NotaFiscalFilters,
+  ): Promise<PaginatedResponse<NotaFiscalResponse>> {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.search) params.set("search", filters.search);
+      if (filters?.status) params.set("status", filters.status);
+      if (filters?.patientId) params.set("patientId", filters.patientId);
+      if (filters?.dateStart) params.set("dateStart", filters.dateStart);
+      if (filters?.dateEnd) params.set("dateEnd", filters.dateEnd);
+      if (filters?.page) params.set("page", String(filters.page));
+      if (filters?.limit) params.set("limit", String(filters.limit));
+      const res = await api.get(`/fiscal/notas-fiscais?${params}`);
+      return res.data;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      throw new Error(
+        axiosError.response?.data?.message || "Erro ao buscar dashboard",
+      );
+    }
   },
 
   async getById(id: string): Promise<NotaFiscalResponse> {
