@@ -1,12 +1,12 @@
 import "dotenv/config";
 import app from "./src/interfaces/http/app";
 import { startNotificationWorker } from "./src/infrastructure/queue/NotificationWorker";
-import { startNotaFiscalWorker } from "./src/infrastructure/queue/NotasFiscalWorker";
+// import { startNotaFiscalWorker } from "./src/infrastructure/queue/NotasFiscalWorker";
 
 const PORT = Number(process.env.PORT) || 3333;
 
 startNotificationWorker();
-startNotaFiscalWorker();
+// startNotaFiscalWorker();
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ADQPAL rodando em http://localhost:${PORT}`);

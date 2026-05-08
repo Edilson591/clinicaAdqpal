@@ -3,7 +3,7 @@ import { XMLNotaFiscalDTO } from "../dtos/XmlNotasFiscalDTos";
 
 export function toNotaFiscalXML(_data: XMLNotaFiscalDTO): string{
   
-  const xml = create({ version: "1.0", encoding: "UTF-8" })
+  const xml :any = create({ version: "1.0", encoding: "UTF-8" })
     .ele("EnviarLoteRpsEnvio", {
       xmlns: "http://www.abrasf.org.br/nfse.xsd",
       "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
