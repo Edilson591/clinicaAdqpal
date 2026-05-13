@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { Lock, ShieldCheck } from "lucide-react";
-
+import logo from "../../../public/logo-adqpal.png";
 import { Button } from "../../components/ui/Button";
 import { InputGroup } from "../../components/ui/Input";
 import LogoContainer from "../../components/ui/LogoContainer";
 import ErrorAlert from "../../components/ui/ErrorAlert";
 import LoadingSpinner from "../../components/ui/Spinner";
 import useResetPasswordForm from "../../hooks/useResetPasswordForm";
+import { ContentLogo } from "../../components/ui/ContentLogo";
 
 export function ResetPasswordPage() {
   const { register, errors, generalError, isLoading, token, onSubmit } =
@@ -27,7 +28,7 @@ export function ResetPasswordPage() {
             boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.25)",
           }}
         >
-          <LogoContainer />
+          <ContentLogo logo={logo} />
           <ShieldCheck className="size-16 mt-8" style={{ color: "#E53E3E" }} />
           <h1
             className="text-[28px] font-bold mt-6 text-center leading-tight"

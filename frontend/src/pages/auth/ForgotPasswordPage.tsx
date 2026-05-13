@@ -16,10 +16,11 @@ import { ArrowLeft, Mail, Send } from "lucide-react";
 
 import { Button } from "../../components/ui/Button";
 import { InputGroup } from "../../components/ui/Input";
-import LogoContainer from "../../components/ui/LogoContainer";
+import logo from "../../../public/logo-adqpal.png";
 import ErrorAlert from "../../components/ui/ErrorAlert";
 import LoadingSpinner from "../../components/ui/Spinner";
 import useForgotPasswordForm from "../../hooks/useForgotPasswordForm";
+import { ContentLogo } from "../../components/ui/ContentLogo";
 
 export function ForgotPasswordPage() {
   const { register, errors, generalError, isLoading, onSubmit } =
@@ -39,8 +40,9 @@ export function ForgotPasswordPage() {
           boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.25)",
         }}
       >
-        <LogoContainer />
+        {/* <LogoContainer /> */}
 
+        <ContentLogo logo={logo} />
         <h1
           className="text-[28px] font-bold mt-8 text-center leading-tight"
           style={{ color: "#1a365d" }}

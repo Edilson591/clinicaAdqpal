@@ -1,3 +1,4 @@
+import { DomainError } from "../../domain/errors/DomainError";
 import { IPasswordResetRepository } from "../../domain/repositories/IPasswordResetRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IMailService } from "../../domain/services/IMailService";
@@ -29,9 +30,9 @@ export class ForgotPassword {
       const FIVE_MINUTES = 1000 * 60 * 5;
 
       if (now - lastRequest < FIVE_MINUTES) {
-        return {
-          message: "Aguarde alguns minutos antes de solicitar novamente.",
-        };
+        throw new DomainError(
+          "Aguarde alguns minutos antes de solicitar novamente.",
+        );
       }
     }
     const token = crypto.randomUUID();

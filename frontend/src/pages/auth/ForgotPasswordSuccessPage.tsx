@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 
-import LogoContainer from "../../components/ui/LogoContainer";
+import logo from "../../../public/logo-adqpal.png";
+import { ContentLogo } from "../../components/ui/ContentLogo";
 
 export function ForgotPasswordSuccessPage() {
   return (
@@ -18,7 +19,7 @@ export function ForgotPasswordSuccessPage() {
           boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.25)",
         }}
       >
-        <LogoContainer />
+        <ContentLogo logo={logo} />
 
         <CheckCircle className="size-16 mt-8" style={{ color: "#38a169" }} />
 

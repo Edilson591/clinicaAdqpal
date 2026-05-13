@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 
-import LogoContainer from "../../components/ui/LogoContainer";
+import logo from "../../../public/logo-adqpal.png";
+import { ContentLogo } from "../../components/ui/ContentLogo";
 
 export function TokenExpiredPage() {
   return (
@@ -18,7 +19,7 @@ export function TokenExpiredPage() {
           boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.25)",
         }}
       >
-        <LogoContainer />
+        <ContentLogo logo={logo} />
 
         <AlertTriangle className="size-16 mt-8" style={{ color: "#E53E3E" }} />
 

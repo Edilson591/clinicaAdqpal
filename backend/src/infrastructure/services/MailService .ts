@@ -23,11 +23,11 @@ export class MailService implements IMailService {
     const html = resetPasswordTemplate({
       name: user.username ?? "Usuário",
       link: resetLink,
-      logoUrl: `https://lightgoldenrodyellow-mole-188248.hostingersite.com/logo-adqpal.png`,
+      logoUrl: `${process.env.FRONTEND_URL}/logo-adqpal.png`,
     });
 
     await this.transporter.sendMail({
-      from: `"Suporte" <${process.env.SMTP_USER}>`,
+      from: `"Suporte ADQPAL" <${process.env.SMTP_USER}>`,
       to: email,
       subject: "Redefinição de senha",
       html
