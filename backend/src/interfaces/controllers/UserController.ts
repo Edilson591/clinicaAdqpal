@@ -1,6 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
-import { parsePagination, toPaginatedResult } from "../../domain/shared/pagination";
-import type { RegisterUserDTO, LoginUserDTO, UpdateUserDTO } from "../../application/dtos/UserDTOs";
+import {
+  parsePagination,
+  toPaginatedResult,
+} from "../../domain/shared/pagination";
+import type {
+  RegisterUserDTO,
+  LoginUserDTO,
+  UpdateUserDTO,
+} from "../../application/dtos/UserDTOs";
 import { RegisterUser } from "../../application/use-cases/RegisterUser";
 import { LoginUser } from "../../application/use-cases/LoginUser";
 import { GetUser } from "../../application/use-cases/GetUser";
@@ -17,11 +24,21 @@ const hashService = new BcryptHashService();
 const tokenService = new JwtTokenService();
 
 export class UserController {
-  async register(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async register(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const dto = req.body as RegisterUserDTO;
-      const user = await new RegisterUser(userRepository, hashService).execute(dto);
-      res.status(201).json({ success: true, message: "Usuário criado com sucesso.", data: user });
+      const user = await new RegisterUser(userRepository, hashService).execute(
+        dto,
+      );
+      res.status(201).json({
+        success: true,
+        message: "Usuário criado com sucesso.",
+        data: user,
+      });
     } catch (err) {
       next(err);
     }
@@ -30,7 +47,11 @@ export class UserController {
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const dto = req.body as LoginUserDTO;
-      const result = await new LoginUser(userRepository, hashService, tokenService).execute(dto);
+      const result = await new LoginUser(
+        userRepository,
+        hashService,
+        tokenService,
+      ).execute(dto);
 
       // Token em cookie httpOnly — JavaScript do cliente não consegue ler
       res.cookie("adqpal_token", result.token, {
@@ -42,7 +63,11 @@ export class UserController {
         path: "/",
       });
 
-      res.status(200).json({ success: true, message: "Login realizado com sucesso.", data: { token: result.token, user: result.user } });
+      res.status(200).json({
+        success: true,
+        message: "Login realizado com sucesso.",
+        data: { token: result.token, user: result.user },
+      });
     } catch (err) {
       next(err);
     }
@@ -70,7 +95,9 @@ export class UserController {
       sameSite: "none",
       path: "/",
     });
-    res.status(200).json({ success: true, message: "Logout realizado com sucesso." });
+    res
+      .status(200)
+      .json({ success: true, message: "Logout realizado com sucesso." });
   }
 
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -84,16 +111,25 @@ export class UserController {
         userRepository.findAll(pagination, filters),
         userRepository.count(filters),
       ]);
-      const sanitized = users.map(u => ({ ...u, passwordHash: undefined }));
-      res.status(200).json({ success: true, ...toPaginatedResult(sanitized, total, pagination) });
+      const sanitized = users.map((u) => ({ ...u, passwordHash: undefined }));
+      res.status(200).json({
+        success: true,
+        ...toPaginatedResult(sanitized, total, pagination),
+      });
     } catch (err) {
       next(err);
     }
   }
 
-  async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getById(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
-      const user = await new GetUser(userRepository).execute(req.params.id as string);
+      const user = await new GetUser(userRepository).execute(
+        req.params.id as string,
+      );
       res.status(200).json({ success: true, data: user });
     } catch (err) {
       next(err);
@@ -103,8 +139,15 @@ export class UserController {
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const dto = req.body as UpdateUserDTO;
-      const user = await new UpdateUser(userRepository, hashService).execute(req.params.id as string, dto);
-      res.status(200).json({ success: true, message: "Usuário atualizado com sucesso.", data: user });
+      const user = await new UpdateUser(userRepository, hashService).execute(
+        req.params.id as string,
+        dto,
+      );
+      res.status(200).json({
+        success: true,
+        message: "Usuário atualizado com sucesso.",
+        data: user,
+      });
     } catch (err) {
       next(err);
     }
@@ -113,9 +156,27 @@ export class UserController {
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await new DeleteUser(userRepository).execute(req.params.id as string);
-      res.status(200).json({ success: true, message: "Usuário deletado com sucesso." });
+      res
+        .status(200)
+        .json({ success: true, message: "Usuário deletado com sucesso." });
     } catch (err) {
       next(err);
     }
+  }
+
+  async getEmailUser(
+    req: Request,
+    res: Response,
+  ): Promise<void> {
+    try {
+      const { email } = req.body as { email?: string };
+
+      if (!email) {
+        res.status(400).json({ message: "Email is required" });
+      }
+
+
+      
+    } catch (error) {}
   }
 }

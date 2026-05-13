@@ -11,6 +11,14 @@ import type {
 import type { AxiosError } from "axios";
 
 export const userService = {
+  forgotPassword: async (email: string): Promise<ApiResponse> => {
+    const res = await api.post<ApiResponse>("/password/forgot", { email });
+    return res.data;
+  },
+  resetPassword: async (token: string, password: string): Promise<ApiResponse> => {
+    const res = await api.post<ApiResponse>("/password/reset", { token, password });
+    return res.data;
+  },
   register: async (data: RegisterUserInput): Promise<UserResponse> => {
     const res = await api.post<ApiResponse<UserResponse>>(
       "/users/register",
