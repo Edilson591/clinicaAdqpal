@@ -58,7 +58,7 @@ export class CachedAppointmentRepository implements IAppointmentRepository {
   ): Promise<T | null> {
     try {
       const raw = await this.redis.get(cacheKey);
-      if (raw !== null) return JSON.parse(raw) as T;
+      if (raw !== null) return JSON.parse(raw, this.dateReviver) as T;
     } catch {
       // Redis indisponível — continua sem cache
     }
@@ -73,6 +73,14 @@ export class CachedAppointmentRepository implements IAppointmentRepository {
       }
     }
 
+    return value;
+  }
+
+  private dateReviver(_key: string, value: unknown): unknown {
+    const isoLike =
+      typeof value === "string" &&
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value);
+    if (isoLike) return new Date(value);
     return value;
   }
 

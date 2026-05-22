@@ -32,6 +32,7 @@ function deleteUserCookie(): void {
 interface AuthState {
   user: UserResponse | null;
   token: string | null;
+  tempToken: string | null;
 }
 
 function loadInitialState(): AuthState {
@@ -39,9 +40,10 @@ function loadInitialState(): AuthState {
     const raw = getCookie(USER_COOKIE);
     const user = raw ? (JSON.parse(raw) as UserResponse) : null;
     const token = localStorage.getItem("adqpal_token");
-    return { user, token };
+    const tempToken = sessionStorage.getItem("adqpal_temp_token");
+    return { user, token, tempToken };
   } catch {
-    return { user: null, token: null };
+    return { user: null, token: null, tempToken: null };
   }
 }
 
@@ -61,15 +63,28 @@ const authSlice = createSlice({
       setUserCookie(action.payload.user);
       localStorage.setItem("adqpal_token", action.payload.token);
     },
+    setTempToken(state, action: PayloadAction<string>) {
+      state.tempToken = action.payload;
+      state.token = null;
+      state.user = null;
+      sessionStorage.setItem("adqpal_temp_token", action.payload);
+      deleteUserCookie();
+      localStorage.removeItem("adqpal_token");
+    },
+    clearTempToken(state) {
+      state.tempToken = null;
+      sessionStorage.removeItem("adqpal_temp_token");
+    },
     logout(state) {
       state.user = null;
       state.token = null;
+      state.tempToken = null;
       deleteUserCookie();
       localStorage.removeItem("adqpal_token");
-      // O cookie httpOnly adqpal_token é removido pela chamada POST /users/logout
+      sessionStorage.removeItem("adqpal_temp_token");
     },
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, setTempToken, clearTempToken, logout } = authSlice.actions;
 export default authSlice.reducer;

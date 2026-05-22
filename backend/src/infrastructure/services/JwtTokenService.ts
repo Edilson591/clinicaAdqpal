@@ -1,6 +1,10 @@
 import jwt from "jsonwebtoken";
 import { randomUUID } from "crypto";
-import type { ITokenService, TokenPayload } from "../../domain/services/ITokenService";
+import type {
+  ITokenService,
+  TokenOptions,
+  TokenPayload,
+} from "../../domain/services/ITokenService";
 import { UnauthorizedError } from "../../domain/errors/DomainError";
 
 export class JwtTokenService implements ITokenService {
@@ -9,14 +13,20 @@ export class JwtTokenService implements ITokenService {
 
   constructor() {
     const secret = process.env.JWT_SECRET;
-    if (!secret) throw new Error("JWT_SECRET não definido nas variáveis de ambiente.");
+    if (!secret)
+      throw new Error("JWT_SECRET não definido nas variáveis de ambiente.");
     this.secret = secret;
     this.expiresIn = process.env.JWT_EXPIRES_IN ?? "7d";
   }
 
-  sign(payload: Omit<TokenPayload, "jti" | "exp" | "iat">): string {
+  sign(
+    payload: Omit<TokenPayload, "jti" | "exp" | "iat">,
+    options?: TokenOptions,
+  ): string {
     return jwt.sign({ ...payload, jti: randomUUID() }, this.secret, {
-      expiresIn: this.expiresIn as jwt.SignOptions["expiresIn"],
+      // Se options?.expiresIn existir, ele sobrescreve o padrão da classe
+      expiresIn: (options?.expiresIn ??
+        this.expiresIn) as jwt.SignOptions["expiresIn"],
     });
   }
 

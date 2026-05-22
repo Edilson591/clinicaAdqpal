@@ -10,7 +10,7 @@ import { ResetPassword } from "../../application/use-cases/ResetPassword";
 
 const prismaUserRepo = new PrismaUserRepository(prisma);
 const prismaPasswordResetRepo = new PrismaPasswordResetRepository(prisma);
-const mailService = new MailService();
+const mailService = new MailService() as any;
 const hashService = new BcryptHashService();
 export class ForgotPasswordController {
   async forgot(req: Request, res: Response, next: NextFunction): Promise<void> {

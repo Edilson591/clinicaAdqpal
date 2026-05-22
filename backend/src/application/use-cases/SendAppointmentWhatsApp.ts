@@ -66,7 +66,7 @@ export class SendAppointmentWhatsApp {
 
     // 4. Send via WhatsApp
     try {
-      await this.notificationService.sendTextMessage({ to: telefone, body: message });
+      await this.notificationService.sendTextMessage({ number: telefone, text: message });
     } catch (err: unknown) {
       const detail = err instanceof Error ? err.message : String(err);
       throw new DomainError(`Falha ao enviar mensagem WhatsApp: ${detail}`, 502);

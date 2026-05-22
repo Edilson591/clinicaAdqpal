@@ -9,7 +9,8 @@ export interface NotaFiscalJobData {
 
 // reaproveita o mesmo padrão
 function createBullMQRedis(): Redis {
-  return new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", {
+  const redisUrl = process.env.REDIS_URL!;
+  return new Redis(redisUrl, {
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
   });

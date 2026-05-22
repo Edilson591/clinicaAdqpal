@@ -4,7 +4,9 @@ let client: Redis | null = null;
 
 export function getRedisClient(): Redis {
   if (!client) {
-    client = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", {
+    const redisUrl = process.env.REDIS_URL!;
+
+    client = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
       enableReadyCheck: true,
       lazyConnect: true,
@@ -18,5 +20,6 @@ export function getRedisClient(): Redis {
       console.info("[Redis] conectado");
     });
   }
+
   return client;
 }

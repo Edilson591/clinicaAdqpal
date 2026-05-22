@@ -1,3 +1,3 @@
 export interface INotificationService {
-  sendTextMessage(data: { to: string; body: string }): Promise<void>;
+  sendTextMessage(data: { number: string; text: string }): Promise<void>;
 }

@@ -8,8 +8,8 @@ import { INotificationService } from "../../domain/services/INotificationService
 // =============================================================================
 
 export interface WhatsAppMessage {
-  to: string; // international format without '+': "5511999999999"
-  body: string; // text message content
+  number: string; // international format without '+': "5511999999999"
+  text: string; // text message content
 }
 
 export class WhatsAppService implements INotificationService {
@@ -17,18 +17,18 @@ export class WhatsAppService implements INotificationService {
   private readonly token: string;
 
   constructor() {
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-    const token = process.env.WHATSAPP_TOKEN;
-    const version = process.env.WHATSAPP_API_VERSION ?? "v17.0";
+    const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL;
+    const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY;
+    const INSTANCE = process.env.EVOLUTION_INSTANCE;
 
-    if (!phoneNumberId || !token) {
+    if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY || !INSTANCE) {
       throw new Error(
-        "Variáveis de ambiente WHATSAPP_PHONE_NUMBER_ID e WHATSAPP_TOKEN são obrigatórias",
+        "Variáveis EVOLUTION_API_URL, EVOLUTION_API_KEY e EVOLUTION_INSTANCE são obrigatórias",
       );
     }
 
-    this.apiUrl = `https://graph.facebook.com/${version}/${phoneNumberId}/messages`;
-    this.token = token;
+    this.apiUrl = `${EVOLUTION_API_URL}/message/sendText/${encodeURIComponent(INSTANCE)}`;
+    this.token = EVOLUTION_API_KEY;
   }
 
   /**
@@ -46,33 +46,48 @@ export class WhatsAppService implements INotificationService {
   }
 
   async sendTextMessage(message: WhatsAppMessage): Promise<void> {
-    const normalizedPhone = WhatsAppService.normalizePhone(message.to);
+    const normalizedPhone = WhatsAppService.normalizePhone(message.number);
 
     try {
       await axios.post(
         this.apiUrl,
         {
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to: normalizedPhone,
-          type: "text",
-          text: { preview_url: false, body: message.body },
+          number: normalizedPhone,
+          text: message.text,
+          options: {
+            delay: 1200,
+            presence: "composing",
+          },
         },
         {
           headers: {
-            Authorization: `Bearer ${this.token}`,
+            apikey: this.token,
             "Content-Type": "application/json",
           },
-          timeout: 10_000,
+          timeout: 15_000,
         },
       );
     } catch (err) {
-      const axiosErr = err as AxiosError<{ error?: { message?: string } }>;
-      const apiMessage =
-        axiosErr.response?.data?.error?.message ?? axiosErr.message;
-      console.error(
-        `[WhatsApp] falha ao enviar para ${normalizedPhone}: ${apiMessage}`,
-      );
+      const axiosErr = err as AxiosError;
+      let apiMessage = axiosErr.message;
+
+      if (axiosErr.response) {
+        const data =
+          typeof axiosErr.response.data === "string"
+            ? axiosErr.response.data
+            : JSON.stringify(axiosErr.response.data);
+        apiMessage = `HTTP ${axiosErr.response.status}: ${data}`;
+        console.error(
+          `[WhatsApp] falha ao enviar para ${normalizedPhone}:
+  status: ${axiosErr.response.status}
+  data: ${data}`,
+        );
+      } else {
+        console.error(
+          `[WhatsApp] falha ao enviar para ${normalizedPhone}: ${apiMessage}`,
+        );
+      }
+
       throw new DomainError(
         `Falha ao enviar mensagem WhatsApp: ${apiMessage}`,
         502,

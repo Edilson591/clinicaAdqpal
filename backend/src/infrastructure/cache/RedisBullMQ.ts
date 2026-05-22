@@ -4,7 +4,8 @@ let bullClient: Redis | null = null;
 
 export function getBullMQRedis(): Redis {
   if (!bullClient) {
-    bullClient = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", {
+    const redisUrl = process.env.REDIS_URL!;
+    bullClient = new Redis(redisUrl, {
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
     });

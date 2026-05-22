@@ -3,7 +3,7 @@ import { Lock, ShieldCheck } from "lucide-react";
 import logo from "../../../public/logo-adqpal.png";
 import { Button } from "../../components/ui/Button";
 import { InputGroup } from "../../components/ui/Input";
-import LogoContainer from "../../components/ui/LogoContainer";
+// import LogoContainer from "../../components/ui/LogoContainer";
 import ErrorAlert from "../../components/ui/ErrorAlert";
 import LoadingSpinner from "../../components/ui/Spinner";
 import useResetPasswordForm from "../../hooks/useResetPasswordForm";
@@ -76,8 +76,9 @@ export function ResetPasswordPage() {
           boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.25)",
         }}
       >
-        <LogoContainer />
+        {/* <LogoContainer /> */}
 
+        <ContentLogo logo={logo} />
         <h1
           className="text-[28px] font-bold mt-8 text-center leading-tight"
           style={{ color: "#1a365d" }}

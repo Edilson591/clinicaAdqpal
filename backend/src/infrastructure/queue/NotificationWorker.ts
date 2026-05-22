@@ -102,8 +102,8 @@ export function startNotificationWorker(): Worker<NotificationJobData> {
       if (channels.includes("whatsapp")) {
         try {
           await new WhatsAppService().sendTextMessage({
-            to: telefone,
-            body: richMessage,
+            number: telefone,
+            text: richMessage,
           });
           console.info(`[Worker] WhatsApp enviado — job ${job.id}`);
         } catch (err) {

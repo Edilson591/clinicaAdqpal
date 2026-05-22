@@ -12,6 +12,7 @@ declare global {
       userRoleId: number;
       userJti: string;
       userExp: number;
+      isPreAuth?: boolean;
     }
   }
 }
@@ -82,6 +83,43 @@ export async function authMiddlewareSSE(
     req.userRoleId = payload.roleId;
     req.userJti = payload.jti;
     req.userExp = payload.exp ?? 0;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+
+export async function preAuthMiddleware(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> {
+  // Para o pré-auth, você pode receber por header ou por um cookie específico (ex: adqpal_pre_auth)
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+
+  if (!token) {
+    return next(new UnauthorizedError("Token de pré-autenticação não fornecido."));
+  }
+
+  try {
+    // IMPORTANTE: Se o seu tokenService tiver assinaturas ou secrets diferentes para cada token,
+    // passe a chave/configuração correta aqui. Ex: tokenService.verifyPreAuth(token)
+    const payload = tokenService.verify(token); 
+
+    // Garanta que um espertinho não tente usar um token definitivo aqui
+    if (payload.isDefinitive) { 
+      return next(new UnauthorizedError("Ação inválida para este tipo de token."));
+    }
+
+    req.userId = payload.sub;
+    req.userEmail = payload.email;
+    req.userRoleId = payload.roleId;
+    req.userJti = payload.jti;
+    req.userExp = payload.exp ?? 0;
+    req.isPreAuth = true;
+
     next();
   } catch (err) {
     next(err);

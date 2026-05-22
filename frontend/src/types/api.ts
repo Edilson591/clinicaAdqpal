@@ -37,6 +37,13 @@ export interface UserResponse {
 export interface LoginResponse {
   token: string;
   user: UserResponse;
+  requires2fa?: boolean;
+  tempToken?: string;
+}
+
+export interface Auth2faVerifyInput {
+  tempToken: string;
+  code: string;
 }
 
 export interface RegisterUserInput {

@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { UserController } from "../controllers/UserController";
-import { authMiddleware } from "../middlewares/authMiddleware";
+import { authMiddleware, preAuthMiddleware } from "../middlewares/authMiddleware";
 import { validateBody } from "../middlewares/validateBody";
 import { requireRole, requireOwnerOrRole, ROLES } from "../middlewares/requireRole";
-import { RegisterUserSchema, LoginUserSchema, UpdateUserSchema } from "../../application/dtos/UserDTOs";
+import { RegisterUserSchema, LoginUserSchema, Verify2FACodeSchema, UpdateUserSchema } from "../../application/dtos/UserDTOs";
 
 const router = Router();
 const controller = new UserController();
@@ -12,6 +12,8 @@ const controller = new UserController();
 
 router.post("/register", validateBody(RegisterUserSchema), controller.register.bind(controller));
 router.post("/login", validateBody(LoginUserSchema), controller.login.bind(controller));
+router.post("/verify-2fa", preAuthMiddleware, validateBody(Verify2FACodeSchema), controller.verify2fa.bind(controller));
+router.post("/verify-2fa/resend", preAuthMiddleware, controller.resend2FA.bind(controller));
 router.post("/logout", controller.logout.bind(controller));
 
 // ─── Privadas ─────────────────────────────────────────────────────────────────

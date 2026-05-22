@@ -2,6 +2,7 @@ import { IMailService } from "../../domain/services/IMailService";
 import nodemailer from "nodemailer";
 import resetPasswordTemplate from "../mail/templates/ResetPasswordTemplate";
 import { User } from "../../domain/entities/User";
+import auth2FATemplate from "../mail/templates/Auth2FaTemplate";
 
 export class MailService implements IMailService {
   private transporter;
@@ -17,7 +18,11 @@ export class MailService implements IMailService {
       },
     });
   }
-  async sendPasswordResetEmail(email: string, token: string, user: Pick<User, "username">): Promise<void> {
+  async sendPasswordResetEmail(
+    email: string,
+    token: string,
+    user: Pick<User, "username">,
+  ): Promise<void> {
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
     const html = resetPasswordTemplate({
@@ -30,7 +35,25 @@ export class MailService implements IMailService {
       from: `"Suporte ADQPAL" <${process.env.SMTP_USER}>`,
       to: email,
       subject: "Redefinição de senha",
-      html
+      html,
+    });
+  }
+  async send2FACode(
+    email: string,
+    code: string,
+    user: Pick<User, "username">,
+  ): Promise<void> {
+    const html = auth2FATemplate({
+      name: user.username ?? "Usuário",
+      code,
+      logoUrl: `${process.env.FRONTEND_URL}/logo-adqpal.png`,
+    });
+
+    await this.transporter.sendMail({
+      from: `"Suporte ADQPAL" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: `${code} é o seu código de verificação ADQPAL`, // Assunto dinâmico e direto ao ponto
+      html,
     });
   }
 }

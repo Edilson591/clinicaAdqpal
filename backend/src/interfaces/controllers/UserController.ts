@@ -13,15 +13,41 @@ import { LoginUser } from "../../application/use-cases/LoginUser";
 import { GetUser } from "../../application/use-cases/GetUser";
 import { UpdateUser } from "../../application/use-cases/UpdateUser";
 import { DeleteUser } from "../../application/use-cases/DeleteUser";
+import { UnauthorizedError } from "../../domain/errors/DomainError";
+import { toUserResponseDTO } from "../../application/mappers/userMapper";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaUserRepository } from "../../infrastructure/repositories/PrismaUserRepository";
 import { BcryptHashService } from "../../infrastructure/services/BcryptHashService";
 import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
 import { tokenBlacklist } from "../../infrastructure/cache/TokenBlacklist";
+import { MailService } from "../../infrastructure/services/MailService ";
+import { CachedCode2FA } from "../../infrastructure/cache/CachedCode2FA";
+import { getRedisClient } from "../../infrastructure/cache/RedisClient";
+import type { IAuth2FA } from "../../domain/repositories/IAuth2FA";
+import { PreLoginUser } from "../../application/use-cases/PreLoginUser";
+import { PreLoginResend } from "../../application/use-cases/PreLoginResend";
 
 const userRepository = new PrismaUserRepository(prisma);
 const hashService = new BcryptHashService();
 const tokenService = new JwtTokenService();
+const redis = getRedisClient();
+const auth2FAService = new CachedCode2FA(
+  new (class implements IAuth2FA {
+    private store = new Map<string, string>();
+    async saveCode(userId: string, code: string): Promise<void> {
+      this.store.set(userId, code);
+      setTimeout(() => this.store.delete(userId), 15 * 60 * 1000);
+    }
+    async getCode(userId: string): Promise<string | null> {
+      return this.store.get(userId) ?? null;
+    }
+    async invalidateCode(userId: string): Promise<void> {
+      this.store.delete(userId);
+    }
+  })(),
+  redis,
+);
+const emailService = new MailService();
 
 export class UserController {
   async register(
@@ -47,27 +73,92 @@ export class UserController {
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const dto = req.body as LoginUserDTO;
-      const result = await new LoginUser(
+      const result = await new PreLoginUser(
         userRepository,
         hashService,
         tokenService,
+        auth2FAService,
+        emailService,
       ).execute(dto);
 
-      // Token em cookie httpOnly — JavaScript do cliente não consegue ler
-      res.cookie("adqpal_token", result.token, {
+      res.status(200).json({
+        success: true,
+        message: "Código de verificação enviado para o e-mail.",
+        data: {
+          requires2fa: true,
+          tempToken: result.preAuthToken,
+          user: result.user,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async verify2fa(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const { code } = req.body as { code: string };
+
+      const authResult = await new LoginUser(
+        auth2FAService,
+        tokenService,
+      ).execute({
+        userId: req.userId,
+        code,
+        email: req.userEmail,
+        roleId: req.userRoleId,
+      });
+
+      const user = await userRepository.findById(req.userId);
+      if (!user) {
+        throw new UnauthorizedError("Usuário não encontrado.");
+      }
+
+      res.cookie("adqpal_token", authResult.token, {
         httpOnly: true,
-        // secure: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "none",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+        maxAge: 7 * 24 * 60 * 60 * 1000,
         path: "/",
       });
 
       res.status(200).json({
         success: true,
-        message: "Login realizado com sucesso.",
-        data: { token: result.token, user: result.user },
+        message: "Autenticação concluída com sucesso.",
+        data: {
+          token: authResult.token,
+          user: toUserResponseDTO(user),
+        },
       });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async resend2FA(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      // 1. Pegamos os dados do usuário que o seu middleware de pré-auth já validou pelo cookie
+      const userId = req.userId;
+      const email = req.userEmail;
+
+      const authResult = await new PreLoginResend(
+        auth2FAService,
+        userRepository,
+        emailService,
+      ).execute({
+        email,
+        userId,
+      });
+      // 6. Respondemos ao front que o código foi reenviado com sucesso
+      res.status(200).json(authResult);
     } catch (err) {
       next(err);
     }
@@ -164,19 +255,13 @@ export class UserController {
     }
   }
 
-  async getEmailUser(
-    req: Request,
-    res: Response,
-  ): Promise<void> {
+  async getEmailUser(req: Request, res: Response): Promise<void> {
     try {
       const { email } = req.body as { email?: string };
 
       if (!email) {
         res.status(400).json({ message: "Email is required" });
       }
-
-
-      
     } catch (error) {}
   }
 }
