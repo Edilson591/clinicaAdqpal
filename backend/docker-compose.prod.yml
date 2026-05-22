@@ -6,7 +6,7 @@ services:
     volumes:
       - redis_data:/data
     command: >
-      redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy noeviction
+      redis-server --user default on >${REDIS_PASSWORD} ~* +@all --maxmemory 256mb --maxmemory-policy noeviction
     healthcheck:
       test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
       interval: 10s
@@ -35,10 +35,14 @@ services:
       - PLUGGY_CLIENT_SECRET=${PLUGGY_CLIENT_SECRET}
       - PLUGGY_WEBHOOK_URL=${PLUGGY_WEBHOOK_URL}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - NFE_URL=${NFE_URL}
       - NFE_LOGIN=${NFE_LOGIN} 
       - NFE_SENHA=${NFE_SENHA}
       - NFSE_MODE=${NFSE_MODE}
+      - EVOLUTION_API_URL=${EVOLUTION_API_URL}
+      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY}
+      - EVOLUTION_INSTANCE=${EVOLUTION_INSTANCE}
     ports:
       - "${PORT:-3333}:${PORT:-3333}"
     depends_on:
@@ -50,6 +54,16 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+    networks:
+      - evolution-net
 
 volumes:
   redis_data:
+
+
+networks:
+  evolution-net:
+    name: evolution-net
+    driver: bridge
+  dokploy-network:
+    external: true
