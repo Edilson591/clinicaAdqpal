@@ -17,10 +17,13 @@ import { UpdateTransaction } from "../../application/use-cases/UpdateTransaction
 import { DeleteTransaction } from "../../application/use-cases/DeleteTransaction";
 import { NotFoundError } from "../../domain/errors/DomainError";
 import { ListTransactionsQuerySchema } from "../../application/dtos/FinancialDTOs";
+import { PrismaAuditLogRepository } from "../../infrastructure/repositories/PrismaAuditLogRepository";
+import { AuditService } from "../../application/services/AuditService";
 
 const accountRepo = new PrismaFinancialAccountRepository();
 const categoryRepo = new PrismaFinancialCategoryRepository();
 const transactionRepo = new PrismaTransactionRepository();
+const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
 
 // ─── Accounts ─────────────────────────────────────────────────────────────────
 
@@ -28,6 +31,7 @@ export class FinancialAccountController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await new CreateFinancialAccount(accountRepo).execute(req.body);
+      auditService.create(req, "FINANCIAL_ACCOUNT", result.id);
       res.status(201).json({ success: true, data: result });
     } catch (err) {
       next(err);
@@ -50,6 +54,7 @@ export class FinancialAccountController {
       const account = await accountRepo.findById(req.params.id as string);
       if (!account) throw new NotFoundError("Conta financeira não encontrada");
       const balance = await accountRepo.getBalance(account.id);
+      auditService.view(req, "FINANCIAL_ACCOUNT", account.id);
       res.json({ success: true, data: { ...account, currentBalance: balance } });
     } catch (err) {
       next(err);
@@ -59,6 +64,7 @@ export class FinancialAccountController {
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await new UpdateFinancialAccount(accountRepo).execute(req.params.id as string, req.body);
+      auditService.update(req, "FINANCIAL_ACCOUNT", result.id);
       res.json({ success: true, data: result });
     } catch (err) {
       next(err);
@@ -68,6 +74,7 @@ export class FinancialAccountController {
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await new DeleteFinancialAccount(accountRepo).execute(req.params.id as string);
+      auditService.delete(req, "FINANCIAL_ACCOUNT", req.params.id);
       res.status(204).send();
     } catch (err) {
       next(err);
@@ -81,6 +88,7 @@ export class FinancialCategoryController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await new CreateFinancialCategory(categoryRepo).execute(req.body);
+      auditService.create(req, "FINANCIAL_CATEGORY", result.id);
       res.status(201).json({ success: true, data: result });
     } catch (err) {
       next(err);
@@ -102,6 +110,7 @@ export class FinancialCategoryController {
     try {
       const category = await categoryRepo.findById(req.params.id as string);
       if (!category) throw new NotFoundError("Categoria não encontrada");
+      auditService.view(req, "FINANCIAL_CATEGORY", category.id);
       res.json({ success: true, data: category });
     } catch (err) {
       next(err);
@@ -111,6 +120,7 @@ export class FinancialCategoryController {
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await new UpdateFinancialCategory(categoryRepo).execute(req.params.id as string, req.body);
+      auditService.update(req, "FINANCIAL_CATEGORY", result.id);
       res.json({ success: true, data: result });
     } catch (err) {
       next(err);
@@ -120,6 +130,7 @@ export class FinancialCategoryController {
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await new DeleteFinancialCategory(categoryRepo).execute(req.params.id as string);
+      auditService.delete(req, "FINANCIAL_CATEGORY", req.params.id);
       res.status(204).send();
     } catch (err) {
       next(err);
@@ -133,6 +144,7 @@ export class TransactionController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await new CreateTransaction(transactionRepo).execute(req.body);
+      auditService.create(req, "TRANSACTION", result.id);
       res.status(201).json({ success: true, data: result });
     } catch (err) {
       next(err);
@@ -153,6 +165,7 @@ export class TransactionController {
     try {
       const tx = await transactionRepo.findById(req.params.id as string);
       if (!tx || tx.deletedAt) throw new NotFoundError("Transação não encontrada");
+      auditService.view(req, "TRANSACTION", tx.id);
       res.json({ success: true, data: tx });
     } catch (err) {
       next(err);
@@ -162,6 +175,7 @@ export class TransactionController {
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await new UpdateTransaction(transactionRepo).execute(req.params.id as string, req.body);
+      auditService.update(req, "TRANSACTION", result.id);
       res.json({ success: true, data: result });
     } catch (err) {
       next(err);
@@ -171,6 +185,7 @@ export class TransactionController {
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await new DeleteTransaction(transactionRepo).execute(req.params.id as string);
+      auditService.delete(req, "TRANSACTION", req.params.id);
       res.status(204).send();
     } catch (err) {
       next(err);

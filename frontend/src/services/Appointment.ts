@@ -5,6 +5,8 @@ import type {
   AppointmentResponse,
   CreateAppointmentInput,
   UpdateAppointmentInput,
+  SendWhatsAppInput,
+  WhatsAppResponse,
 } from "../types/api";
 
 export const appointmentService = {
@@ -65,7 +67,11 @@ export const appointmentService = {
     userId?: string,
     order: "asc" | "desc" = "asc",
   ): Promise<PaginatedResponse<AppointmentResponse>> => {
-    const params = new URLSearchParams({ page: String(page), limit: String(limit), order });
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+      order,
+    });
     if (search) params.set("search", search);
     if (date) params.set("date", date);
     if (userId) params.set("userId", userId);
@@ -109,5 +115,17 @@ export const appointmentService = {
       `/appointments?page=${page}&limit=${limit}`,
     );
     return res.data;
+  },
+
+  sendWhatsApp: async (
+    id: string,
+    data: SendWhatsAppInput, // Substitua pelo seu tipo/interface correspondente ao SendWhatsAppSchema
+  ): Promise<WhatsAppResponse> => {
+    // Substitua pelo tipo de retorno esperado da sua API
+    const res = await api.post<ApiResponse<WhatsAppResponse>>(
+      `/appointments/${id}/whatsapp`,
+      data,
+    );
+    return res.data.data!;
   },
 };

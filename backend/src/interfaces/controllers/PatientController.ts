@@ -11,10 +11,15 @@ import { DeletePatient } from "../../application/use-cases/DeletePatient";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaPatientRepository } from "../../infrastructure/repositories/PrismaPatientRepository";
 import { PrismaMedicalRecordRepository } from "../../infrastructure/repositories/PrismaMedicalRecordRepository";
+import { PrismaAuditLogRepository } from "../../infrastructure/repositories/PrismaAuditLogRepository";
+import { AuditService } from "../../application/services/AuditService";
+import { EncryptionService } from "../../infrastructure/services/EncryptionService";
 import { CreateMedicalRecord } from "../../application/use-cases/CreateMedicalRecord";
 
 const patientRepository = new PrismaPatientRepository(prisma);
 const medicalRecordRepository = new PrismaMedicalRecordRepository(prisma);
+const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
+const crypto = new EncryptionService();
 
 export class PatientController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -23,6 +28,8 @@ export class PatientController {
       const userId = (req as Request & { userId: string }).userId;
 
       const patient = await new CreatePatient(patientRepository).execute(dto);
+
+      auditService.create(req, "PATIENT", patient.id, { name: patient.name });
 
       // Monta descrição com os dados informados no cadastro
       const lines: string[] = [`Paciente cadastrado no sistema.`];
@@ -47,7 +54,7 @@ export class PatientController {
           doctorId: userId,
           type: "OBSERVACAO",
           title: "Cadastro inicial do paciente",
-          description: lines.join("\n"),
+          description: crypto.encrypt(lines.join("\n")) ?? "",
         },
       });
 
@@ -103,6 +110,16 @@ export class PatientController {
 
       const data = rows.map(({ medicalRecords, ...p }) => ({
         ...p,
+        email: crypto.decrypt(p.email),
+        phone: crypto.decrypt(p.phone),
+        cpf: crypto.decrypt(p.cpf),
+        agreement: crypto.decrypt(p.agreement),
+        street: crypto.decrypt(p.street),
+        streetNumber: crypto.decrypt(p.streetNumber),
+        city: crypto.decrypt(p.city),
+        state: crypto.decrypt(p.state),
+        zipCode: crypto.decrypt(p.zipCode),
+        additionalInfo: crypto.decrypt(p.additionalInfo),
         dateOfBirth: p.dateOfBirth?.toISOString() ?? null,
         createdAt: p.createdAt.toISOString(),
         updatedAt: p.updatedAt.toISOString(),
@@ -133,6 +150,7 @@ export class PatientController {
       const patient = await new GetPatient(patientRepository).execute(
         req.params.id as string,
       );
+      auditService.view(req, "PATIENT", patient.id);
       res.status(200).json({ success: true, data: patient });
     } catch (err) {
       next(err);
@@ -142,10 +160,12 @@ export class PatientController {
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const dto = req.body as UpdatePatientDTO;
+      const oldPatient = await patientRepository.findById(req.params.id as string);
       const patient = await new UpdatePatient(patientRepository).execute(
         req.params.id as string,
         dto,
       );
+      auditService.update(req, "PATIENT", patient.id, oldPatient ?? undefined, patient);
       res.status(200).json({
         success: true,
         message: "Paciente atualizado com sucesso.",
@@ -158,9 +178,11 @@ export class PatientController {
 
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const oldPatient = await patientRepository.findById(req.params.id as string);
       await new DeletePatient(patientRepository).execute(
         req.params.id as string,
       );
+      auditService.delete(req, "PATIENT", req.params.id, oldPatient ?? undefined);
       res
         .status(200)
         .json({ success: true, message: "Paciente deletado com sucesso." });

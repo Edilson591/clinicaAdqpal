@@ -360,3 +360,14 @@ export interface CreateNotaFiscalInput {
   appointmentId?: string | null;
   transactionId?: string | null;
 }
+
+
+export interface SendWhatsAppInput {
+  telefone: string;
+  channels: ("whatsapp" | "sms")[];
+}
+
+export interface WhatsAppResponse {
+  jobId: string;
+  channels: ("whatsapp" | "sms")[];
+}

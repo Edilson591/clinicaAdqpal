@@ -46,6 +46,7 @@ services:
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
       - TWILIO_FROM_NUMBER=${TWILIO_FROM_NUMBER}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     ports:
       - "${PORT:-3333}:${PORT:-3333}"
     depends_on:

@@ -9,10 +9,13 @@ import { PrismaPatientHistoryRepository } from "../../infrastructure/repositorie
 import { PrismaUserRepository } from "../../infrastructure/repositories/PrismaUserRepository";
 import { PrismaPatientRepository } from "../../infrastructure/repositories/PrismaPatientRepository";
 import type { PatientHistoryType } from "../../domain/entities/PatientHistory";
+import { PrismaAuditLogRepository } from "../../infrastructure/repositories/PrismaAuditLogRepository";
+import { AuditService } from "../../application/services/AuditService";
 
 const historyRepository = new PrismaPatientHistoryRepository(prisma);
 const userRepository = new PrismaUserRepository(prisma);
 const patientRepository = new PrismaPatientRepository(prisma);
+const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
 
 export class PatientHistoryController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -33,6 +36,7 @@ export class PatientHistoryController {
         userRepository,
         patientRepository,
       ).execute(req.userId, req.params.patientId as string, parsed.data);
+      auditService.create(req, "PATIENT_HISTORY", history.id);
       res
         .status(201)
         .json({
@@ -71,6 +75,7 @@ export class PatientHistoryController {
         historyRepository,
         userRepository,
       ).execute(req.userId, req.params.id as string);
+      auditService.delete(req, "PATIENT_HISTORY", req.params.id);
       res
         .status(200)
         .json({ success: true, message: "Registro removido com sucesso." });

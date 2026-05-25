@@ -12,11 +12,20 @@ import type {
 import type { PaginationQuery } from "../../domain/shared/pagination";
 import { DomainError } from "../../domain/errors/DomainError";
 
-const VALID_STATUSES: AppointmentStatus[] = ["SCHEDULED", "COMPLETED", "CANCELLED"];
+const VALID_STATUSES: AppointmentStatus[] = [
+  "SCHEDULED",
+  "CONFIRMED",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELED",
+  "NO_SHOW",
+  "CANCELLED",
+];
 const VALID_TYPES: AppointmentType[] = ["IN_PERSON", "ONLINE", "HOME_CARE"];
 
 function toStatus(raw: string): AppointmentStatus {
-  if ((VALID_STATUSES as string[]).includes(raw)) return raw as AppointmentStatus;
+  if ((VALID_STATUSES as string[]).includes(raw))
+    return raw as AppointmentStatus;
   throw new DomainError(`Status de consulta inválido no banco: "${raw}"`, 500);
 }
 

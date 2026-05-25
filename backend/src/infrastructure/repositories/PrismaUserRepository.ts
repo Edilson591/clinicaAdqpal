@@ -7,6 +7,9 @@ import type {
 } from "../../domain/entities/User";
 import type { PaginationQuery } from "../../domain/shared/pagination";
 import { DomainError } from "../../domain/errors/DomainError";
+import { EncryptionService } from "../services/EncryptionService";
+
+const crypto = new EncryptionService();
 
 function toDomain(row: {
   id: string;
@@ -22,11 +25,11 @@ function toDomain(row: {
   return {
     id: row.id,
     username: row.username,
-    email: row.email,
+    email: crypto.decrypt(row.email) ?? "",
     passwordHash: row.passwordHash,
     roleId: row.roleId,
-    cpf: row.cpf,
-    cnpj: row.cnpj,
+    cpf: crypto.decrypt(row.cpf),
+    cnpj: crypto.decrypt(row.cnpj),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -54,17 +57,15 @@ export class PrismaUserRepository implements IUserRepository {
       const row = await this.prisma.user.findUnique({ where: { id } });
       return row ? toDomain(row) : null;
     } catch (err) {
-      // throw new DomainError(`Erro ao buscar usuário: ${String(err)}`, 500);
       throw new DomainError(`Erro ao buscar usuário`, 500);
     }
   }
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      const row = await this.prisma.user.findUnique({ where: { email } });
+      const row = await this.prisma.user.findUnique({ where: { email: crypto.encrypt(email) ?? "" } });
       return row ? toDomain(row) : null;
     } catch (err) {
-      // throw new DomainError(`Erro ao buscar usuário: ${String(err)}`, 500);
       throw new DomainError(`Erro ao buscar usuário`, 500);
     }
   }
@@ -75,7 +76,6 @@ export class PrismaUserRepository implements IUserRepository {
       return row ? toDomain(row) : null;
     } catch (err) {
       throw new DomainError(`Erro ao buscar usuário`, 500);
-      throw new DomainError(`Erro ao buscar usuário: ${String(err)}`, 500);
     }
   }
 
@@ -107,36 +107,14 @@ export class PrismaUserRepository implements IUserRepository {
 
   async create(data: CreateUserData): Promise<User> {
     try {
-      // await this.prisma.role.createMany({
-      //   data: [
-      //     { name: "ADMIN" },
-      //     { name: "USER" },
-      //     { name: "DOCTOR" },
-      //     { name: "NURSE" },
-      //     { name: "RECEPTIONIST" },
-      //     { name: "LAB_TECHNICIAN" },
-      //     { name: "ACCOUNTANT" },
-      //     { name: "PHARMACIST" },
-      //     { name: "IT_SUPPORT" },
-      //   ],
-      //   skipDuplicates: true,
-      // });
-
-      // const role = await this.prisma.role.findUnique({
-      //   where: { name: data.roleId === 1 ? "ADMIN" : "USER"}, // ex.: "USER"
-      // });
-
-      // if (!role) throw new Error("Role não existe");
-      // data.roleId = role.id;
-
       const row = await this.prisma.user.create({
         data: {
           username: data.username,
-          email: data.email,
+          email: crypto.encrypt(data.email) ?? "",
           passwordHash: data.passwordHash,
           roleId: data.roleId,
-          cpf: data.cpf ?? null,
-          cnpj: data.cnpj ?? null,
+          cpf: crypto.encrypt(data.cpf ?? null),
+          cnpj: crypto.encrypt(data.cnpj ?? null),
         },
       });
       return toDomain(row);
@@ -151,13 +129,13 @@ export class PrismaUserRepository implements IUserRepository {
         where: { id },
         data: {
           ...(data.username !== undefined && { username: data.username }),
-          ...(data.email !== undefined && { email: data.email }),
+          ...(data.email !== undefined && { email: crypto.encrypt(data.email) ?? "" }),
           ...(data.passwordHash !== undefined && {
             passwordHash: data.passwordHash,
           }),
           ...(data.roleId !== undefined && { roleId: data.roleId }),
-          ...(data.cpf !== undefined && { cpf: data.cpf }),
-          ...(data.cnpj !== undefined && { cnpj: data.cnpj }),
+          ...(data.cpf !== undefined && { cpf: crypto.encrypt(data.cpf) }),
+          ...(data.cnpj !== undefined && { cnpj: crypto.encrypt(data.cnpj) }),
         },
       });
       return toDomain(row);

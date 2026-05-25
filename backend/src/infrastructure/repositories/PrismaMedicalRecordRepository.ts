@@ -8,6 +8,9 @@ import type {
 } from "../../domain/entities/MedicalRecord";
 import type { PaginationQuery } from "../../domain/shared/pagination";
 import { DomainError } from "../../domain/errors/DomainError";
+import { EncryptionService } from "../services/EncryptionService";
+
+const crypto = new EncryptionService();
 
 function toDomain(row: {
   id: string;
@@ -29,9 +32,9 @@ function toDomain(row: {
     id: row.id,
     appointmentId: row.appointmentId,
     patientId: row.patientId,
-    diagnosis: row.diagnosis,
-    prescription: row.prescription,
-    notes: row.notes,
+    diagnosis: crypto.decrypt(row.diagnosis),
+    prescription: crypto.decrypt(row.prescription),
+    notes: crypto.decrypt(row.notes),
     patient: row.patient ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -146,7 +149,13 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
 
   async create(data: CreateMedicalRecordData): Promise<MedicalRecord> {
     try {
-      const createData: any = { ...data,appointmentId: data.appointmentId ?? null, };
+      const createData: any = {
+        ...data,
+        appointmentId: data.appointmentId ?? null,
+        diagnosis: crypto.encrypt(data.diagnosis ?? null),
+        prescription: crypto.encrypt(data.prescription ?? null),
+        notes: crypto.encrypt(data.notes ?? null),
+      };
 
       const row = await this.prisma.medicalRecord.create({
         data: createData,
@@ -167,9 +176,14 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
     data: UpdateMedicalRecordData,
   ): Promise<MedicalRecord> {
     try {
+      const updateData: any = { ...data };
+      if (data.diagnosis !== undefined) updateData.diagnosis = crypto.encrypt(data.diagnosis);
+      if (data.prescription !== undefined) updateData.prescription = crypto.encrypt(data.prescription);
+      if (data.notes !== undefined) updateData.notes = crypto.encrypt(data.notes);
+
       const row = await this.prisma.medicalRecord.update({
         where: { id },
-        data,
+        data: updateData,
       });
       return toDomain(row);
     } catch (err) {

@@ -40,6 +40,11 @@ export async function authMiddleware(
       return next(new UnauthorizedError("Token revogado. Faça login novamente."));
     }
 
+    if (!payload.isDefinitive) {
+      return next(new UnauthorizedError("Segunda etapa de autenticação pendente."));
+    }
+
+
     req.userId = payload.sub;
     req.userEmail = payload.email;
     req.userRoleId = payload.roleId;

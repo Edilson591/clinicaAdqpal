@@ -9,6 +9,9 @@ import type {
 } from "../../domain/entities/Employee";
 import type { PaginationQuery } from "../../domain/shared/pagination";
 import { DomainError } from "../../domain/errors/DomainError";
+import { EncryptionService } from "../services/EncryptionService";
+
+const crypto = new EncryptionService();
 
 function toDomain(row: {
   id: string;
@@ -35,9 +38,9 @@ function toDomain(row: {
   return {
     id: row.id,
     name: row.name,
-    cpf: row.cpf,
-    email: row.email,
-    phone: row.phone,
+    cpf: crypto.decrypt(row.cpf),
+    email: crypto.decrypt(row.email),
+    phone: crypto.decrypt(row.phone),
     position: row.position,
     department: row.department,
     hireDate: row.hireDate,
@@ -45,12 +48,12 @@ function toDomain(row: {
     status: row.status as EmployeeStatus,
     dateOfBirth: row.dateOfBirth,
     gender: row.gender,
-    street: row.street,
-    streetNumber: row.streetNumber,
-    city: row.city,
-    state: row.state,
-    zipCode: row.zipCode,
-    notes: row.notes,
+    street: crypto.decrypt(row.street),
+    streetNumber: crypto.decrypt(row.streetNumber),
+    city: crypto.decrypt(row.city),
+    state: crypto.decrypt(row.state),
+    zipCode: crypto.decrypt(row.zipCode),
+    notes: crypto.decrypt(row.notes),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -70,7 +73,7 @@ export class PrismaEmployeeRepository implements IEmployeeRepository {
 
   async findByCpf(cpf: string): Promise<Employee | null> {
     try {
-      const row = await this.prisma.employee.findUnique({ where: { cpf } });
+      const row = await this.prisma.employee.findUnique({ where: { cpf: crypto.encrypt(cpf) ?? "" } });
       return row ? toDomain(row) : null;
     } catch (err) {
       throw new DomainError(`Erro ao buscar funcionário: ${String(err)}`, 500);
@@ -79,7 +82,7 @@ export class PrismaEmployeeRepository implements IEmployeeRepository {
 
   async findByEmail(email: string): Promise<Employee | null> {
     try {
-      const row = await this.prisma.employee.findUnique({ where: { email } });
+      const row = await this.prisma.employee.findUnique({ where: { email: crypto.encrypt(email) ?? "" } });
       return row ? toDomain(row) : null;
     } catch (err) {
       throw new DomainError(`Erro ao buscar funcionário: ${String(err)}`, 500);
@@ -133,9 +136,9 @@ export class PrismaEmployeeRepository implements IEmployeeRepository {
       const row = await this.prisma.employee.create({
         data: {
           name: data.name,
-          cpf: data.cpf ?? null,
-          email: data.email ?? null,
-          phone: data.phone ?? null,
+          cpf: crypto.encrypt(data.cpf ?? null),
+          email: crypto.encrypt(data.email ?? null),
+          phone: crypto.encrypt(data.phone ?? null),
           position: data.position,
           department: data.department ?? null,
           hireDate: data.hireDate ? new Date(data.hireDate) : null,
@@ -143,12 +146,12 @@ export class PrismaEmployeeRepository implements IEmployeeRepository {
           status: data.status ?? "ACTIVE",
           dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
           gender: data.gender ?? null,
-          street: data.street ?? null,
-          streetNumber: data.streetNumber ?? null,
-          city: data.city ?? null,
-          state: data.state ?? null,
-          zipCode: data.zipCode ?? null,
-          notes: data.notes ?? null,
+          street: crypto.encrypt(data.street ?? null),
+          streetNumber: crypto.encrypt(data.streetNumber ?? null),
+          city: crypto.encrypt(data.city ?? null),
+          state: crypto.encrypt(data.state ?? null),
+          zipCode: crypto.encrypt(data.zipCode ?? null),
+          notes: crypto.encrypt(data.notes ?? null),
         },
       });
       return toDomain(row);
@@ -159,7 +162,21 @@ export class PrismaEmployeeRepository implements IEmployeeRepository {
 
   async update(id: string, data: UpdateEmployeeData): Promise<Employee> {
     try {
-      const row = await this.prisma.employee.update({ where: { id }, data });
+      const row = await this.prisma.employee.update({
+        where: { id },
+        data: {
+          ...data,
+          ...(data.cpf !== undefined && { cpf: crypto.encrypt(data.cpf) }),
+          ...(data.email !== undefined && { email: crypto.encrypt(data.email) }),
+          ...(data.phone !== undefined && { phone: crypto.encrypt(data.phone) }),
+          ...(data.street !== undefined && { street: crypto.encrypt(data.street) }),
+          ...(data.streetNumber !== undefined && { streetNumber: crypto.encrypt(data.streetNumber) }),
+          ...(data.city !== undefined && { city: crypto.encrypt(data.city) }),
+          ...(data.state !== undefined && { state: crypto.encrypt(data.state) }),
+          ...(data.zipCode !== undefined && { zipCode: crypto.encrypt(data.zipCode) }),
+          ...(data.notes !== undefined && { notes: crypto.encrypt(data.notes) }),
+        },
+      });
       return toDomain(row);
     } catch (err) {
       throw new DomainError(`Erro ao atualizar funcionário: ${String(err)}`, 500);

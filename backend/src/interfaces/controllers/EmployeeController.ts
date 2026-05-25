@@ -7,9 +7,12 @@ import { UpdateEmployee } from "../../application/use-cases/UpdateEmployee";
 import { DeleteEmployee } from "../../application/use-cases/DeleteEmployee";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaEmployeeRepository } from "../../infrastructure/repositories/PrismaEmployeeRepository";
+import { PrismaAuditLogRepository } from "../../infrastructure/repositories/PrismaAuditLogRepository";
+import { AuditService } from "../../application/services/AuditService";
 import type { EmployeeStatus } from "../../domain/entities/Employee";
 
 const employeeRepository = new PrismaEmployeeRepository(prisma);
+const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
 
 export class EmployeeController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -24,6 +27,7 @@ export class EmployeeController {
         return;
       }
       const employee = await new CreateEmployee(employeeRepository).execute(parsed.data);
+      auditService.create(req, "EMPLOYEE", employee.id);
       res.status(201).json({ success: true, message: "Funcionário criado com sucesso.", data: employee });
     } catch (err) {
       next(err);
@@ -69,6 +73,7 @@ export class EmployeeController {
         return;
       }
       const employee = await new UpdateEmployee(employeeRepository).execute(String(req.params.id), parsed.data);
+      auditService.update(req, "EMPLOYEE", employee.id);
       res.status(200).json({ success: true, message: "Funcionário atualizado com sucesso.", data: employee });
     } catch (err) {
       next(err);
@@ -78,6 +83,7 @@ export class EmployeeController {
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await new DeleteEmployee(employeeRepository).execute(String(req.params.id));
+      auditService.delete(req, "EMPLOYEE", req.params.id);
       res.status(200).json({ success: true, message: "Funcionário removido com sucesso." });
     } catch (err) {
       next(err);

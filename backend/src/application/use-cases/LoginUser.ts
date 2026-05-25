@@ -6,6 +6,7 @@ import type { Verify2FADTO } from "../dtos/UserDTOs";
 // Interface simplificada de retorno para o passo final do 2FA
 export interface FinalLoginResponseDTO {
   token: string;
+  defaultToken: string;
   user: {
     id: string;
     email: string;
@@ -44,11 +45,23 @@ export class LoginUser {
       sub: dto.userId,
       email: dto.email,
       roleId: dto.roleId,
-      isDefinitive: true, // Usuário 100% autenticado no sistema
+      isDefinitive: true,
+      // Usuário 100% autenticado no sistema
     });
+
+    const trustedDeviceToken = this.tokenService.sign(
+      {
+        sub: dto.userId,
+        email: dto.email,
+        roleId: dto.roleId,
+        isDefinitive: true,
+      },
+      { expiresIn: "30d" }, // Caso o seu tokenService aceite opções, ou configure direto no seu service interno
+    );
 
     return {
       token,
+      defaultToken: trustedDeviceToken,
       user: {
         id: dto.userId,
         email: dto.email,

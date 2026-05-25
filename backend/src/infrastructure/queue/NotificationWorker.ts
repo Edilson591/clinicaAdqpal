@@ -128,6 +128,8 @@ export function startNotificationWorker(): Worker<NotificationJobData> {
     {
       connection: getBullMQRedis(),
       concurrency: 5,
+      lockDuration: 120000,
+      lockRenewTime: 15000, 
     }
   );
 

@@ -1,6 +1,9 @@
 import type { PrismaClient } from "@prisma/client";
 import type { IPatientHistoryRepository, ListHistoryFilters } from "../../domain/repositories/IPatientHistoryRepository";
 import type { PatientHistory, CreatePatientHistoryData } from "../../domain/entities/PatientHistory";
+import { EncryptionService } from "../services/EncryptionService";
+
+const crypto = new EncryptionService();
 
 export class PrismaPatientHistoryRepository implements IPatientHistoryRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -10,11 +13,11 @@ export class PrismaPatientHistoryRepository implements IPatientHistoryRepository
       data: {
         patientId: data.patientId,
         doctorId: data.doctorId,
-        appointmentId: data.appointmentId! ?? null,
+        appointmentId: data.appointmentId ?? null,
         type: data.type,
         title: data.title,
-        description: data.description,
-        attachments: data.attachments ?? [],
+        description: crypto.encrypt(data.description) ?? "",
+        attachments: crypto.encryptArray(data.attachments ?? []) ?? [],
       },
     });
     return this.toDomain(record);
@@ -24,7 +27,7 @@ export class PrismaPatientHistoryRepository implements IPatientHistoryRepository
     patientId: string,
     { type, search, pagination }: ListHistoryFilters,
   ): Promise<[PatientHistory[], number]> {
-    const where = {
+    const where: Record<string, unknown> = {
       patientId,
       deletedAt: null,
       ...(type ? { type } : {}),
@@ -32,7 +35,6 @@ export class PrismaPatientHistoryRepository implements IPatientHistoryRepository
         ? {
             OR: [
               { title: { contains: search, mode: "insensitive" as const } },
-              { description: { contains: search, mode: "insensitive" as const } },
             ],
           }
         : {}),
@@ -48,7 +50,7 @@ export class PrismaPatientHistoryRepository implements IPatientHistoryRepository
       this.prisma.patientHistory.count({ where }),
     ]);
 
-    return [records.map(this.toDomain), total];
+    return [records.map((r) => this.toDomain(r)), total];
   }
 
   async findById(id: string): Promise<PatientHistory | null> {
@@ -85,8 +87,8 @@ export class PrismaPatientHistoryRepository implements IPatientHistoryRepository
       appointmentId: record.appointmentId,
       type: record.type as PatientHistory["type"],
       title: record.title,
-      description: record.description,
-      attachments: record.attachments,
+      description: crypto.decrypt(record.description) ?? "",
+      attachments: crypto.decryptArray(record.attachments) ?? [],
       deletedAt: record.deletedAt,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,

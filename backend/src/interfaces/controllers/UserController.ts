@@ -17,6 +17,8 @@ import { UnauthorizedError } from "../../domain/errors/DomainError";
 import { toUserResponseDTO } from "../../application/mappers/userMapper";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaUserRepository } from "../../infrastructure/repositories/PrismaUserRepository";
+import { PrismaAuditLogRepository } from "../../infrastructure/repositories/PrismaAuditLogRepository";
+import { AuditService } from "../../application/services/AuditService";
 import { BcryptHashService } from "../../infrastructure/services/BcryptHashService";
 import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
 import { tokenBlacklist } from "../../infrastructure/cache/TokenBlacklist";
@@ -29,6 +31,7 @@ import { PreLoginResend } from "../../application/use-cases/PreLoginResend";
 
 const userRepository = new PrismaUserRepository(prisma);
 const hashService = new BcryptHashService();
+const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
 const tokenService = new JwtTokenService();
 const redis = getRedisClient();
 const auth2FAService = new CachedCode2FA(
@@ -60,6 +63,7 @@ export class UserController {
       const user = await new RegisterUser(userRepository, hashService).execute(
         dto,
       );
+      auditService.create(req, "USER", user.id, { username: user.username, email: user.email, roleId: user.roleId });
       res.status(201).json({
         success: true,
         message: "Usuário criado com sucesso.",
@@ -73,24 +77,75 @@ export class UserController {
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const dto = req.body as LoginUserDTO;
+
+      const trustedDeviceCookie = req.cookies.adqpal_trusted_device;
+
+      let isDeviceTrusted = false;
+
+      if (trustedDeviceCookie) {
+        try {
+          const payload = tokenService.verify(trustedDeviceCookie);
+
+          // Buscamos o usuário pelo e-mail do body para bater com o id do cookie
+          const checkUser = await userRepository.findByEmail(dto.email);
+          if (checkUser && payload.sub === checkUser.id) {
+            isDeviceTrusted = true;
+          }
+        } catch (err) {
+          // Token expirado, ignora e deixa isDeviceTrusted como false
+        }
+      }
+
       const result = await new PreLoginUser(
         userRepository,
         hashService,
         tokenService,
         auth2FAService,
         emailService,
-      ).execute(dto);
+      ).execute({ ...dto, isTrusted: isDeviceTrusted });
 
-      res.status(200).json({
-        success: true,
-        message: "Código de verificação enviado para o e-mail.",
-        data: {
-          requires2fa: true,
-          tempToken: result.preAuthToken,
-          user: result.user,
-        },
-      });
+      if (isDeviceTrusted) {
+        const definitiveToken = tokenService.sign({
+          sub: result.user.id,
+          email: result.user.email,
+          roleId: result.user.roleId,
+          isDefinitive: true,
+        });
+
+   
+        auditService.login(req);
+
+        res.cookie("adqpal_token", definitiveToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "none",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+          path: "/",
+        });
+
+        res.status(200).json({
+          success: true,
+          message:
+            "Autenticação concluída com sucesso (Dispositivo Confiável).",
+          data: {
+            requires2fa: false,
+            token: definitiveToken,
+            user: result.user,
+          },
+        });
+      } else {
+        res.status(200).json({
+          success: true,
+          message: "Código de verificação enviado para o e-mail.",
+          data: {
+            requires2fa: true,
+            tempToken: result.preAuthToken,
+            user: result.user,
+          },
+        });
+      }
     } catch (err) {
+      auditService.loginFailed(req);
       next(err);
     }
   }
@@ -125,6 +180,16 @@ export class UserController {
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: "/",
       });
+
+      res.cookie("adqpal_trusted_device", authResult.defaultToken, {
+        httpOnly: true, // Protege contra XSS
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 30 * 24 * 60 * 60 * 1000, // Salvo por 30 dias no navegador
+        path: "/",
+      });
+
+      auditService.fromRequest(req, "LOGIN", "USER");
 
       res.status(200).json({
         success: true,
@@ -180,6 +245,8 @@ export class UserController {
       }
     }
 
+    auditService.logout(req);
+
     res.clearCookie("adqpal_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -230,10 +297,13 @@ export class UserController {
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const dto = req.body as UpdateUserDTO;
+
+      const oldUser = await userRepository.findById(req.params.id as string);
       const user = await new UpdateUser(userRepository, hashService).execute(
         req.params.id as string,
         dto,
       );
+      auditService.update(req, "USER", user.id, oldUser ?? undefined, { ...user, passwordHash: undefined });
       res.status(200).json({
         success: true,
         message: "Usuário atualizado com sucesso.",
@@ -246,7 +316,9 @@ export class UserController {
 
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const oldUser = await userRepository.findById(req.params.id as string);
       await new DeleteUser(userRepository).execute(req.params.id as string);
+      auditService.delete(req, "USER", req.params.id, oldUser ?? undefined);
       res
         .status(200)
         .json({ success: true, message: "Usuário deletado com sucesso." });

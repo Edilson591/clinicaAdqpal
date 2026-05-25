@@ -3,6 +3,7 @@ import { appointmentService } from "../services/Appointment";
 import type {
   CreateAppointmentInput,
   UpdateAppointmentInput,
+  SendWhatsAppInput,
 } from "../types/api";
 
 type Order = "asc" | "desc"
@@ -153,5 +154,12 @@ export function useAppointmentsByDateAndTime(
     queryFn: () =>
       appointmentService.getByDateAndTime(date!, timeStart!, endTime),
     enabled: !!date && !!timeStart && !!endTime,
+  });
+}
+
+export function useSendWhatsApp() {
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: SendWhatsAppInput }) =>
+      appointmentService.sendWhatsApp(id, data),
   });
 }

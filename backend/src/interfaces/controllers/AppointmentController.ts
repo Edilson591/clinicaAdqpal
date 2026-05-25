@@ -27,6 +27,8 @@ import { DeleteAppointment } from "../../application/use-cases/DeleteAppointment
 import { getNotificationQueue } from "../../infrastructure/queue/NotificationQueue";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaAppointmentRepository } from "../../infrastructure/repositories/PrismaAppointmentRepository";
+import { PrismaAuditLogRepository } from "../../infrastructure/repositories/PrismaAuditLogRepository";
+import { AuditService } from "../../application/services/AuditService";
 import { CachedAppointmentRepository } from "../../infrastructure/cache/CachedAppointmentRepository";
 import { getRedisClient } from "../../infrastructure/cache/RedisClient";
 
@@ -34,6 +36,7 @@ const appointmentRepository = new CachedAppointmentRepository(
   new PrismaAppointmentRepository(prisma),
   getRedisClient(),
 );
+const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
 
 export class AppointmentController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -52,6 +55,7 @@ export class AppointmentController {
       });
 
       sseManager.broadcast("appointment_created", appointment);
+      auditService.create(req, "APPOINTMENT", appointment.id);
       res.status(201).json({
         success: true,
         message: "Consulta criada com sucesso.",
@@ -101,6 +105,7 @@ export class AppointmentController {
         throw new NotFoundError("Consulta");
       }
 
+      auditService.view(req, "APPOINTMENT", appointment.id);
       res.status(200).json({ success: true, data: appointment });
     } catch (err) {
       next(err);
@@ -147,6 +152,7 @@ export class AppointmentController {
         appointmentRepository,
       ).execute(req.params.id as string, dto);
       sseManager.broadcast("appointment_updated", appointment);
+      auditService.update(req, "APPOINTMENT", appointment.id);
       res.status(200).json({
         success: true,
         message: "Consulta atualizada com sucesso.",
@@ -170,6 +176,7 @@ export class AppointmentController {
         req.params.id as string,
       );
       sseManager.broadcast("appointment_deleted", { id: req.params.id });
+      auditService.delete(req, "APPOINTMENT", req.params.id);
       res
         .status(200)
         .json({ success: true, message: "Consulta deletada com sucesso." });
@@ -195,6 +202,8 @@ export class AppointmentController {
         telefone,
         channels,
       });
+
+      auditService.export(req, "APPOINTMENT", id);
 
       res.status(202).json({
         success: true,

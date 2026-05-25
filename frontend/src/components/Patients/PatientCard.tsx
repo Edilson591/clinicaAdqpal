@@ -16,7 +16,7 @@ interface PatientCardProps {
 export function PatientCard({ patient }: PatientCardProps) {
   const navigate = useNavigate();
 
-  console.log(patient)
+  // console.log(patient)
   return (
     // pen: lV5VV / PhFNz rows · hover #263548 dark
     <tr className="border-b border-[#E2E8F0] dark:border-[#334155] last:border-0 hover:bg-[#F8FAFC] dark:hover:bg-[#263548] transition-colors">

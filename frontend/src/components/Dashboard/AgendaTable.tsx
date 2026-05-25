@@ -5,15 +5,25 @@ import type {
 } from "../../hooks/useDashboard";
 // Status badge — Pendente muda no dark (pen: #334155 bg, #94A3B8 text)
 const statusStyles: Record<AgendaStatus, string> = {
-  Confirmada:
+  Agendada:
     "bg-[#DBEAFE] text-[#1D4ED8] dark:bg-[#1E3A5F] dark:text-[#60A5FA]",
-  Concluido:
+
+  Confirmada:
     "bg-[#DCFCE7] text-[#166534] dark:bg-[#1E3A2F] dark:text-[#4ADE80]",
-  Cancelado:
-    "bg-[#FEE2E2] text-[#991B1B] dark:bg-[#3F1E1E] dark:text-[#FCA5A5]",
+
   "Em Andamento":
     "bg-[#FEF3C7] text-[#92400E] dark:bg-[#3F2A1E] dark:text-[#FCD34D]",
+
+  Concluído:
+    "bg-[#EDE9FE] text-[#5B21B6] dark:bg-[#2E1065] dark:text-[#C4B5FD]",
+
+  Cancelado:
+    "bg-[#FEE2E2] text-[#991B1B] dark:bg-[#3F1E1E] dark:text-[#FCA5A5]",
+
+  "Não Compareceu":
+    "bg-[#F3F4F6] text-[#4B5563] dark:bg-[#1F2937] dark:text-[#D1D5DB]",
 };
+
 
 function StatusBadge({ status }: { status: AgendaStatus }) {
   return (

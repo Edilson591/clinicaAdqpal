@@ -37,7 +37,7 @@ export function useEditPacienteForm(id: string) {
 
   // Preenche o form quando os dados do paciente chegam
   useEffect(() => {
-    console.log(patient);
+    // console.log(patient);
     if (patient) {
       form.reset({
         name: patient.name ?? "",

@@ -10,9 +10,11 @@ import type { AppointmentResponse } from "../types/api";
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export type AgendaStatus =
+  | "Agendada"
   | "Confirmada"
-  | "Concluido"
+  | "Concluído"
   | "Cancelado"
+  | "Não Compareceu"
   | "Em Andamento";
 
 export interface DashboardAppointment {
@@ -25,15 +27,14 @@ export interface DashboardAppointment {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
 const statusMap: Record<AppointmentResponse["status"], AgendaStatus> = {
-  SCHEDULED: "Confirmada",
-  COMPLETED: "Concluido",
-  CANCELLED: "Cancelado",
-  CANCELED: "Cancelado",
-  NO_SHOW: "Cancelado",
+  SCHEDULED: "Agendada",
   CONFIRMED: "Confirmada",
   IN_PROGRESS: "Em Andamento",
+  COMPLETED: "Concluído",
+  CANCELLED: "Cancelado",
+  CANCELED: "Cancelado",
+  NO_SHOW: "Não Compareceu",
 };
 
 // const TOLERANCE_MS = 30 * 60 * 1000; // 30 minutos
@@ -86,6 +87,8 @@ export function useDashboard(
 
   // console.log(agendaDoDia);
   // Próximo atendimento: primeiro SCHEDULED da agenda de hoje
+
+
   const proximoAtendimento = useMemo(
     () => agendaDoDia.find((a) => a.status === "Confirmada") ?? null,
     [agendaDoDia],

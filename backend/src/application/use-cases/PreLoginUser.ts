@@ -7,6 +7,10 @@ import { ITokenService } from "../../domain/services/ITokenService";
 import { LoginUserDTO, PreLoginResponseDTO } from "../dtos/UserDTOs";
 import { toUserResponseDTO } from "../mappers/userMapper";
 
+export type PreLoginInput = LoginUserDTO & {
+  isTrusted?: boolean;
+};
+
 export class PreLoginUser {
   constructor(
     private readonly userRepository: IUserRepository,
@@ -16,7 +20,7 @@ export class PreLoginUser {
     private readonly emailService: IMailService,
   ) {}
 
-  async execute(dto: LoginUserDTO): Promise<PreLoginResponseDTO> {
+  async execute(dto: PreLoginInput): Promise<PreLoginResponseDTO> {
     const user = await this.userRepository.findByEmail(dto.email);
 
     // Proteção contra timing attacks mantida perfeitamente
@@ -29,6 +33,13 @@ export class PreLoginUser {
       throw new UnauthorizedError("E-mail ou senha incorretos.");
     }
 
+    if (dto.isTrusted) {
+      return {
+        preAuthToken: "", // Não precisa de token temporário
+        user: toUserResponseDTO(user),
+      };
+    }
+
     const code2FA = Math.floor(100000 + Math.random() * 900000).toString();
 
     await this.auth2FA.saveCode(user.id, code2FA);
@@ -36,8 +47,13 @@ export class PreLoginUser {
     await this.emailService.send2FACode(user.email, code2FA, user);
 
     const preAuthToken = this.tokenService.sign(
-      { sub: user.id, email: user.email, roleId: user.roleId, isDefinitive: false },
-      { expiresIn: "1h" } // Caso o seu tokenService aceite opções, ou configure direto no seu service interno
+      {
+        sub: user.id,
+        email: user.email,
+        roleId: user.roleId,
+        isDefinitive: false,
+      },
+      { expiresIn: "1h" }, // Caso o seu tokenService aceite opções, ou configure direto no seu service interno
     );
 
     return {

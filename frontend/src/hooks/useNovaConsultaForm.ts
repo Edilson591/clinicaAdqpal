@@ -5,11 +5,14 @@ import { useZodForm } from "./useZodForm";
 import {
   useAppointmentsByDateAndTime,
   useCreateAppointment,
+  useSendWhatsApp,
 } from "./useAppointments";
 import {
   novaConsultaSchema,
   type NovaConsultaInput,
 } from "../validate/novaConsulta.schema";
+import { usePatient } from "./usePatients";
+import { formatToInternationalPhone } from "../utils/formatPhone";
 
 export function useNovaConsultaForm() {
   const navigate = useNavigate();
@@ -46,6 +49,8 @@ export function useNovaConsultaForm() {
 
   const { mutate: createAppointment, isPending: isLoading } =
     useCreateAppointment();
+    const { data: patient } = usePatient(form.watch("patientId"));
+  const { mutate: sendWhatsApp } = useSendWhatsApp();
 
   const onSubmit = form.handleSubmit((data: NovaConsultaInput) => {
     setGeneralError(null);
@@ -87,7 +92,15 @@ export function useNovaConsultaForm() {
         notes: data.notes ?? null,
       },
       {
-        onSuccess: () => {
+        onSuccess: (appointment) => {
+          const phone = patient?.phone;
+          if (phone) {
+            const phoneInternational = formatToInternationalPhone(patient?.phone ?? "")
+            sendWhatsApp({
+              id: appointment.id,
+              data: { telefone: phoneInternational, channels: ["whatsapp"] },
+            });
+          }
           form.reset();
           navigate("/agenda");
         },
