@@ -63,6 +63,7 @@ export class WhatsAppService implements INotificationService {
           headers: {
             apikey: this.token,
             "Content-Type": "application/json",
+            "bypass-tunnel-reminder": "true",
           },
           timeout: 15_000,
         },
