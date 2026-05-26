@@ -25,7 +25,7 @@ function toDomain(row: {
   return {
     id: row.id,
     username: row.username,
-    email: crypto.decrypt(row.email) ?? "",
+    email: row.email,
     passwordHash: row.passwordHash,
     roleId: row.roleId,
     cpf: crypto.decrypt(row.cpf),
@@ -63,10 +63,7 @@ export class PrismaUserRepository implements IUserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      let row = await this.prisma.user.findUnique({ where: { email: crypto.encrypt(email) ?? "" } });
-      if (!row) {
-        row = await this.prisma.user.findUnique({ where: { email } });
-      }
+      const row = await this.prisma.user.findUnique({ where: { email } });
       return row ? toDomain(row) : null;
     } catch (err) {
       throw new DomainError(`Erro ao buscar usuário`, 500);
@@ -113,7 +110,7 @@ export class PrismaUserRepository implements IUserRepository {
       const row = await this.prisma.user.create({
         data: {
           username: data.username,
-          email: crypto.encrypt(data.email) ?? "",
+          email: data.email,
           passwordHash: data.passwordHash,
           roleId: data.roleId,
           cpf: crypto.encrypt(data.cpf ?? null),
@@ -132,7 +129,7 @@ export class PrismaUserRepository implements IUserRepository {
         where: { id },
         data: {
           ...(data.username !== undefined && { username: data.username }),
-          ...(data.email !== undefined && { email: crypto.encrypt(data.email) ?? "" }),
+          ...(data.email !== undefined && { email: data.email }),
           ...(data.passwordHash !== undefined && {
             passwordHash: data.passwordHash,
           }),

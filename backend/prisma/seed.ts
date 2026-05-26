@@ -9,10 +9,8 @@
 
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { EncryptionService } from "../src/infrastructure/services/EncryptionService";
 
 const prisma = new PrismaClient();
-const crypto = new EncryptionService();
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -245,20 +243,15 @@ async function main() {
   for (const u of USERS_DATA) {
     const passwordHash = await hashPassword(u.password);
     const cpfClean = u.cpf.replace(/\D/g, "");
-    const encryptedEmail = crypto.encrypt(u.email) ?? u.email;
-    const encryptedCpf = crypto.encrypt(cpfClean) ?? cpfClean;
-    let existing = await prisma.user.findUnique({ where: { email: encryptedEmail } });
-    if (!existing) {
-      existing = await prisma.user.findUnique({ where: { email: u.email } });
-    }
+    const existing = await prisma.user.findUnique({ where: { email: u.email } });
 
     const user = existing ?? await prisma.user.create({
       data: {
-        email: encryptedEmail,
+        email: u.email,
         username: u.username,
         passwordHash,
         roleId: u.roleId,
-        cpf: encryptedCpf,
+        cpf: cpfClean,
       },
     });
 
