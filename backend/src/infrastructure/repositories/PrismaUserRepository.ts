@@ -63,7 +63,10 @@ export class PrismaUserRepository implements IUserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     try {
-      const row = await this.prisma.user.findUnique({ where: { email: crypto.encrypt(email) ?? "" } });
+      let row = await this.prisma.user.findUnique({ where: { email: crypto.encrypt(email) ?? "" } });
+      if (!row) {
+        row = await this.prisma.user.findUnique({ where: { email } });
+      }
       return row ? toDomain(row) : null;
     } catch (err) {
       throw new DomainError(`Erro ao buscar usuário`, 500);

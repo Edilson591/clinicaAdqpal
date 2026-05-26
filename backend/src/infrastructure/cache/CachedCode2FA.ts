@@ -15,7 +15,6 @@ export class CachedCode2FA implements IAuth2FA {
     const key = `${TWO_FACTOR_PREFIX}${userId}`;
 
     try {
-      // 1. Tenta buscar primeiro no cache do Redis
       const cachedCode = await this.redis.get(key);
       if (cachedCode !== null) return cachedCode;
     } catch (error) {
@@ -23,7 +22,7 @@ export class CachedCode2FA implements IAuth2FA {
         "[Redis] Falha ao buscar 2FA, consultando repositório principal:",
         error,
       );
-      return null;
+      return this.repo.getCode(userId);
     }
 
     return null;
