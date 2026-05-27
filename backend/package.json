@@ -13,7 +13,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:deploy:prod": "dotenv -e .env.prod -- npx prisma migrate deploy"
   },
   "jest": {
     "preset": "ts-jest",
@@ -58,6 +59,7 @@
     "@types/node": "^22.19.15",
     "@types/nodemailer": "^8.0.0",
     "@types/supertest": "^7.2.0",
+    "dotenv-cli": "^11.0.0",
     "jest": "^30.3.0",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.6",

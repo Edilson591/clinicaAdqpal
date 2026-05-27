@@ -47,13 +47,21 @@ export class AppointmentController {
         appointmentRepository,
       ).execute(dto);
 
-      // Cria prontuário vazio automaticamente vinculado à consulta
-      await prisma.medicalRecord.create({
-        data: {
-          appointmentId: appointment.id,
-          patientId:     appointment.patientId,
+      const existPacient = await prisma.medicalRecord.findFirst({
+        where: {
+          patientId: appointment.patientId,
         },
       });
+
+      if (!existPacient) {
+        // Cria prontuário vazio automaticamente vinculado à consulta
+        await prisma.medicalRecord.create({
+          data: {
+            appointmentId: appointment.id,
+            patientId: appointment.patientId,
+          },
+        });
+      }
 
       sseManager.broadcast("appointment_created", appointment);
       auditService.create(req, "APPOINTMENT", appointment.id);
@@ -67,11 +75,7 @@ export class AppointmentController {
     }
   }
 
-  async getAll(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const parsed = ListAppointmentsQuerySchema.safeParse(req.query);
       if (!parsed.success) {
@@ -85,7 +89,10 @@ export class AppointmentController {
       }
 
       const pagination = parsePagination(req.query);
-      const result = await new ListAppointments(appointmentRepository).execute(filters, pagination);
+      const result = await new ListAppointments(appointmentRepository).execute(
+        filters,
+        pagination,
+      );
       res.status(200).json({ success: true, ...result });
     } catch (err) {
       next(err);
@@ -123,7 +130,9 @@ export class AppointmentController {
       if (!parsed.success) {
         throw new DomainError(parsed.error.errors[0].message, 400);
       }
-      let appointments = await new ListAppointmentsByPatient(appointmentRepository).execute(
+      let appointments = await new ListAppointmentsByPatient(
+        appointmentRepository,
+      ).execute(
         req.params.patientId as string,
         parsed.data as ListByPartyQuery,
       );
@@ -142,7 +151,9 @@ export class AppointmentController {
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (req.userRoleId === ROLE_DOCTOR) {
-        const existing = await new GetAppointment(appointmentRepository).execute(req.params.id as string);
+        const existing = await new GetAppointment(
+          appointmentRepository,
+        ).execute(req.params.id as string);
         if (existing.userId !== req.userId) {
           throw new NotFoundError("Consulta");
         }
@@ -167,7 +178,9 @@ export class AppointmentController {
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (req.userRoleId === ROLE_DOCTOR) {
-        const existing = await new GetAppointment(appointmentRepository).execute(req.params.id as string);
+        const existing = await new GetAppointment(
+          appointmentRepository,
+        ).execute(req.params.id as string);
         if (existing.userId !== req.userId) {
           throw new NotFoundError("Consulta");
         }
@@ -257,12 +270,13 @@ export class AppointmentController {
 
       // Médico só pode listar as próprias consultas
       const targetUserId =
-        req.userRoleId === ROLE_DOCTOR ? req.userId : (req.params.userId as string);
+        req.userRoleId === ROLE_DOCTOR
+          ? req.userId
+          : (req.params.userId as string);
 
-      const appointments = await new ListAppointmentsByUser(appointmentRepository).execute(
-        targetUserId,
-        parsed.data as ListByPartyQuery,
-      );
+      const appointments = await new ListAppointmentsByUser(
+        appointmentRepository,
+      ).execute(targetUserId, parsed.data as ListByPartyQuery);
       res.status(200).json({ success: true, data: appointments });
     } catch (err) {
       next(err);
