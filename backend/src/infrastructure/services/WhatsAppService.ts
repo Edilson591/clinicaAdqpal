@@ -49,7 +49,7 @@ export class WhatsAppService implements INotificationService {
     const normalizedPhone = WhatsAppService.normalizePhone(message.number);
 
     try {
-      const teste = await axios.post(
+      await axios.post(
         this.apiUrl,
         {
           number: normalizedPhone,
@@ -69,7 +69,6 @@ export class WhatsAppService implements INotificationService {
         },
       );
 
-      console.log("api evolution", teste);
     } catch (err) {
       const axiosErr = err as AxiosError;
       let apiMessage = axiosErr.message;

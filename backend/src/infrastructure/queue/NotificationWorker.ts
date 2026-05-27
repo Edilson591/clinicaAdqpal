@@ -71,59 +71,62 @@ function toSmsText(message: string): string {
     .trim();
 }
 
+// ─── Send logic (shared between worker and direct Vercel call) ──────────────
+
+export async function sendNotification(data: NotificationJobData): Promise<void> {
+  const { appointmentId, telefone, channels } = data;
+
+  const appointment = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    include: { patient: true, user: true },
+  });
+
+  if (!appointment) {
+    throw new Error(`Consulta ${appointmentId} não encontrada`);
+  }
+
+  const doctorName = appointment.medico ?? appointment.user.username;
+  const richMessage = buildMessage(
+    appointment.patient.name,
+    doctorName,
+    appointment.scheduledAt,
+    appointment.status,
+    appointment.notes ?? null
+  );
+
+  const errors: string[] = [];
+
+  if (channels.includes("whatsapp")) {
+    try {
+      await new WhatsAppService().sendTextMessage({
+        number: telefone,
+        text: richMessage,
+      });
+    } catch (err) {
+      errors.push(`WhatsApp: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  if (channels.includes("sms")) {
+    try {
+      await new SmsService().sendSms(telefone, toSmsText(richMessage));
+    } catch (err) {
+      errors.push(`SMS: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(errors.join(" | "));
+  }
+}
+
 // ─── Worker ───────────────────────────────────────────────────────────────────
 
 export function startNotificationWorker(): Worker<NotificationJobData> {
   const worker = new Worker<NotificationJobData>(
     NOTIFICATION_QUEUE,
     async (job: Job<NotificationJobData>) => {
-      const { appointmentId, telefone, channels } = job.data;
-
-      const appointment = await prisma.appointment.findUnique({
-        where: { id: appointmentId },
-        include: { patient: true, user: true },
-      });
-
-      if (!appointment) {
-        throw new Error(`Consulta ${appointmentId} não encontrada`);
-      }
-
-      const doctorName = appointment.medico ?? appointment.user.username;
-      const richMessage = buildMessage(
-        appointment.patient.name,
-        doctorName,
-        appointment.scheduledAt,
-        appointment.status,
-        appointment.notes ?? null
-      );
-
-      const errors: string[] = [];
-
-      if (channels.includes("whatsapp")) {
-        try {
-          await new WhatsAppService().sendTextMessage({
-            number: telefone,
-            text: richMessage,
-          });
-          console.info(`[Worker] WhatsApp enviado — job ${job.id}`);
-        } catch (err) {
-          errors.push(`WhatsApp: ${err instanceof Error ? err.message : String(err)}`);
-        }
-      }
-
-      if (channels.includes("sms")) {
-        try {
-          await new SmsService().sendSms(telefone, toSmsText(richMessage));
-          console.info(`[Worker] SMS enviado — job ${job.id}`);
-        } catch (err) {
-          errors.push(`SMS: ${err instanceof Error ? err.message : String(err)}`);
-        }
-      }
-
-      // If at least one channel failed, throw so BullMQ retries the job
-      if (errors.length > 0) {
-        throw new Error(errors.join(" | "));
-      }
+      await sendNotification(job.data);
     },
     {
       connection: getBullMQRedis(),

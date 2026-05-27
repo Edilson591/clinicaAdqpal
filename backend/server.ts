@@ -5,7 +5,10 @@ import { startNotificationWorker } from "./src/infrastructure/queue/Notification
 
 const PORT = Number(process.env.PORT) || 3333;
 
-startNotificationWorker();
+// Worker BullMQ só inicia localmente (Vercel não tem Redis)
+if (process.env.VERCEL !== "1") {
+  startNotificationWorker();
+}
 // startNotaFiscalWorker();
 
 app.listen(PORT, () => {

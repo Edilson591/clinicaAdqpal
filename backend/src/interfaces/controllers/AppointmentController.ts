@@ -25,6 +25,7 @@ import {
 import { UpdateAppointment } from "../../application/use-cases/UpdateAppointment";
 import { DeleteAppointment } from "../../application/use-cases/DeleteAppointment";
 import { getNotificationQueue } from "../../infrastructure/queue/NotificationQueue";
+import { sendNotification } from "../../infrastructure/queue/NotificationWorker";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaAppointmentRepository } from "../../infrastructure/repositories/PrismaAppointmentRepository";
 import { PrismaAuditLogRepository } from "../../infrastructure/repositories/PrismaAuditLogRepository";
@@ -194,22 +195,34 @@ export class AppointmentController {
       const { telefone, channels } = req.body as SendWhatsAppDTO;
       const { id } = req.params as { id: string };
 
-      // Verify appointment exists before enqueuing
+      // Verify appointment exists
       await new GetAppointment(appointmentRepository).execute(id);
-
-      const job = await getNotificationQueue().add("send-notification", {
-        appointmentId: id,
-        telefone,
-        channels,
-      });
 
       auditService.export(req, "APPOINTMENT", id);
 
-      res.status(202).json({
-        success: true,
-        message: "Notificação enfileirada com sucesso.",
-        data: { jobId: job.id, channels },
-      });
+      if (process.env.VERCEL === "1") {
+        // Vercel: send immediately (no Redis available for BullMQ)
+        await sendNotification({ appointmentId: id, telefone, channels });
+
+        res.status(200).json({
+          success: true,
+          message: "Notificação enviada com sucesso.",
+          data: { channels },
+        });
+      } else {
+        // Local: enqueue for async processing via BullMQ
+        const job = await getNotificationQueue().add("send-notification", {
+          appointmentId: id,
+          telefone,
+          channels,
+        });
+
+        res.status(202).json({
+          success: true,
+          message: "Notificação enfileirada com sucesso.",
+          data: { jobId: job.id, channels },
+        });
+      }
     } catch (err) {
       next(err);
     }
