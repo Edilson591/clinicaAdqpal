@@ -7,6 +7,9 @@ import {
   DollarSign,
   Briefcase,
   UserCog,
+  ClipboardList,
+  FilePlus,
+  FileSignature,
   // Receipt,
   type LucideIcon,
 } from "lucide-react";
@@ -33,6 +36,15 @@ export const navItems: NavItem[] = [
   { label: "Pacientes", icon: Users, path: "/pacientes" },
   { label: "Agenda", icon: Calendar, path: "/agenda" },
   { label: "Prontuários", icon: FileText, path: "/prontuarios" },
+  {
+    label: "Documentos",
+    icon: ClipboardList,
+    path: "/documentos",
+    children: [
+      { label: "Laudo APAC", icon: FilePlus, path: "/documentos/apac" },
+      { label: "Receituário", icon: FileSignature, path: "/documentos/receituario" },
+    ],
+  },
   { label: "Financeiro", icon: DollarSign, path: "/financeiro" },
   // { label: "Notas Fiscais", icon: Receipt, path: "/notas-fiscais" },
   { label: "Recursos Humanos", icon: Briefcase, path: "/rh" },

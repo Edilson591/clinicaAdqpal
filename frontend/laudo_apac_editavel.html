@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laudo para Solicitação/Autorização de Procedimento Ambulatorial</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    background: #e0e0e0;
+    padding: 10px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ── PÁGINA ── */
+  .page {
+    width: 210mm;
+    height: 297mm;
+    background: white;
+    margin: 0 auto;
+    padding: 3mm 3mm;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── CABEÇALHO ── */
+  .header {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid #000;
+    flex-shrink: 0;
+  }
+  .header-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-right: 1px solid #000;
+    padding: 3px 6px;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .sus-box {
+    border: 2px solid #000;
+    font-weight: bold;
+    font-size: 13pt;
+    padding: 2px 5px;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+  .header-texts {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    font-size: 7pt;
+    line-height: 1.4;
+  }
+  .header-texts div { white-space: nowrap; }
+  .header-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: bold;
+    font-size: 11pt;
+    padding: 4px 8px;
+    line-height: 1.4;
+  }
+  .header-fls {
+    font-size: 7pt;
+    font-style: italic;
+    padding: 3px 4px 0 4px;
+    align-self: flex-start;
+    border-left: 1px solid #000;
+    min-width: 42px;
+    text-align: right;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── TÍTULOS DE SEÇÃO ── */
+  .section-title {
+    background: #000 !important;
+    color: #fff !important;
+    text-align: center;
+    font-weight: bold;
+    font-size: 10pt;
+    padding: 2px 0;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* ── LINHAS DE CAMPO ── */
+  .field-row {
+    display: flex;
+    border-left: 1px solid #000;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+    flex-shrink: 0;
+  }
+  /* linha que cresce verticalmente (observações) */
+  .field-row.grow {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .field-cell {
+    flex: 1;
+    border-right: 1px solid #000;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .field-cell:last-child { border-right: none; }
+
+  /* célula que cresce para preencher a linha */
+  .field-row.grow .field-cell { flex: 1; }
+
+  .field-label {
+    font-size: 8.5pt;
+    color: #000;
+    padding: 1px 2px 0 2px;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .field-input {
+    border: none;
+    outline: none;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11pt;
+    font-weight: bold;
+    padding: 1px 2px;
+    background: transparent;
+    width: 100%;
+    flex: 1;
+  }
+  .field-input.small  { font-size: 9.5pt;  font-weight: normal; }
+  .field-input.large  { font-size: 11.5pt; }
+  .field-input:focus, .obs-textarea:focus { background: #fffde7; }
+
+  /* ── CNS (caixinhas) ── */
+  .cns-row {
+    display: flex;
+    padding: 2px 2px;
+    gap: 1px;
+    flex-wrap: nowrap;
+    align-items: center;
+    flex: 1;
+  }
+  .cns-box {
+    border: 1px solid #000;
+    width: 16px;
+    height: 17px;
+    text-align: center;
+    font-size: 11pt;
+    font-weight: bold;
+    outline: none;
+    padding: 0;
+    background: transparent;
+    flex-shrink: 0;
+  }
+  .cns-box:focus { background: #fffde7; }
+
+  /* ── DATA ── */
+  .date-row {
+    display: flex;
+    align-items: center;
+    padding: 2px 2px;
+    gap: 1px;
+    flex: 1;
+  }
+  .date-box {
+    border: 1px solid #000;
+    width: 15px;
+    height: 16px;
+    text-align: center;
+    font-size: 11pt;
+    font-weight: bold;
+    outline: none;
+    padding: 0;
+    background: transparent;
+    flex-shrink: 0;
+  }
+  .date-box:focus { background: #fffde7; }
+  .date-sep { font-weight: bold; font-size: 11pt; padding: 0 1px; }
+
+  /* ── CHECKBOXES ── */
+  input[type="checkbox"] { width: 10px; height: 10px; cursor: pointer; }
+  .sexo-group {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #000;
+    min-width: 58px;
+    flex-shrink: 0;
+  }
+  .sexo-checks {
+    display: flex;
+    gap: 4px;
+    padding: 2px 3px;
+    align-items: center;
+    flex: 1;
+  }
+  .sexo-option { display: flex; align-items: center; gap: 2px; font-size: 8.5pt; }
+  .doc-checks {
+    display: flex;
+    gap: 4px;
+    padding: 2px 3px;
+    align-items: center;
+    font-size: 8.5pt;
+    flex: 1;
+  }
+  .doc-option { display: flex; align-items: center; gap: 1px; }
+
+  /* ── TELEFONE ── */
+  .tel-group { display: flex; flex-direction: column; padding: 0; flex: 1; }
+  .tel-label-row {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    padding: 1px 2px 0 2px;
+    flex-shrink: 0;
+  }
+  .tel-ddd-label, .tel-num-label { font-size: 7pt; }
+  .tel-inputs {
+    display: flex;
+    gap: 3px;
+    padding: 1px 2px 2px 2px;
+    align-items: center;
+    flex: 1;
+  }
+  .tel-input-ddd {
+    border: 1px solid #555;
+    width: 28px;
+    height: 15px;
+    font-size: 9pt;
+    text-align: center;
+    outline: none;
+    background: transparent;
+    flex-shrink: 0;
+  }
+  .tel-input-num {
+    border: 1px solid #555;
+    flex: 1;
+    height: 15px;
+    font-size: 9pt;
+    padding: 0 2px;
+    outline: none;
+    background: transparent;
+  }
+  .tel-input-ddd:focus, .tel-input-num:focus { background: #fffde7; }
+
+  /* ── PROCEDIMENTO CÓDIGO ── */
+  .proc-code-row {
+    display: flex;
+    border-left: 1px solid #000;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+    flex-shrink: 0;
+  }
+  .proc-code-cell {
+    display: flex;
+    gap: 1px;
+    padding: 2px;
+    align-items: center;
+    flex: 1;
+  }
+  .proc-code-box {
+    border: 1px solid #000;
+    width: 19px;
+    height: 19px;
+    text-align: center;
+    font-size: 11pt;
+    font-weight: bold;
+    outline: none;
+    padding: 0;
+    background: transparent;
+    flex-shrink: 0;
+  }
+  .proc-code-box:focus { background: #fffde7; }
+
+  /* ── OBSERVAÇÕES ── */
+  .obs-textarea {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10.5pt;
+    font-weight: bold;
+    resize: none;
+    background: transparent;
+    padding: 2px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* linha de obs cresce mas com limite razoável */
+  .field-row.grow {
+    flex: 0 1 160px;
+    min-height: 110px;
+  }
+
+  /* ── ASSINATURA ── */
+  .assinatura-cell {
+    flex: 1;
+    min-height: 0;
+    border-right: 1px solid #000;
+    display: flex;
+    flex-direction: column;
+  }
+  .assinatura-cell:last-child { border-right: none; }
+
+  /* ── RODAPÉ DO FORM ── */
+  .form-footer {
+    font-size: 5pt;
+    color: #555;
+    padding-top: 1px;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* ── TOOLBAR (não imprime) ── */
+  .toolbar {
+    width: 210mm;
+    margin: 0 auto 10px;
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 9pt;
+    font-weight: bold;
+  }
+  .btn-print { background: #1565c0; color: white; }
+  .btn-clear { background: #c62828; color: white; }
+  .btn-save  { background: #2e7d32; color: white; }
+
+  /* ── IMPRESSÃO ── */
+  @media print {
+    @page { size: A4; margin: 4mm; }
+    body { background: white; padding: 0; }
+    .page {
+      box-shadow: none;
+      padding: 0;
+      width: 100%;
+      height: 100vh;
+      margin: 0;
+    }
+    .no-print { display: none !important; }
+    .section-title {
+      background: #000 !important;
+      color: #fff !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    input, textarea {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar no-print">
+  <button class="btn btn-print" onclick="window.print()">🖨️ Imprimir</button>
+  <button class="btn btn-save"  onclick="salvarDados()">💾 Salvar Dados</button>
+  <button class="btn btn-clear" onclick="limparFormulario()">🗑️ Limpar Tudo</button>
+  <span style="font-size:8pt; color:#555; align-self:center;">Preencha os campos e clique em Imprimir</span>
+</div>
+
+<div class="page" id="formulario">
+
+  <!-- CABEÇALHO -->
+  <div class="header">
+    <div class="header-left">
+      <div class="sus-box">SUS</div>
+      <div class="header-texts">
+        <div>Sistema<br>Único de<br>Saúde</div>
+        <div>Ministério<br>da<br>Saúde</div>
+      </div>
+    </div>
+    <div class="header-title">
+      <i>LAUDO PARA SOLICITAÇÃO/AUTORIZAÇÃO DE<br>PROCEDIMENTO AMBULATORIAL</i>
+    </div>
+    <div class="header-fls">fls.1/2</div>
+  </div>
+
+  <!-- SOLICITANTE -->
+  <div class="section-title">IDENTIFICAÇÃO DO ESTABELECIMENTO DE SAÚDE (SOLICITANTE)</div>
+  <div class="field-row">
+    <div class="field-cell" style="flex:4">
+      <div class="field-label">1 - NOME DO ESTABELECIMENTO DE SAÚDE SOLICITANTE</div>
+      <input class="field-input" type="text" id="f1_nome_estab" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:1; max-width:90px;">
+      <div class="field-label">2 - CNES</div>
+      <input class="field-input" type="text" id="f2_cnes" autocomplete="off">
+    </div>
+  </div>
+
+  <!-- PACIENTE -->
+  <div class="section-title">IDENTIFICAÇÃO DO PACIENTE</div>
+
+  <div class="field-row">
+    <div class="field-cell" style="flex:5">
+      <div class="field-label">3 - NOME DO PACIENTE</div>
+      <input class="field-input large" type="text" id="f3_nome_paciente" autocomplete="off">
+    </div>
+    <div class="sexo-group">
+      <div class="field-label" style="padding:1px 2px 0 2px">4 - SEXO</div>
+      <div class="sexo-checks">
+        <label class="sexo-option"><input type="checkbox" id="f4_mas" onclick="selectSexo('mas')"> Mas.</label>
+        <label class="sexo-option"><input type="checkbox" id="f4_fem" onclick="selectSexo('fem')"> Fem.</label>
+      </div>
+    </div>
+    <div class="field-cell" style="max-width:85px;">
+      <div class="field-label">5 - Nº DO PRONTUÁRIO</div>
+      <input class="field-input small" type="text" id="f5_prontuario" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field-cell" style="flex:3">
+      <div class="field-label">6 - CARTÃO NACIONAL DE SAÚDE (CNS)</div>
+      <div class="cns-row" id="cns_boxes"></div>
+    </div>
+    <div class="field-cell" style="flex:1.5">
+      <div class="field-label">7 - DATA DE NASCIMENTO</div>
+      <div class="date-row">
+        <input class="date-box" type="text" maxlength="1" id="dn1">
+        <input class="date-box" type="text" maxlength="1" id="dn2">
+        <span class="date-sep">/</span>
+        <input class="date-box" type="text" maxlength="1" id="dn3">
+        <input class="date-box" type="text" maxlength="1" id="dn4">
+        <span class="date-sep">/</span>
+        <input class="date-box" type="text" maxlength="1" id="dn5">
+        <input class="date-box" type="text" maxlength="1" id="dn6">
+        <input class="date-box" type="text" maxlength="1" id="dn7">
+        <input class="date-box" type="text" maxlength="1" id="dn8">
+      </div>
+    </div>
+    <div class="field-cell" style="flex:1">
+      <div class="field-label">8 - RAÇA/COR</div>
+      <input class="field-input small" type="text" id="f8_raca" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:1">
+      <div class="field-label">8.1 - ETNIA</div>
+      <input class="field-input small" type="text" id="f8_etnia" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field-cell" style="flex:3">
+      <div class="field-label">9 - NOME DA MÃE</div>
+      <input class="field-input" type="text" id="f9_mae" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:1">
+      <div class="tel-group">
+        <div class="tel-label-row">
+          <span class="tel-ddd-label">DDD</span>
+          <span class="tel-num-label">10 - TELEFONE DE CONTATO &nbsp; Nº DO TELEFONE</span>
+        </div>
+        <div class="tel-inputs">
+          <input class="tel-input-ddd" type="text" maxlength="2" id="f10_ddd">
+          <input class="tel-input-num" type="text" id="f10_tel">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field-cell" style="flex:3">
+      <div class="field-label">11 - NOME DO RESPONSÁVEL</div>
+      <input class="field-input" type="text" id="f11_responsavel" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:1">
+      <div class="tel-group">
+        <div class="tel-label-row">
+          <span class="tel-ddd-label">DDD</span>
+          <span class="tel-num-label">12 - TELEFONE DE CONTATO &nbsp; Nº DO TELEFONE</span>
+        </div>
+        <div class="tel-inputs">
+          <input class="tel-input-ddd" type="text" maxlength="2" id="f12_ddd">
+          <input class="tel-input-num" type="text" id="f12_tel">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field-cell">
+      <div class="field-label">13 - ENDEREÇO (RUA, Nº, BAIRRO)</div>
+      <input class="field-input large" type="text" id="f13_endereco" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field-cell" style="flex:3">
+      <div class="field-label">14 - MUNICÍPIO DE RESIDÊNCIA</div>
+      <input class="field-input" type="text" id="f14_municipio" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:1.2">
+      <div class="field-label">15 - CÓD. IBGE MUNICÍPIO</div>
+      <input class="field-input small" type="text" id="f15_ibge" autocomplete="off">
+    </div>
+    <div class="field-cell" style="max-width:40px;">
+      <div class="field-label">16 - UF</div>
+      <input class="field-input small" type="text" maxlength="2" id="f16_uf" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:1">
+      <div class="field-label">17 - CEP</div>
+      <input class="field-input small" type="text" id="f17_cep" autocomplete="off">
+    </div>
+  </div>
+
+  <!-- PROCEDIMENTO SOLICITADO -->
+  <div class="section-title">PROCEDIMENTO SOLICITADO</div>
+  <div class="proc-code-row">
+    <div class="field-cell" style="max-width:135px; border-right:1px solid #000;">
+      <div class="field-label">18 - CÓDIGO DO PROCEDIMENTO PRINCIPAL</div>
+      <div class="proc-code-cell" id="proc_code_boxes"></div>
+    </div>
+    <div class="field-cell" style="flex:4">
+      <div class="field-label">19 - NOME DO PROCEDIMENTO PRINCIPAL</div>
+      <input class="field-input" type="text" id="f19_proc_nome" autocomplete="off">
+    </div>
+    <div class="field-cell" style="max-width:48px;">
+      <div class="field-label">20 - QTDE.</div>
+      <input class="field-input small" type="text" id="f20_qtde" autocomplete="off">
+    </div>
+  </div>
+
+  <!-- PROCEDIMENTOS SECUNDÁRIOS -->
+  <div class="section-title">PROCEDIMENTO(S) SECUNDÁRIO(S)</div>
+  <div id="sec_procs"></div>
+
+  <!-- JUSTIFICATIVA -->
+  <div class="section-title">JUSTIFICATIVA DO(S) PROCEDIMENTO(S) SOLICITADO(S)</div>
+
+  <div class="field-row">
+    <div class="field-cell" style="flex:2">
+      <div class="field-label">36 - DESCRIÇÃO DO DIAGNÓSTICO</div>
+      <input class="field-input" type="text" id="f36_diagnostico" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:0.8">
+      <div class="field-label">37-CID10 PRINCIPAL</div>
+      <input class="field-input" type="text" id="f37_cid_principal" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:0.8">
+      <div class="field-label">38-CID10 SECUNDÁRIO</div>
+      <input class="field-input small" type="text" id="f38_cid_sec" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:1">
+      <div class="field-label">39-CID10 CAUSAS ASSOCIADAS</div>
+      <input class="field-input small" type="text" id="f39_cid_assoc" autocomplete="off">
+    </div>
+  </div>
+
+  <!-- OBSERVAÇÕES — cresce para preencher o espaço restante -->
+  <div class="field-row grow" style="border-left:1px solid #000; border-right:1px solid #000; border-bottom:1px solid #000;">
+    <div class="field-cell" style="flex:1;">
+      <div class="field-label">40 - OBSERVAÇÕES</div>
+      <textarea class="obs-textarea" id="f40_obs"></textarea>
+    </div>
+  </div>
+
+  <!-- SOLICITAÇÃO -->
+  <div class="section-title">SOLICITAÇÃO</div>
+
+  <div class="field-row">
+    <div class="field-cell" style="flex:2">
+      <div class="field-label">41 - NOME DO PROFISSIONAL SOLICITANTE</div>
+      <input class="field-input" type="text" id="f41_prof_sol" autocomplete="off">
+    </div>
+    <div class="field-cell" style="max-width:95px;">
+      <div class="field-label">42-DATA DA SOLICITAÇÃO</div>
+      <div class="date-row">
+        <input class="date-box" type="text" maxlength="1" id="ds1">
+        <input class="date-box" type="text" maxlength="1" id="ds2">
+        <span class="date-sep">/</span>
+        <input class="date-box" type="text" maxlength="1" id="ds3">
+        <input class="date-box" type="text" maxlength="1" id="ds4">
+        <span class="date-sep">/</span>
+      </div>
+    </div>
+    <div class="assinatura-cell">
+      <div class="field-label">45-ASSINATURA E CARIMBO (Nº REGISTRO DO CONSELHO)</div>
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field-cell" style="max-width:78px;">
+      <div class="field-label">43 - DOCUMENTO</div>
+      <div class="doc-checks">
+        <label class="doc-option"><input type="checkbox" id="f43_cns" onclick="selectDoc('sol','cns')"> CNS</label>
+        <label class="doc-option"><input type="checkbox" id="f43_cpf" onclick="selectDoc('sol','cpf')"> CPF</label>
+      </div>
+    </div>
+    <div class="field-cell" style="flex:2">
+      <div class="field-label">44 - Nº DOCUMENTO (CNS/CPF) DO PROFISSIONAL SOLICITANTE</div>
+      <div class="cns-row" id="f44_doc_boxes"></div>
+    </div>
+  </div>
+
+  <!-- AUTORIZAÇÃO -->
+  <div class="section-title">AUTORIZAÇÃO</div>
+
+  <div class="field-row">
+    <div class="field-cell" style="flex:2">
+      <div class="field-label">46 - NOME DO PROFISSIONAL AUTORIZADOR</div>
+      <input class="field-input" type="text" id="f46_prof_aut" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:1">
+      <div class="field-label">47 - CÓD. ÓRGÃO EMISSOR</div>
+      <input class="field-input small" type="text" id="f47_orgao" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:1">
+      <div class="field-label">52 - Nº DA AUTORIZAÇÃO (APAC)</div>
+      <input class="field-input small" type="text" id="f52_apac" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field-cell" style="max-width:78px;">
+      <div class="field-label">48 - DOCUMENTO</div>
+      <div class="doc-checks">
+        <label class="doc-option"><input type="checkbox" id="f48_cns" onclick="selectDoc('aut','cns')"> CNS</label>
+        <label class="doc-option"><input type="checkbox" id="f48_cpf" onclick="selectDoc('aut','cpf')"> CPF</label>
+      </div>
+    </div>
+    <div class="field-cell" style="flex:2">
+      <div class="field-label">49 - Nº DOCUMENTO (CNS/CPF) DO PROFISSIONAL AUTORIZADOR</div>
+      <div class="cns-row" id="f49_doc_boxes"></div>
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field-cell" style="max-width:95px;">
+      <div class="field-label">50-DATA DA AUTORIZAÇÃO</div>
+      <div class="date-row">
+        <input class="date-box" type="text" maxlength="1" id="da1">
+        <input class="date-box" type="text" maxlength="1" id="da2">
+        <span class="date-sep">/</span>
+        <input class="date-box" type="text" maxlength="1" id="da3">
+        <input class="date-box" type="text" maxlength="1" id="da4">
+        <span class="date-sep">/</span>
+        <input class="date-box" type="text" maxlength="1" id="da5">
+        <input class="date-box" type="text" maxlength="1" id="da6">
+      </div>
+    </div>
+    <div class="assinatura-cell" style="flex:2">
+      <div class="field-label">51 - ASSINATURA E CARIMBO (Nº DO REGISTRO DO CONSELHO)</div>
+    </div>
+    <div class="field-cell" style="flex:1">
+      <div class="field-label">53 - PERÍODO DE VALIDADE DA APAC</div>
+      <div class="date-row">
+        <input class="date-box" type="text" maxlength="1">
+        <input class="date-box" type="text" maxlength="1">
+        <span class="date-sep">/</span>
+        <input class="date-box" type="text" maxlength="1">
+        <input class="date-box" type="text" maxlength="1">
+        <span class="date-sep"> a </span>
+        <input class="date-box" type="text" maxlength="1">
+        <input class="date-box" type="text" maxlength="1">
+        <span class="date-sep">/</span>
+        <input class="date-box" type="text" maxlength="1">
+        <input class="date-box" type="text" maxlength="1">
+      </div>
+    </div>
+  </div>
+
+  <!-- EXECUTANTE -->
+  <div class="section-title">IDENTIFICAÇÃO DO ESTABELECIMENTO DE SAÚDE (EXECUTANTE)</div>
+  <div class="field-row">
+    <div class="field-cell" style="flex:4">
+      <div class="field-label">54 – NOME FANTASIA DO ESTABELECIMENTO DE SAÚDE EXECUTANTE</div>
+      <input class="field-input" type="text" id="f54_executante" autocomplete="off">
+    </div>
+    <div class="field-cell" style="flex:1; max-width:90px;">
+      <div class="field-label">55 - CNES</div>
+      <input class="field-input" type="text" id="f55_cnes_exec" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="form-footer">01-Laudo Solic. Proc. Amb Atualizada_21-10-10.vsd</div>
+
+</div><!-- /page -->
+
+<script>
+// ── Caixinhas CNS (15 dígitos) ──
+function buildCNSBoxes(containerId, fieldId, count) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.maxLength = 1; inp.className = 'cns-box';
+    inp.id = `${fieldId}_${i}`;
+    inp.addEventListener('input', function() {
+      if (this.value.length === 1) { const n = document.getElementById(`${fieldId}_${i+1}`); if(n) n.focus(); }
+    });
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && this.value === '') { const p = document.getElementById(`${fieldId}_${i-1}`); if(p){p.focus();p.value='';} }
+    });
+    c.appendChild(inp);
+  }
+}
+
+// ── Caixinhas procedimento (8 dígitos) ──
+function buildProcBoxes(containerId, fieldId) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.maxLength = 1; inp.className = 'proc-code-box';
+    inp.id = `${fieldId}_${i}`;
+    inp.addEventListener('input', function() {
+      if (this.value.length === 1) { const n = document.getElementById(`${fieldId}_${i+1}`); if(n) n.focus(); }
+    });
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && this.value === '') { const p = document.getElementById(`${fieldId}_${i-1}`); if(p){p.focus();p.value='';} }
+    });
+    c.appendChild(inp);
+  }
+}
+
+// ── Caixinhas secundárias (8 dígitos, estilo inline) ──
+function buildSmallBoxes(containerId, fieldId, count) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.maxLength = 1;
+    inp.style.cssText = 'border:1px solid #000;width:15px;height:15px;text-align:center;font-size:10.5pt;outline:none;padding:0;background:transparent;flex-shrink:0;';
+    inp.id = `${fieldId}_${i}`;
+    inp.addEventListener('input', function() {
+      if (this.value.length === 1) { const n = document.getElementById(`${fieldId}_${i+1}`); if(n) n.focus(); }
+    });
+    c.appendChild(inp);
+  }
+}
+
+// ── Linhas de procedimentos secundários ──
+function buildSecProcs() {
+  const container = document.getElementById('sec_procs');
+  const rows = [[21,22,23],[24,25,26],[27,28,29],[30,31,32],[33,34,35]];
+  rows.forEach(([a,b,c]) => {
+    const row = document.createElement('div');
+    row.className = 'proc-code-row';
+    row.innerHTML = `
+      <div class="field-cell" style="max-width:135px; border-right:1px solid #000;">
+        <div class="field-label">${a} - CÓDIGO DO PROCEDIMENTO SECUNDÁRIO</div>
+        <div class="cns-row" id="sp_code_${a}" style="padding:2px;gap:1px;"></div>
+      </div>
+      <div class="field-cell" style="flex:4">
+        <div class="field-label">${b} - NOME DO PROCEDIMENTO SECUNDÁRIO</div>
+        <input class="field-input small" type="text" id="sp_nome_${b}" autocomplete="off">
+      </div>
+      <div class="field-cell" style="max-width:48px;">
+        <div class="field-label">${c} - QTDE.</div>
+        <input class="field-input small" type="text" id="sp_qtde_${c}" autocomplete="off">
+      </div>`;
+    container.appendChild(row);
+    buildSmallBoxes(`sp_code_${a}`, `sp_code_${a}_box`, 8);
+  });
+}
+
+function selectSexo(val) {
+  document.getElementById(val==='mas'?'f4_fem':'f4_mas').checked = false;
+}
+function selectDoc(sec, val) {
+  if (sec==='sol') { document.getElementById(val==='cns'?'f43_cpf':'f43_cns').checked=false; }
+  else             { document.getElementById(val==='cns'?'f48_cpf':'f48_cns').checked=false; }
+}
+
+// Auto-avance nas caixas de data
+document.querySelectorAll('.date-box').forEach((box) => {
+  box.addEventListener('input', function() {
+    if (this.value.length === 1) {
+      const all = Array.from(document.querySelectorAll('.date-box'));
+      const i = all.indexOf(this);
+      if (i+1 < all.length) all[i+1].focus();
+    }
+  });
+});
+
+function salvarDados() {
+  const data = {};
+  document.querySelectorAll('input[type="text"], textarea').forEach(el => { if(el.id) data[el.id]=el.value; });
+  document.querySelectorAll('input[type="checkbox"]').forEach(el => { if(el.id) data[el.id]=el.checked; });
+  localStorage.setItem('laudo_apac', JSON.stringify(data));
+  alert('Dados salvos!');
+}
+function carregarDados() {
+  const saved = localStorage.getItem('laudo_apac');
+  if (!saved) return;
+  const data = JSON.parse(saved);
+  Object.entries(data).forEach(([id,val]) => {
+    const el = document.getElementById(id); if(!el) return;
+    if(el.type==='checkbox') el.checked=val; else el.value=val;
+  });
+}
+function limparFormulario() {
+  if (!confirm('Deseja limpar todos os campos?')) return;
+  document.querySelectorAll('input[type="text"], textarea').forEach(el=>el.value='');
+  document.querySelectorAll('input[type="checkbox"]').forEach(el=>el.checked=false);
+  localStorage.removeItem('laudo_apac');
+}
+
+// Init
+buildCNSBoxes('cns_boxes','f6_cns',15);
+buildProcBoxes('proc_code_boxes','f18_proc');
+buildCNSBoxes('f44_doc_boxes','f44_doc',15);
+buildCNSBoxes('f49_doc_boxes','f49_doc',15);
+buildSecProcs();
+carregarDados();
+
+// Pré-preenchimento fixo (só aplica se o campo estiver vazio)
+function preencherSeVazio(id, valor) {
+  const el = document.getElementById(id);
+  if (el && !el.value) el.value = valor;
+}
+function preencherCNSFixo(baseId, numero) {
+  const digits = numero.replace(/\D/g,'').split('');
+  digits.forEach((d, i) => {
+    const el = document.getElementById(`${baseId}_${i}`);
+    if (el && !el.value) el.value = d;
+  });
+}
+
+preencherSeVazio('f1_nome_estab', 'ADQPAL-ASSOC.DOS DEPENTENDES QUIMICOS E PORTADORES DE DOENÇAS PSIQUIÁTRICAS');
+preencherSeVazio('f2_cnes',       '9033459');
+preencherSeVazio('f14_municipio', 'SÃO MIGUEL DOS CAMPOS / AL');
+preencherSeVazio('f16_uf',        'AL');
+preencherSeVazio('f41_prof_sol',  'LUIZ PAULO DE SOUZA PRAZERES');
+preencherCNSFixo('f44_doc',       '700007157748104');
+
+// Marcar CNS como tipo de documento do solicitante
+const cnsSol = document.getElementById('f43_cns');
+if (cnsSol && !cnsSol.checked) { cnsSol.checked = true; }
+
+</script>
+</body>
+</html>

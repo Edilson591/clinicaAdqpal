@@ -15,6 +15,7 @@ const USERS_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
 
 const NOTES_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
 const RH_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
+const DOCUMENTOS_ROLES = [USER_ROLES.ADMIN] as const;
 
 export function PermissionsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -28,6 +29,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
 
   const canAccessNotas = !!user && NOTES_ROLES.includes(user.roleId as (typeof NOTES_ROLES)[number])
   const canAccessRh = !!user && RH_ROLES.includes(user.roleId as (typeof RH_ROLES)[number])
+  const canAccessDocumentos = !!user && DOCUMENTOS_ROLES.includes(user.roleId as (typeof DOCUMENTOS_ROLES)[number])
   return (
     <PermissionsContext.Provider
       value={{
@@ -35,6 +37,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
         canAccessUsers,
         canAccessNotas,
         canAccessRh,
+        canAccessDocumentos,
       }}
     >
       {children}

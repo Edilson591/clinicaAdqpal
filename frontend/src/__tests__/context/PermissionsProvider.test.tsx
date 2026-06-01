@@ -10,12 +10,17 @@ vi.mock('../../context/AuthContext', () => ({
 
 import { useAuth } from '../../context/AuthContext';
 
-function PermissionDisplay() {
+function FinanceiroDisplay() {
   const { canAccessFinanceiro } = usePermissions();
-  return <div data-testid="result">{canAccessFinanceiro ? 'allowed' : 'denied'}</div>;
+  return <div data-testid="result-financeiro">{canAccessFinanceiro ? 'allowed' : 'denied'}</div>;
 }
 
-function renderWithRole(roleId: number | null) {
+function DocumentosDisplay() {
+  const { canAccessDocumentos } = usePermissions();
+  return <div data-testid="result-documentos">{canAccessDocumentos ? 'allowed' : 'denied'}</div>;
+}
+
+function renderWithRole(roleId: number | null, display: 'financeiro' | 'documentos' = 'financeiro') {
   vi.mocked(useAuth).mockReturnValue({
     user: roleId !== null ? ({ id: 'u1', roleId } as any) : null,
     token: 'tok',
@@ -25,44 +30,81 @@ function renderWithRole(roleId: number | null) {
 
   render(
     <PermissionsProvider>
-      <PermissionDisplay />
+      {display === 'financeiro' ? <FinanceiroDisplay /> : <DocumentosDisplay />}
     </PermissionsProvider>,
   );
 }
 
 describe('PermissionsProvider — canAccessFinanceiro', () => {
   it('grants access to ADMIN (roleId=1)', () => {
-    renderWithRole(USER_ROLES.ADMIN);
-    expect(screen.getByTestId('result').textContent).toBe('allowed');
+    renderWithRole(USER_ROLES.ADMIN, 'financeiro');
+    expect(screen.getByTestId('result-financeiro').textContent).toBe('allowed');
   });
 
   it('grants access to RECEPTIONIST (roleId=5)', () => {
-    renderWithRole(USER_ROLES.RECEPTIONIST);
-    expect(screen.getByTestId('result').textContent).toBe('allowed');
+    renderWithRole(USER_ROLES.RECEPTIONIST, 'financeiro');
+    expect(screen.getByTestId('result-financeiro').textContent).toBe('allowed');
   });
 
   it('grants access to IT_SUPPORT (roleId=9)', () => {
-    renderWithRole(USER_ROLES.IT_SUPPORT);
-    expect(screen.getByTestId('result').textContent).toBe('allowed');
+    renderWithRole(USER_ROLES.IT_SUPPORT, 'financeiro');
+    expect(screen.getByTestId('result-financeiro').textContent).toBe('allowed');
   });
 
   it('denies access to DOCTOR (roleId=3)', () => {
-    renderWithRole(USER_ROLES.DOCTOR);
-    expect(screen.getByTestId('result').textContent).toBe('denied');
+    renderWithRole(USER_ROLES.DOCTOR, 'financeiro');
+    expect(screen.getByTestId('result-financeiro').textContent).toBe('denied');
   });
 
   it('denies access to NURSE (roleId=4)', () => {
-    renderWithRole(USER_ROLES.NURSE);
-    expect(screen.getByTestId('result').textContent).toBe('denied');
+    renderWithRole(USER_ROLES.NURSE, 'financeiro');
+    expect(screen.getByTestId('result-financeiro').textContent).toBe('denied');
   });
 
   it('denies access to USER (roleId=2)', () => {
-    renderWithRole(USER_ROLES.USER);
-    expect(screen.getByTestId('result').textContent).toBe('denied');
+    renderWithRole(USER_ROLES.USER, 'financeiro');
+    expect(screen.getByTestId('result-financeiro').textContent).toBe('denied');
   });
 
   it('denies access when user is null', () => {
-    renderWithRole(null);
-    expect(screen.getByTestId('result').textContent).toBe('denied');
+    renderWithRole(null, 'financeiro');
+    expect(screen.getByTestId('result-financeiro').textContent).toBe('denied');
+  });
+});
+
+describe('PermissionsProvider — canAccessDocumentos', () => {
+  it('grants access to ADMIN (roleId=1)', () => {
+    renderWithRole(USER_ROLES.ADMIN, 'documentos');
+    expect(screen.getByTestId('result-documentos').textContent).toBe('allowed');
+  });
+
+  it('denies access to USER (roleId=2)', () => {
+    renderWithRole(USER_ROLES.USER, 'documentos');
+    expect(screen.getByTestId('result-documentos').textContent).toBe('denied');
+  });
+
+  it('denies access to DOCTOR (roleId=3)', () => {
+    renderWithRole(USER_ROLES.DOCTOR, 'documentos');
+    expect(screen.getByTestId('result-documentos').textContent).toBe('denied');
+  });
+
+  it('denies access to NURSE (roleId=4)', () => {
+    renderWithRole(USER_ROLES.NURSE, 'documentos');
+    expect(screen.getByTestId('result-documentos').textContent).toBe('denied');
+  });
+
+  it('denies access to RECEPTIONIST (roleId=5)', () => {
+    renderWithRole(USER_ROLES.RECEPTIONIST, 'documentos');
+    expect(screen.getByTestId('result-documentos').textContent).toBe('denied');
+  });
+
+  it('denies access to IT_SUPPORT (roleId=9)', () => {
+    renderWithRole(USER_ROLES.IT_SUPPORT, 'documentos');
+    expect(screen.getByTestId('result-documentos').textContent).toBe('denied');
+  });
+
+  it('denies access when user is null', () => {
+    renderWithRole(null, 'documentos');
+    expect(screen.getByTestId('result-documentos').textContent).toBe('denied');
   });
 });

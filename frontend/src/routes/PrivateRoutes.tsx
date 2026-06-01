@@ -23,10 +23,13 @@ import { UsersGuard } from "../components/ui/UsersGuard";
 import RhPage from "../pages/rh/RhPage";
 import NewEmployeePage from "../pages/rh/NewEmployeePage";
 import EditEmployeePage from "../pages/rh/EditEmployeePage";
+import ApacLaudoPage from "../pages/documentos/ApacLaudoPage";
+import ReceituarioPage from "../pages/documentos/ReceituarioPage";
 // import NotasFiscaisPage from "../pages/notasfiscais/NotasFiscaisPage";
 import { NotaFiscalGuard } from "../components/ui/NotaFiscalGuard";
 import { RhGuard } from "../components/ui/RhGuard";
 import { FinanceiroGuard } from "../components/ui/FinanceiroGuard";
+import { DocumentosGuard } from "../components/ui/DocumentosGuard";
 
 export const privateRoutes = (
   <Route element={<ProtectedRoute />}>
@@ -44,6 +47,10 @@ export const privateRoutes = (
       <Route path="/prontuarios" element={<ProntuariosPage />} />
       <Route path="/prontuarios/novo" element={<NovoProntuarioPage />} />
       <Route path="/prontuarios/:id/editar" element={<EditProntuarioPage />} />
+      <Route element={<DocumentosGuard />}>
+        <Route path="/documentos/apac" element={<ApacLaudoPage />} />
+        <Route path="/documentos/receituario" element={<ReceituarioPage />} />
+      </Route>
       <Route element={<NotaFiscalGuard />}>
         {/* <Route path="/notas-fiscais" element={<NotasFiscaisPage />} /> */}
       </Route>

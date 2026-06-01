@@ -79,4 +79,9 @@ export const userService = {
   delete: async (id: string): Promise<void> => {
     await api.delete(`/users/${id}`);
   },
+
+  checkAdmin: async (): Promise<{ isAdmin: boolean }> => {
+    const res = await api.get<ApiResponse<{ isAdmin: boolean }>>("/users/check-admin");
+    return res.data.data!;
+  },
 };

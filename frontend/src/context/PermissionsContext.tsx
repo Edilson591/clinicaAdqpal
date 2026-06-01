@@ -9,13 +9,15 @@ interface PermissionsContextValue {
 
   canAccessNotas: boolean;
   canAccessRh: boolean;
+  canAccessDocumentos: boolean;
 }
 
 export const PermissionsContext = createContext<PermissionsContextValue>({
   canAccessFinanceiro: false,
   canAccessUsers: false,
   canAccessNotas: false,
-  canAccessRh: false
+  canAccessRh: false,
+  canAccessDocumentos: false,
 });
 
 

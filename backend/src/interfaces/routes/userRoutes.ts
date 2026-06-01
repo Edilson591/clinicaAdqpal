@@ -18,6 +18,9 @@ router.post("/logout", controller.logout.bind(controller));
 
 // ─── Privadas ─────────────────────────────────────────────────────────────────
 
+// Verifica se o usuário logado é admin (usado pelo front como segurança extra)
+router.get("/check-admin", authMiddleware, controller.checkAdmin.bind(controller));
+
 // Listagem completa: somente ADMIN
 router.get("/", authMiddleware, requireRole(ROLES.ADMIN), controller.getAll.bind(controller));
 

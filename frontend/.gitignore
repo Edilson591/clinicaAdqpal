@@ -15,6 +15,7 @@ dist-ssr
 *.local
 
 CLAUDE.md
+DOCUMENTATION.md
 
 .env
 # Editor directories and files

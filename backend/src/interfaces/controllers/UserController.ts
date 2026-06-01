@@ -63,7 +63,11 @@ export class UserController {
       const user = await new RegisterUser(userRepository, hashService).execute(
         dto,
       );
-      auditService.create(req, "USER", user.id, { username: user.username, email: user.email, roleId: user.roleId });
+      auditService.create(req, "USER", user.id, {
+        username: user.username,
+        email: user.email,
+        roleId: user.roleId,
+      });
       res.status(201).json({
         success: true,
         message: "Usuário criado com sucesso.",
@@ -112,7 +116,6 @@ export class UserController {
           isDefinitive: true,
         });
 
-   
         auditService.login(req);
 
         res.cookie("adqpal_token", definitiveToken, {
@@ -303,7 +306,10 @@ export class UserController {
         req.params.id as string,
         dto,
       );
-      auditService.update(req, "USER", user.id, oldUser ?? undefined, { ...user, passwordHash: undefined });
+      auditService.update(req, "USER", user.id, oldUser ?? undefined, {
+        ...user,
+        passwordHash: undefined,
+      });
       res.status(200).json({
         success: true,
         message: "Usuário atualizado com sucesso.",
@@ -324,6 +330,18 @@ export class UserController {
         .json({ success: true, message: "Usuário deletado com sucesso." });
     } catch (err) {
       next(err);
+    }
+  }
+
+  async checkAdmin(req: Request, res: Response): Promise<void> {
+    try {
+      const isAdmin = req.userRoleId === 1;
+      res.status(200).json({
+        success: true,
+        data: { isAdmin },
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Erro interno." });
     }
   }
 

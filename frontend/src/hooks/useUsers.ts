@@ -8,6 +8,7 @@ export const USER_KEYS = {
   byRole: (roleId: number) => ["users", "role", roleId] as const,
   paginated: (page: number, limit: number, search: string, roleId: string) =>
     ["users", "paginated", page, limit, search, roleId] as const,
+  checkAdmin: ["users", "check-admin"] as const,
 };
 
 export function useUsers() {
@@ -17,11 +18,21 @@ export function useUsers() {
   });
 }
 
-export function useUsersPaginated(page: number, limit: number, search: string, roleId: string) {
+export function useUsersPaginated(
+  page: number,
+  limit: number,
+  search: string,
+  roleId: string,
+) {
   return useQuery({
     queryKey: USER_KEYS.paginated(page, limit, search, roleId),
     queryFn: () =>
-      userService.getAllPaginated(page, limit, search || undefined, roleId ? Number(roleId) : undefined),
+      userService.getAllPaginated(
+        page,
+        limit,
+        search || undefined,
+        roleId ? Number(roleId) : undefined,
+      ),
   });
 }
 
@@ -37,4 +48,11 @@ export function useDoctors() {
   });
 
   return query;
+}
+
+export function useCheckAdmin() {
+  return useQuery({
+    queryKey: USER_KEYS.checkAdmin,
+    queryFn: () => userService.checkAdmin(),
+  });
 }
