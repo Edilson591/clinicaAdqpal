@@ -395,3 +395,14 @@ enum NotaFiscalStatus {
   EMITIDA
   CANCELADA
 }
+
+model SusProcedure {
+  id         String   @id @default(uuid())
+  codigo     String   @unique
+  nome       String
+  modalidade String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("sus_procedures")
+}

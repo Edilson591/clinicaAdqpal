@@ -371,3 +371,19 @@ export interface WhatsAppResponse {
   jobId: string;
   channels: ("whatsapp" | "sms")[];
 }
+
+
+export interface SusProcedureResponse {
+  id: string;
+  codigo: string;
+  nome: string;
+  modalidade: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SusProcedureData {
+  codigo: string;
+  nome: string;
+  modalidade: string;
+}

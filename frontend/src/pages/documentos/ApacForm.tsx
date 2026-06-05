@@ -1,10 +1,12 @@
 import type { RefObject } from "react";
 import { CharBoxGrid } from "./CharBoxGrid";
 import { DateBoxRow } from "./DateBoxRow";
+import { SearchableSelectGroup, type SearchableOption } from "../../components/ui/SearchableSelect";
 import {
   type ApacData,
   CNS_LENGTH,
   PROC_LENGTH,
+  PROC_PRIMARY_LENGTH,
   SEC_PROC_ROWS,
 } from "../../hooks/useApacLaudoPage";
 
@@ -17,6 +19,8 @@ interface ApacFormProps {
     field: "code" | "nome" | "qtde",
     value: string[] | string,
   ) => void;
+  procedureOptions: SearchableOption[];
+  onProcedureSelect: (codigo: string) => void;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -27,7 +31,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function ApacForm({ data, formRef, update, updateSecProc }: ApacFormProps) {
+export function ApacForm({ data, formRef, update, updateSecProc, procedureOptions, onProcedureSelect }: ApacFormProps) {
   return (
     <div className="bg-white dark:bg-[#1E293B] rounded-xl shadow-sm border border-[#E2E8F0] dark:border-[#334155] p-3 sm:p-6">
       <div className="flex justify-center">
@@ -294,14 +298,23 @@ export function ApacForm({ data, formRef, update, updateSecProc }: ApacFormProps
           </div>
 
           {/* PROCEDIMENTO SOLICITADO */}
+          <div className="mb-2 no-print">
+            <SearchableSelectGroup
+              label="Buscar Procedimento SUS"
+              placeholder="Digite o código ou nome do procedimento..."
+              options={procedureOptions}
+              value={data.f18_proc.join("").trim()}
+              onChange={onProcedureSelect}
+            />
+          </div>
           <SectionTitle>PROCEDIMENTO SOLICITADO</SectionTitle>
           <div className="flex border-l border-r border-b border-black shrink-0">
-            <div className="max-w-33.75 border-r border-black flex flex-col">
+            <div className="max-w-52 border-r border-black flex flex-col">
               <div className="field-label">18 - CÓDIGO DO PROCEDIMENTO PRINCIPAL</div>
               <CharBoxGrid
                 values={data.f18_proc}
                 onChange={(v) => update("f18_proc", v)}
-                length={PROC_LENGTH}
+                length={PROC_PRIMARY_LENGTH}
                 className="flex px-0.5 py-0.5 gap-px items-center flex-1"
                 boxClassName="apac-proc-box"
               />
@@ -335,7 +348,7 @@ export function ApacForm({ data, formRef, update, updateSecProc }: ApacFormProps
                 key={idx}
                 className="flex border-l border-r border-b border-black shrink-0"
               >
-                <div className="max-w-33.75 border-r border-black flex flex-col">
+                <div className="max-w-44 border-r border-black flex flex-col">
                   <div className="field-label">{a} - CÓDIGO DO PROCEDIMENTO SECUNDÁRIO</div>
                   <CharBoxGrid
                     values={sp.code}
@@ -432,7 +445,7 @@ export function ApacForm({ data, formRef, update, updateSecProc }: ApacFormProps
                 className="apac-input"
               />
             </div>
-            <div className="max-w-23.75 border-r border-black flex flex-col">
+            <div className="max-w-35 border-r border-black flex flex-col">
               <div className="field-label">42-DATA DA SOLICITAÇÃO</div>
               <DateBoxRow values={data.ds} onChange={(v) => update("ds", v)} length={6} />
             </div>

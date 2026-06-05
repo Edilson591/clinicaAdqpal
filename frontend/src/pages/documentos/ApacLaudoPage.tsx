@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Header } from "../../components/Dashboard/Header";
-import { useApacLaudoPage } from "../../hooks/useApacLaudoPage";
+import { useApacLaudoPage, type ApacData } from "../../hooks/useApacLaudoPage";
 import { usePatient } from "../../hooks/usePatients";
 import { usePatientSearch } from "../../hooks/usePatientSearch";
 import { useDoctors } from "../../hooks/useUsers";
@@ -29,14 +29,16 @@ function parsePhone(phone: string | null): { ddd: string; number: string } {
 
 function fillFromPatient(p: PatientResponse) {
   const phone = parsePhone(p.phone);
+  const saved = localStorage.getItem("apac_laudo");
+  const parsed = JSON.parse(saved ?? "") as ApacData;
   return {
     f3_nome_paciente: p.name ?? "",
     f4_sexo: (p.gender === "M" ? "mas" : p.gender === "F" ? "fem" : null) as
       | "mas"
       | "fem"
       | null,
-    f5_prontuario: "",
-    f6_cns: Array(15).fill(""),
+    f5_prontuario: parsed.f5_prontuario ?? "",
+    f6_cns: parsed.f6_cns ?? Array(15).fill(""),
     dn: parseDateToBoxes(p.dateOfBirth),
     f8_raca: "",
     f8_etnia: "",
@@ -53,8 +55,8 @@ function fillFromPatient(p: PatientResponse) {
     f15_ibge: "",
     f16_uf: p.state ?? "AL",
     f17_cep: p.zipCode ?? "",
-    f18_proc: Array(8).fill(""),
-    f19_proc_nome: "",
+    f18_proc: parsed.f18_proc ?? Array(10).fill(""),
+    f19_proc_nome: parsed.f19_proc_nome ?? "",
     f20_qtde: "",
     f36_diagnostico: "",
     f37_cid_principal: "",
@@ -86,6 +88,7 @@ export default function ApacLaudoPage() {
     updateSecProc,
     handlePrint,
     handleClear,
+    susProcedures,
   } = useApacLaudoPage();
 
   const [selectedPatientId, setSelectedPatientId] = useState(
@@ -139,6 +142,23 @@ export default function ApacLaudoPage() {
     value: d.id,
     label: d.username,
   }));
+
+  const procedureOptions = (susProcedures ?? []).map((p) => ({
+    value: p.codigo,
+    label: `${p.codigo} - ${p.nome}`,
+  }));
+
+  const handleProcedureSelect = useCallback(
+    (codigo: string) => {
+      const proc = (susProcedures ?? []).find((p) => p.codigo === codigo);
+
+      if (!proc) return;
+      const chars = proc.codigo.padEnd(10, " ").split("").slice(0, 10);
+      update("f18_proc", chars);
+      update("f19_proc_nome", proc.nome);
+    },
+    [susProcedures, update],
+  );
 
   return (
     <main className="flex-1 relative dark:bg-[#0F172A] overflow-y-auto">
@@ -208,6 +228,8 @@ export default function ApacLaudoPage() {
           formRef={formRef}
           update={update}
           updateSecProc={updateSecProc}
+          procedureOptions={procedureOptions}
+          onProcedureSelect={handleProcedureSelect}
         />
       </div>
     </main>

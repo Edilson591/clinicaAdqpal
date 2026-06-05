@@ -1,6 +1,7 @@
 import "dotenv/config";
 import app from "./src/interfaces/http/app";
 import { startNotificationWorker } from "./src/infrastructure/queue/NotificationWorker";
+import { startSusSyncCron } from "./src/infrastructure/cron/SusSyncCron";
 // import { startNotaFiscalWorker } from "./src/infrastructure/queue/NotasFiscalWorker";
 
 const PORT = Number(process.env.PORT) || 3333;
@@ -10,6 +11,11 @@ if (process.env.VERCEL !== "1") {
   startNotificationWorker();
 }
 // startNotaFiscalWorker();
+
+// Cron: sincroniza procedimentos SUS uma vez por mês
+// if (process.env.VERCEL !== "1") {
+  startSusSyncCron();
+// }
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ADQPAL rodando em http://localhost:${PORT}`);

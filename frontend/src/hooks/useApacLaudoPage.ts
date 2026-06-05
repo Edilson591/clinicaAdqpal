@@ -2,9 +2,11 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useReactToPrint } from "react-to-print";
 import { apacPrintSchema } from "../validate/apac.schema";
 import { z } from "zod";
+import { useSusProcedure } from "./useSusProcedure";
 
 export const CNS_LENGTH = 15;
 export const PROC_LENGTH = 8;
+export const PROC_PRIMARY_LENGTH = 10;
 export const SEC_PROC_ROWS = [
   [21, 22, 23],
   [24, 25, 26],
@@ -88,7 +90,7 @@ export function emptyApacData(): ApacData {
     f15_ibge: "",
     f16_uf: "AL",
     f17_cep: "",
-    f18_proc: Array(PROC_LENGTH).fill(""),
+    f18_proc: Array(PROC_PRIMARY_LENGTH).fill(""),
     f19_proc_nome: "",
     f20_qtde: "",
     sec_procs: SEC_PROC_ROWS.map(() => ({
@@ -252,8 +254,10 @@ export function useApacLaudoPage() {
   const [data, setData] = useState<ApacData>(() => {
     try {
       const saved = localStorage.getItem("apac_laudo");
+
       if (saved) {
         const parsed = JSON.parse(saved);
+        console.log(parsed)
         if (!parsed._selectedPatientId) parsed._selectedPatientId = "";
         if (!parsed._selectedDoctorId) parsed._selectedDoctorId = "";
         return parsed;
@@ -264,6 +268,7 @@ export function useApacLaudoPage() {
     return emptyApacData();
   });
 
+  const {data: susProcedures} = useSusProcedure();
   const [errors, setErrors] = useState<string[]>([]);
 
   const formRef = useRef<HTMLDivElement>(null);
@@ -351,5 +356,6 @@ export function useApacLaudoPage() {
     handlePrint,
     handleSave,
     handleClear,
+    susProcedures,
   };
 }
