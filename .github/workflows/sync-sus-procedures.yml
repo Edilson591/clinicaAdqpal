@@ -1,0 +1,16 @@
+name: Sync SUS Procedures
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar sync dos procedimentos SUS
+        run: |
+          curl -X POST "${{ secrets.VERCEL_URL }}/sus-procedures/sync" \
+            -H "Authorization: Bearer ${{ secrets.SYNC_SECRET }}" \
+            -H "Content-Type: application/json"

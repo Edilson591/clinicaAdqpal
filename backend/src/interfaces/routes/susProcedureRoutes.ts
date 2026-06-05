@@ -7,5 +7,6 @@ const controller = new SusProcedureController();
 
 router.get("/", authMiddleware, controller.getAll.bind(controller));
 router.get("/:codigo", authMiddleware, controller.getByCodigo.bind(controller));
+router.post("/sync", controller.sync.bind(controller));
 
 export default router;

@@ -12,10 +12,10 @@ if (process.env.VERCEL !== "1") {
 }
 // startNotaFiscalWorker();
 
-// Cron: sincroniza procedimentos SUS uma vez por mês
-// if (process.env.VERCEL !== "1") {
+// Cron: sincroniza procedimentos SUS uma vez por mês (Vercel usa cron jobs externos)
+if (process.env.VERCEL !== "1") {
   startSusSyncCron();
-// }
+}
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ADQPAL rodando em http://localhost:${PORT}`);
