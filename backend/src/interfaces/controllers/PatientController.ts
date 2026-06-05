@@ -15,8 +15,14 @@ import { PrismaAuditLogRepository } from "../../infrastructure/repositories/Pris
 import { AuditService } from "../../application/services/AuditService";
 import { EncryptionService } from "../../infrastructure/services/EncryptionService";
 import { CreateMedicalRecord } from "../../application/use-cases/CreateMedicalRecord";
+import { CachedPatientRepository } from "../../infrastructure/cache/CachedPatientRepository";
+import { getRedisClient } from "../../infrastructure/cache/RedisClient";
 
-const patientRepository = new PrismaPatientRepository(prisma);
+const patientRepository = new CachedPatientRepository(
+  new PrismaPatientRepository(prisma),
+  getRedisClient(),
+);
+// const patientRepository = new PrismaPatientRepository(prisma);
 const medicalRecordRepository = new PrismaMedicalRecordRepository(prisma);
 const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
 const crypto = new EncryptionService();

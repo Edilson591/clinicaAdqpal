@@ -130,3 +130,13 @@ export async function preAuthMiddleware(
     next(err);
   }
 }
+
+export function syncAuth(req: Request, res: Response, next: NextFunction) {
+  const auth = req.headers.authorization;
+
+  if (auth !== `Bearer ${process.env.SYNC_SECRET}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  return next();
+}
