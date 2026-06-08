@@ -2,6 +2,7 @@ import "dotenv/config";
 import app from "./src/interfaces/http/app";
 import { startNotificationWorker } from "./src/infrastructure/queue/NotificationWorker";
 import { startSusSyncCron } from "./src/infrastructure/cron/SusSyncCron";
+import { getRedisClient } from "./src/infrastructure/cache/RedisClient";
 // import { startNotaFiscalWorker } from "./src/infrastructure/queue/NotasFiscalWorker";
 
 const PORT = Number(process.env.PORT) || 3333;
@@ -11,6 +12,8 @@ if (process.env.VERCEL !== "1") {
   startNotificationWorker();
 }
 // startNotaFiscalWorker();
+
+getRedisClient()
 
 // Cron: sincroniza procedimentos SUS uma vez por mês (Vercel usa cron jobs externos)
 if (process.env.VERCEL !== "1") {

@@ -16,10 +16,16 @@ import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaMedicalRecordRepository } from "../../infrastructure/repositories/PrismaMedicalRecordRepository";
 import { PrismaAuditLogRepository } from "../../infrastructure/repositories/PrismaAuditLogRepository";
 import { AuditService } from "../../application/services/AuditService";
+import { getRedisClient } from "../../infrastructure/cache/RedisClient";
+import { CacheMedicalRecord } from "../../infrastructure/cache/CacheMedicalRecord";
 
-const medicalRecordRepository = new PrismaMedicalRecordRepository(prisma);
+// const medicalRecordRepository = new PrismaMedicalRecordRepository(prisma);
 const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
 
+const medicalRecordRepository = new CacheMedicalRecord(
+  new PrismaMedicalRecordRepository(prisma),
+  getRedisClient(),
+);
 export class MedicalRecordController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
