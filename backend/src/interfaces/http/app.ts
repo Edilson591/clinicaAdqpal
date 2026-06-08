@@ -22,8 +22,7 @@ import patientNotaFiscalRoutes from "../routes/patientNotaFiscalRoutes";
 import susProcedureRoutes from "../routes/susProcedureRoutes";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import cors from "cors";
-import swaggerUi from "swagger-ui-express";
-import { swaggerSpec, swaggerUiOptions } from "./swagger";
+import { swaggerSpec } from "./swagger";
 
 const app = express();
 
@@ -110,10 +109,42 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// ── Swagger UI — documentação interativa em /api-docs ────────────────────────
-// NOTA: não montar na raiz ("/") pois o swaggerUi.setup() intercepta TODAS as
-// requisições (GET e POST) e retorna HTML, quebrando as rotas da API.
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+// ── Swagger UI — documentação interativa ─────────────────────────────────────
+// NOTA: não usar swaggerUi.serve+setup (express.static do swagger-ui-dist), pois
+// no serverless do Vercel assets de node_modules não são servidos corretamente.
+// Em vez disso, carregamos tudo via CDN.
+// O setup() do swagger-ui-express tbm não filtra path/método, então não usar.
+const swaggerHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ADQPAL — API Docs</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <style>
+    .swagger-ui .topbar { display: none }
+    .swagger-ui .info { margin: 20px 0 }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function () {
+      SwaggerUIBundle({
+        url: "/api-docs.json",
+        dom_id: "#swagger-ui",
+        deepLinking: true,
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+        plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+        layout: "StandaloneLayout",
+      });
+    };
+  </script>
+</body>
+</html>`;
+
+app.get(["/", "/api-docs"], (_req, res) => res.send(swaggerHtml));
 app.get("/api-docs.json", (_req, res) => {
   res.json(swaggerSpec);
 });
