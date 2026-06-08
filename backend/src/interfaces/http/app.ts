@@ -110,8 +110,10 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// ── Swagger UI — documentação interativa na raiz ─────────────────────────────
-app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+// ── Swagger UI — documentação interativa em /api-docs ────────────────────────
+// NOTA: não montar na raiz ("/") pois o swaggerUi.setup() intercepta TODAS as
+// requisições (GET e POST) e retorna HTML, quebrando as rotas da API.
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
 app.get("/api-docs.json", (_req, res) => {
   res.json(swaggerSpec);
 });

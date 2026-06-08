@@ -7,20 +7,13 @@ import { getRedisClient } from "./src/infrastructure/cache/RedisClient";
 
 const PORT = Number(process.env.PORT) || 3333;
 
-// Worker BullMQ só inicia localmente (Vercel não tem Redis)
+// Workers e cron só rodam localmente (Vercel não tem Redis)
 if (process.env.VERCEL !== "1") {
   startNotificationWorker();
-}
-// startNotaFiscalWorker();
-getRedisClient()
-
-if (process.env.VERCEL !== "1") {
-}
-
-// Cron: sincroniza procedimentos SUS uma vez por mês (Vercel usa cron jobs externos)
-if (process.env.VERCEL !== "1") {
   startSusSyncCron();
 }
+// startNotaFiscalWorker();
+getRedisClient();
 
 if (process.env.VERCEL !== "1") {
   app.listen(PORT, () => {

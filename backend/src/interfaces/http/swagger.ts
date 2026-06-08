@@ -13,6 +13,7 @@ export const swaggerSpec: swaggerUi.JsonObject = {
   },
   servers: [
     { url: "http://localhost:3333", description: "Desenvolvimento" },
+    { url: "https://clinica-adqpal.vercel.app", description: "Produção (Vercel)" },
   ],
   components: {
     securitySchemes: {
@@ -1441,7 +1442,5 @@ export const swaggerUiOptions: swaggerUi.SwaggerUiOptions = {
   // CDN evita depender de express.static em node_modules no serverless
   customCssUrl:
     "https://unpkg.com/swagger-ui-dist@5/swagger-ui.css",
-  swaggerOptions: {
-    url: "/api-docs.json",
-  },
+  swaggerUrl: "/api-docs.json",
 };
