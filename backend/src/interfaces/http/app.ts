@@ -22,6 +22,8 @@ import patientNotaFiscalRoutes from "../routes/patientNotaFiscalRoutes";
 import susProcedureRoutes from "../routes/susProcedureRoutes";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec, swaggerUiOptions } from "./swagger";
 
 const app = express();
 
@@ -106,6 +108,12 @@ if (process.env.NODE_ENV !== "test") {
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// ── Swagger UI — documentação interativa na raiz ─────────────────────────────
+app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
+app.get("/api-docs.json", (_req, res) => {
+  res.json(swaggerSpec);
 });
 
 app.use("/users", userRoutes);

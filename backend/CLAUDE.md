@@ -21,6 +21,7 @@ Documentação técnica do backend da aplicação ADQPAL.
 | cors | 2.x | Controle de origens permitidas |
 | dotenv | 16.x | Carregamento de variáveis de ambiente |
 | express-rate-limit | 8.x | Rate limiting |
+| swagger-ui-express | 5.x | Documentação interativa OpenAPI |
 | ts-node-dev | 2.x | Hot reload em dev |
 
 ---
@@ -201,6 +202,32 @@ npm run prisma:migrate   # Aplica migrações (cria/altera tabelas)
 npm run prisma:studio    # Interface visual do banco (Prisma Studio)
 npm run prisma:generate  # Regenera o Prisma Client
 ```
+
+---
+
+## Documentação Interativa (Swagger)
+
+A documentação completa da API fica disponível automaticamente na **rota raiz** do backend:
+
+| Recurso | URL | Descrição |
+|---------|-----|-----------|
+| Swagger UI | `http://localhost:3333/` | Interface interativa para testar endpoints |
+| JSON OpenAPI | `http://localhost:3333/api-docs.json` | Schema OpenAPI 3.0.3 para importar em ferramentas |
+
+### Para usar a documentação
+
+1. Inicie o servidor: `npm run dev`
+2. Acesse `http://localhost:3333` no navegador
+3. Clique em **Authorize** (🔒) no canto superior direito e insira o token JWT
+4. Explore e teste todos os endpoints diretamente pela interface
+
+### O que está documentado
+
+Todas as rotas públicas e privadas da API, incluindo schemas de requisição/resposta, parâmetros de query, exemplos e códigos de status HTTP.
+
+### Arquivo de configuração
+
+A especificação OpenAPI fica em `src/interfaces/http/swagger.ts`. Para adicionar novos endpoints, basta editar o objeto `paths` seguindo o padrão OpenAPI 3.0.3.
 
 ---
 
