@@ -1438,4 +1438,10 @@ export const swaggerUiOptions: swaggerUi.SwaggerUiOptions = {
   customCss: ".swagger-ui .topbar { display: none } .swagger-ui .info { margin: 20px 0 }",
   customSiteTitle: "ADQPAL — API Docs",
   customfavIcon: "",
+  // CDN evita depender de express.static em node_modules no serverless
+  customCssUrl:
+    "https://unpkg.com/swagger-ui-dist@5/swagger-ui.css",
+  swaggerOptions: {
+    url: "/api-docs.json",
+  },
 };

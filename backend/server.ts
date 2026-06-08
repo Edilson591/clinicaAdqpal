@@ -12,18 +12,22 @@ if (process.env.VERCEL !== "1") {
   startNotificationWorker();
 }
 // startNotaFiscalWorker();
-
 getRedisClient()
+
+if (process.env.VERCEL !== "1") {
+}
 
 // Cron: sincroniza procedimentos SUS uma vez por mês (Vercel usa cron jobs externos)
 if (process.env.VERCEL !== "1") {
   startSusSyncCron();
 }
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor ADQPAL rodando em http://localhost:${PORT}`);
-  console.log(`📋 Ambiente: ${process.env.NODE_ENV ?? "development"}`);
-  console.log(`❤️  Health check: http://localhost:${PORT}/health`);
-});
+if (process.env.VERCEL !== "1") {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor ADQPAL rodando em http://localhost:${PORT}`);
+    console.log(`📋 Ambiente: ${process.env.NODE_ENV ?? "development"}`);
+    console.log(`❤️  Health check: http://localhost:${PORT}/health`);
+  });
+}
 
 export default app;
