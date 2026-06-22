@@ -115,7 +115,7 @@ function NovoPacienteContent() {
           <DividerForm />
 
           {/* ── Endereço ── */}
-          <EnderecoSection register={register} errors={errors} />
+          <EnderecoSection register={register} setValue={setValue} errors={errors} />
 
           <DividerForm />
 

@@ -10,6 +10,7 @@ import {
   ClipboardList,
   FilePlus,
   FileSignature,
+  Files,
   // Receipt,
   type LucideIcon,
 } from "lucide-react";
@@ -28,6 +29,7 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   path: string;
+  adminOnly?: boolean;
   children?: NavChild[];
 }
 
@@ -40,9 +42,11 @@ export const navItems: NavItem[] = [
     label: "Documentos",
     icon: ClipboardList,
     path: "/documentos",
+    adminOnly: true,
     children: [
       { label: "Laudo APAC", icon: FilePlus, path: "/documentos/apac" },
       { label: "Receituário", icon: FileSignature, path: "/documentos/receituario" },
+      { label: "Administrativo", icon: Files, path: "/documentos/administrativo" },
     ],
   },
   { label: "Financeiro", icon: DollarSign, path: "/financeiro" },

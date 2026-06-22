@@ -280,6 +280,7 @@ function NovaTransacaoContent() {
                   selectProps={{
                     placeholder: "Selecione",
                     className: "bg-[#F8FAFC]",
+                    autoComplete: "off",
                     options: PAYMENT_OPTIONS,
                     ...register("paymentMethod"),
                   }}

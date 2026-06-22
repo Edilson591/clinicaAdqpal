@@ -75,7 +75,9 @@ export function SearchableSelect({
     startTransition(() => {
       const q = search.toLowerCase().trim();
       setFiltered(
-        q ? options.filter((o) => o.label.toLowerCase().includes(q)) : options,
+        q
+          ? options.filter((o) => `${o.value} ${o.label}`.toLowerCase().includes(q))
+          : options,
       );
     });
   }, [search, options]);

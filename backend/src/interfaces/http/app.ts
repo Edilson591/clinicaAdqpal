@@ -120,6 +120,7 @@ const swaggerHtml = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <title>ADQPAL — API Docs</title>
   <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <link rel="icon" type="image/png" href="${process.env.FRONTEND_URL}/logo-adqpal.png" />
   <style>
     .swagger-ui .topbar { display: none }
     .swagger-ui .info { margin: 20px 0 }

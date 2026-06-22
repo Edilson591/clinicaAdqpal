@@ -49,7 +49,7 @@ function SidebarContent({ expanded, user, logout }: SidebarContentProps) {
       {/* Nav */}
       <nav className="flex-1 py-4 px-3 flex flex-col gap-0.5 overflow-hidden">
         {navItems
-          .filter((item) => item.path !== "/documentos" || canAccessDocumentos)
+          .filter((item) => !item.adminOnly || canAccessDocumentos)
           .map(({ label, icon: Icon, path, children }) => {
           const hasChildren = !!children?.length;
           const isOpen = openMenus[path] ?? false;

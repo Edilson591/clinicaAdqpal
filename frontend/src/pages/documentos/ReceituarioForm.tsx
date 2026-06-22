@@ -70,6 +70,17 @@ export function ReceituarioForm({
                 }}
               />
             </div>
+            <div className="bg-[#F8FAFC] dark:bg-[#263548] border border-[#D9E5DA] dark:border-[#334155] rounded-lg p-4">
+              <InputGroup
+                label="Outros exames"
+                helperText="Campo opcional para solicitar um exame que não aparece na lista abaixo."
+                inputProps={{
+                  placeholder: "Digite o nome do exame, se não estiver listado",
+                  className: "bg-white dark:bg-[#1E293B]",
+                  ...s("examOther"),
+                }}
+              />
+            </div>
             <p className="text-sm text-[#5a6a5a] dark:text-[#94A3B8]">
               <strong className="text-[#38A169]">{selectedCount}</strong> exame
               {selectedCount !== 1 ? "s" : ""} selecionado

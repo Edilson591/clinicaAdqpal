@@ -32,6 +32,7 @@ export interface ReceituarioData {
   examPatient: string;
   examJustificativa: string;
   examSelected: string[];
+  examOther: string;
   recComPatient: string;
   recComData: Date;
   recComMed: string;
@@ -71,6 +72,7 @@ function emptyData(): ReceituarioData {
     examPatient: "",
     examJustificativa: "Rotina",
     examSelected: [],
+    examOther: "",
     recComPatient: "",
     recComData: new Date(),
     recComMed: "",
@@ -136,12 +138,19 @@ function generateRecHtml(data: ReceituarioData): string {
 
   if (data.tab === "exames") {
     const sel = data.examSelected;
+    const otherExam = data.examOther.trim();
     const allItems = EXAMS.flatMap(g => g.items);
     const lines = allItems.map(e =>
       sel.includes(e)
         ? `<div style="display:flex;gap:5px;padding:2.5px 0;break-inside:avoid;"><span style="font-family:monospace;font-size:11px;font-weight:700;">( x )</span><span style="font-size:12px;font-weight:700;">${e}</span></div>`
         : `<div style="display:flex;gap:5px;padding:2.5px 0;break-inside:avoid;"><span style="font-family:monospace;font-size:10px;">(&nbsp;&nbsp;&nbsp;)</span><span style="font-size:11px;">${e}</span></div>`
     ).join("");
+    const otherLine = otherExam
+      ? `<div style="border:1px solid #1a3a2a;background:#f4f8f4;padding:7px 10px;margin:8px 0 10px;break-inside:avoid;">
+          <div style="font-size:8px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5a6a5a;margin-bottom:3px;">Outros exames</div>
+          <div style="font-size:12px;font-weight:700;color:#1a3a2a;">${otherExam}</div>
+        </div>`
+      : "";
     body = makeHeader("Solicitação de Exames") +
       `<div style="background:#f4f8f4;border-left:4px solid #1a3a2a;padding:7px 12px;margin-bottom:8px;">
         <div style="font-size:8px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#5a6a5a;">Paciente</div>
@@ -149,6 +158,7 @@ function generateRecHtml(data: ReceituarioData): string {
       </div>
       <div style="font-size:12px;font-weight:700;background:#f0f0f0;border-left:4px solid #000;padding:5px 12px;margin-bottom:10px;">Justificativa: <strong>${data.examJustificativa || "Rotina"}</strong></div>
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#1a3a2a;margin-bottom:6px;border-bottom:1px solid #ccc;padding-bottom:3px;">Solicito:</div>
+      ${otherLine}
       <div style="columns:3;column-gap:16px;margin-bottom:10px;">${lines}</div>
       <div style="border-top:1px solid #bbb;padding-top:8px;margin-top:auto;text-align:center;">
         <div style="display:inline-block;text-align:center;">

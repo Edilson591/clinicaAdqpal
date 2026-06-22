@@ -7,6 +7,7 @@ import { USER_ROLES } from "../types/roles";
 import { formatTime } from "../utils/formatTime";
 import type { AppointmentResponse } from "../types/api";
 
+
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export type AgendaStatus =
@@ -99,6 +100,8 @@ export function useDashboard(
     setSearch(v);
     setPage(1);
   };
+
+
 
   return {
     agendaDoDia,
