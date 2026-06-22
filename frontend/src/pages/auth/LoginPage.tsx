@@ -19,13 +19,22 @@ import LoginCard from "../../components/ui/LoginCard";
 import useLoginForm from "../../hooks/useLoginForm";
 import { useAuth } from "../../context/AuthContext";
 import { getCookie } from "../../store/authSlice";
+// import cids from "../../../public/cid10.json";
 
 export function LoginPage() {
-  const { register, errors, generalError, isLoading, onSubmit, onForgotPassword } = useLoginForm();
+  const {
+    register,
+    errors,
+    generalError,
+    isLoading,
+    onSubmit,
+    onForgotPassword,
+  } = useLoginForm();
 
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // console.log(cids)
   useEffect(() => {
     const token = getCookie("adqpal_token");
     if (token || user) {

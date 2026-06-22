@@ -78,7 +78,7 @@ function EditPacienteContent() {
 
             <DividerForm />
 
-            <EnderecoSection register={register} errors={errors} />
+            <EnderecoSection register={register} setValue={setValue} errors={errors} />
 
             <DividerForm />
 

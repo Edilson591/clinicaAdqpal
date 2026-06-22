@@ -25,6 +25,7 @@ import NewEmployeePage from "../pages/rh/NewEmployeePage";
 import EditEmployeePage from "../pages/rh/EditEmployeePage";
 import ApacLaudoPage from "../pages/documentos/ApacLaudoPage";
 import ReceituarioPage from "../pages/documentos/ReceituarioPage";
+import AdministrativoPage from "../features/administrativo/AdministrativoPage";
 // import NotasFiscaisPage from "../pages/notasfiscais/NotasFiscaisPage";
 import { NotaFiscalGuard } from "../components/ui/NotaFiscalGuard";
 import { RhGuard } from "../components/ui/RhGuard";
@@ -50,6 +51,7 @@ export const privateRoutes = (
       <Route element={<DocumentosGuard />}>
         <Route path="/documentos/apac" element={<ApacLaudoPage />} />
         <Route path="/documentos/receituario" element={<ReceituarioPage />} />
+        <Route path="/documentos/administrativo" element={<AdministrativoPage />} />
       </Route>
       <Route element={<NotaFiscalGuard />}>
         {/* <Route path="/notas-fiscais" element={<NotasFiscaisPage />} /> */}

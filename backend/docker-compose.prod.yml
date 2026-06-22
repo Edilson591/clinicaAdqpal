@@ -3,6 +3,8 @@ services:
     image: redis:7-alpine
     container_name: clinica_redis_prod
     restart: unless-stopped
+    networks:
+      - evolution-net
     volumes:
       - redis_data:/data
     command: >

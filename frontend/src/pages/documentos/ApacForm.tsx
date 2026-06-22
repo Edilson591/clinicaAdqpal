@@ -1,7 +1,10 @@
 import type { RefObject } from "react";
 import { CharBoxGrid } from "./CharBoxGrid";
 import { DateBoxRow } from "./DateBoxRow";
-import { SearchableSelectGroup, type SearchableOption } from "../../components/ui/SearchableSelect";
+import {
+  SearchableSelectGroup,
+  type SearchableOption,
+} from "../../components/ui/SearchableSelect";
 import {
   type ApacData,
   CNS_LENGTH,
@@ -20,7 +23,9 @@ interface ApacFormProps {
     value: string[] | string,
   ) => void;
   procedureOptions: SearchableOption[];
+  cidOptions: SearchableOption[];
   onProcedureSelect: (codigo: string) => void;
+  onCidSelect: (codigo: string) => void;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -31,14 +36,23 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function ApacForm({ data, formRef, update, updateSecProc, procedureOptions, onProcedureSelect }: ApacFormProps) {
+export function ApacForm({
+  data,
+  formRef,
+  update,
+  updateSecProc,
+  procedureOptions,
+  cidOptions,
+  onProcedureSelect,
+  onCidSelect
+}: ApacFormProps) {
   return (
     <div className="bg-white dark:bg-[#1E293B] rounded-xl shadow-sm border border-[#E2E8F0] dark:border-[#334155] p-3 sm:p-6">
       <div className="flex justify-center">
         <div
           ref={formRef}
           id="apac-form"
-          className="apac-page w-[210mm] h-[297mm] p-[3mm] bg-white text-[10pt] font-sans flex flex-col shadow-sm overflow-hidden"
+          className="apac-page  p-[3mm] bg-white text-[10pt] font-sans flex flex-col shadow-sm overflow-hidden"
         >
           {/* HEADER SUS */}
           <div className="flex border border-black shrink-0">
@@ -48,16 +62,25 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
               </div>
               <div className="flex flex-row gap-2 text-[7pt] leading-[1.4]">
                 <div className="whitespace-nowrap">
-                  Sistema<br />Único de<br />Saúde
+                  Sistema
+                  <br />
+                  Único de
+                  <br />
+                  Saúde
                 </div>
                 <div className="whitespace-nowrap">
-                  Ministério<br />da<br />Saúde
+                  Ministério
+                  <br />
+                  da
+                  <br />
+                  Saúde
                 </div>
               </div>
             </div>
             <div className="flex-1 flex items-center justify-center text-center font-bold text-[11pt] px-2 py-1 leading-[1.4]">
               <em>
-                LAUDO PARA SOLICITAÇÃO/AUTORIZAÇÃO DE<br />
+                LAUDO PARA SOLICITAÇÃO/AUTORIZAÇÃO DE
+                <br />
                 PROCEDIMENTO AMBULATORIAL
               </em>
             </div>
@@ -72,7 +95,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
           </SectionTitle>
           <div className="flex border-l border-r border-b border-black shrink-0">
             <div className="flex-4 border-r border-black flex flex-col">
-              <div className="field-label">1 - NOME DO ESTABELECIMENTO DE SAÚDE SOLICITANTE</div>
+              <div className="field-label">
+                1 - NOME DO ESTABELECIMENTO DE SAÚDE SOLICITANTE
+              </div>
               <input
                 type="text"
                 value={data.f1_nome_estab}
@@ -138,7 +163,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
           </div>
           <div className="flex border-l border-r border-b border-black shrink-0">
             <div className="flex-3 border-r border-black flex flex-col">
-              <div className="field-label">6 - CARTÃO NACIONAL DE SAÚDE (CNS)</div>
+              <div className="field-label">
+                6 - CARTÃO NACIONAL DE SAÚDE (CNS)
+              </div>
               <CharBoxGrid
                 values={data.f6_cns}
                 onChange={(v) => update("f6_cns", v)}
@@ -149,7 +176,11 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
             </div>
             <div className="flex-[1.5] border-r border-black flex flex-col">
               <div className="field-label">7 - DATA DE NASCIMENTO</div>
-              <DateBoxRow values={data.dn} onChange={(v) => update("dn", v)} length={8} />
+              <DateBoxRow
+                values={data.dn}
+                onChange={(v) => update("dn", v)}
+                length={8}
+              />
             </div>
             <div className="flex-1 flex flex-col">
               <div className="field-label">8 - RAÇA/COR</div>
@@ -183,7 +214,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
             <div className="flex-1 flex flex-col">
               <div className="flex gap-1 items-end px-0.5 pt-px shrink-0">
                 <span className="text-[7pt]">DDD</span>
-                <span className="text-[7pt]">10 - TELEFONE DE CONTATO &nbsp; Nº DO TELEFONE</span>
+                <span className="text-[7pt]">
+                  10 - TELEFONE DE CONTATO &nbsp; Nº DO TELEFONE
+                </span>
               </div>
               <div className="flex gap-0.75 px-0.5 pb-0.5 items-center flex-1">
                 <input
@@ -220,7 +253,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
             <div className="flex-1 flex flex-col">
               <div className="flex gap-1 items-end px-0.5 pt-px shrink-0">
                 <span className="text-[7pt]">DDD</span>
-                <span className="text-[7pt]">12 - TELEFONE DE CONTATO &nbsp; Nº DO TELEFONE</span>
+                <span className="text-[7pt]">
+                  12 - TELEFONE DE CONTATO &nbsp; Nº DO TELEFONE
+                </span>
               </div>
               <div className="flex gap-0.75 px-0.5 pb-0.5 items-center flex-1">
                 <input
@@ -280,9 +315,7 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
                 type="text"
                 maxLength={2}
                 value={data.f16_uf}
-                onChange={(e) =>
-                  update("f16_uf", e.target.value.toUpperCase())
-                }
+                onChange={(e) => update("f16_uf", e.target.value.toUpperCase())}
                 className="apac-input text-[9.5pt]"
               />
             </div>
@@ -310,7 +343,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
           <SectionTitle>PROCEDIMENTO SOLICITADO</SectionTitle>
           <div className="flex border-l border-r border-b border-black shrink-0">
             <div className="max-w-52 border-r border-black flex flex-col">
-              <div className="field-label">18 - CÓDIGO DO PROCEDIMENTO PRINCIPAL</div>
+              <div className="field-label">
+                18 - CÓDIGO DO PROCEDIMENTO PRINCIPAL
+              </div>
               <CharBoxGrid
                 values={data.f18_proc}
                 onChange={(v) => update("f18_proc", v)}
@@ -320,7 +355,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
               />
             </div>
             <div className="flex-4 border-r border-black flex flex-col">
-              <div className="field-label">19 - NOME DO PROCEDIMENTO PRINCIPAL</div>
+              <div className="field-label">
+                19 - NOME DO PROCEDIMENTO PRINCIPAL
+              </div>
               <input
                 type="text"
                 value={data.f19_proc_nome}
@@ -349,7 +386,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
                 className="flex border-l border-r border-b border-black shrink-0"
               >
                 <div className="max-w-44 border-r border-black flex flex-col">
-                  <div className="field-label">{a} - CÓDIGO DO PROCEDIMENTO SECUNDÁRIO</div>
+                  <div className="field-label">
+                    {a} - CÓDIGO DO PROCEDIMENTO SECUNDÁRIO
+                  </div>
                   <CharBoxGrid
                     values={sp.code}
                     onChange={(v) => updateSecProc(idx, "code", v)}
@@ -359,7 +398,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
                   />
                 </div>
                 <div className="flex-4 border-r border-black flex flex-col">
-                  <div className="field-label">{b} - NOME DO PROCEDIMENTO SECUNDÁRIO</div>
+                  <div className="field-label">
+                    {b} - NOME DO PROCEDIMENTO SECUNDÁRIO
+                  </div>
                   <input
                     type="text"
                     value={sp.nome}
@@ -380,8 +421,19 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
             );
           })}
 
+          <div className="mb-2 no-print">
+            <SearchableSelectGroup
+              label="CID / Doença"
+              placeholder="Digite o código CID ou o nome da doença..."
+              options={cidOptions}
+              value={data.f37_cid_principal}
+              onChange={onCidSelect}
+            />
+          </div>
           {/* JUSTIFICATIVA */}
-          <SectionTitle>JUSTIFICATIVA DO(S) PROCEDIMENTO(S) SOLICITADO(S)</SectionTitle>
+          <SectionTitle>
+            JUSTIFICATIVA DO(S) PROCEDIMENTO(S) SOLICITADO(S)
+          </SectionTitle>
           <div className="flex border-l border-r border-b border-black shrink-0">
             <div className="flex-2 border-r border-black flex flex-col">
               <div className="field-label">36 - DESCRIÇÃO DO DIAGNÓSTICO</div>
@@ -437,7 +489,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
           <SectionTitle>SOLICITAÇÃO</SectionTitle>
           <div className="flex border-l border-r border-b border-black shrink-0">
             <div className="flex-2 border-r border-black flex flex-col">
-              <div className="field-label">41 - NOME DO PROFISSIONAL SOLICITANTE</div>
+              <div className="field-label">
+                41 - NOME DO PROFISSIONAL SOLICITANTE
+              </div>
               <input
                 type="text"
                 value={data.f41_prof_sol}
@@ -447,10 +501,16 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
             </div>
             <div className="max-w-35 border-r border-black flex flex-col">
               <div className="field-label">42-DATA DA SOLICITAÇÃO</div>
-              <DateBoxRow values={data.ds} onChange={(v) => update("ds", v)} length={6} />
+              <DateBoxRow
+                values={data.ds}
+                onChange={(v) => update("ds", v)}
+                length={6}
+              />
             </div>
             <div className="flex-1 flex flex-col">
-              <div className="field-label">45-ASSINATURA E CARIMBO (Nº REGISTRO DO CONSELHO)</div>
+              <div className="field-label">
+                45-ASSINATURA E CARIMBO (Nº REGISTRO DO CONSELHO)
+              </div>
             </div>
           </div>
           <div className="flex border-l border-r border-b border-black shrink-0">
@@ -478,7 +538,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
               </div>
             </div>
             <div className="flex-2 flex flex-col">
-              <div className="field-label">44 - Nº DOCUMENTO (CNS/CPF) DO PROFISSIONAL SOLICITANTE</div>
+              <div className="field-label">
+                44 - Nº DOCUMENTO (CNS/CPF) DO PROFISSIONAL SOLICITANTE
+              </div>
               <CharBoxGrid
                 values={data.f44_doc}
                 onChange={(v) => update("f44_doc", v)}
@@ -493,7 +555,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
           <SectionTitle>AUTORIZAÇÃO</SectionTitle>
           <div className="flex border-l border-r border-b border-black shrink-0">
             <div className="flex-2 border-r border-black flex flex-col">
-              <div className="field-label">46 - NOME DO PROFISSIONAL AUTORIZADOR</div>
+              <div className="field-label">
+                46 - NOME DO PROFISSIONAL AUTORIZADOR
+              </div>
               <input
                 type="text"
                 value={data.f46_prof_aut}
@@ -545,7 +609,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
               </div>
             </div>
             <div className="flex-2 flex flex-col">
-              <div className="field-label">49 - Nº DOCUMENTO (CNS/CPF) DO PROFISSIONAL AUTORIZADOR</div>
+              <div className="field-label">
+                49 - Nº DOCUMENTO (CNS/CPF) DO PROFISSIONAL AUTORIZADOR
+              </div>
               <CharBoxGrid
                 values={data.f49_doc}
                 onChange={(v) => update("f49_doc", v)}
@@ -558,14 +624,26 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
           <div className="flex border-l border-r border-b border-black shrink-0">
             <div className="max-w-23.75 border-r border-black flex flex-col">
               <div className="field-label">50-DATA DA AUTORIZAÇÃO</div>
-              <DateBoxRow values={data.da} onChange={(v) => update("da", v)} length={6} />
+              <DateBoxRow
+                values={data.da}
+                onChange={(v) => update("da", v)}
+                length={6}
+              />
             </div>
             <div className="flex-2 border-r border-black flex flex-col">
-              <div className="field-label">51 - ASSINATURA E CARIMBO (Nº DO REGISTRO DO CONSELHO)</div>
+              <div className="field-label">
+                51 - ASSINATURA E CARIMBO (Nº DO REGISTRO DO CONSELHO)
+              </div>
             </div>
             <div className="flex-1 flex flex-col">
-              <div className="field-label">53 - PERÍODO DE VALIDADE DA APAC</div>
-              <DateBoxRow values={Array(8).fill("")} onChange={() => {}} length={8} />
+              <div className="field-label">
+                53 - PERÍODO DE VALIDADE DA APAC
+              </div>
+              <DateBoxRow
+                values={Array(8).fill("")}
+                onChange={() => {}}
+                length={8}
+              />
             </div>
           </div>
 
@@ -575,7 +653,9 @@ export function ApacForm({ data, formRef, update, updateSecProc, procedureOption
           </SectionTitle>
           <div className="flex border-l border-r border-b border-black shrink-0">
             <div className="flex-4 border-r border-black flex flex-col">
-              <div className="field-label">54 – NOME FANTASIA DO ESTABELECIMENTO DE SAÚDE EXECUTANTE</div>
+              <div className="field-label">
+                54 – NOME FANTASIA DO ESTABELECIMENTO DE SAÚDE EXECUTANTE
+              </div>
               <input
                 type="text"
                 value={data.f54_executante}

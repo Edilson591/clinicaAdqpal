@@ -9,6 +9,8 @@ import { SearchableSelectGroup } from "../../components/ui/SearchableSelect";
 import { ApacToolbar } from "./ApacToolbar";
 import { ApacForm } from "./ApacForm";
 import type { PatientResponse, UserResponse } from "../../types/api";
+import cids from "../../../public/cid10.json";
+import type { CID10Record } from "../../services/cid";
 
 function parseDateToBoxes(dateStr: string | null): string[] {
   if (!dateStr) return Array(8).fill("");
@@ -30,7 +32,12 @@ function parsePhone(phone: string | null): { ddd: string; number: string } {
 function fillFromPatient(p: PatientResponse) {
   const phone = parsePhone(p.phone);
   const saved = localStorage.getItem("apac_laudo");
-  const parsed = JSON.parse(saved ?? "") as ApacData;
+  let parsed: Partial<ApacData> = {};
+  try {
+    parsed = saved ? (JSON.parse(saved) as Partial<ApacData>) : {};
+  } catch {
+    parsed = {};
+  }
   return {
     f3_nome_paciente: p.name ?? "",
     f4_sexo: (p.gender === "M" ? "mas" : p.gender === "F" ? "fem" : null) as
@@ -106,6 +113,11 @@ export default function ApacLaudoPage() {
 
   const doctor = doctors.find((d) => d.id === selectedDoctorId);
 
+  const cidRecord = (cids as CID10Record[]).map((item) => ({
+    value: item.codigo,
+    label: `${item.codigo} - ${item.descricao}`,
+  }));
+
   useEffect(() => {
     if (!patient) return;
     const updates = fillFromPatient(patient);
@@ -158,6 +170,16 @@ export default function ApacLaudoPage() {
       update("f19_proc_nome", proc.nome);
     },
     [susProcedures, update],
+  );
+  const handleCidSelect = useCallback(
+    (codigo: string) => {
+      const proc = (cidRecord ?? []).find((p) => p.value === codigo);
+
+      if (!proc) return;
+      update("f37_cid_principal", proc.value);
+      update("f36_diagnostico", proc.label.replace(`${proc.value} - `, ""));
+    },
+    [cidRecord, update],
   );
 
   return (
@@ -227,9 +249,11 @@ export default function ApacLaudoPage() {
           data={data}
           formRef={formRef}
           update={update}
+          cidOptions={cidRecord}
           updateSecProc={updateSecProc}
           procedureOptions={procedureOptions}
           onProcedureSelect={handleProcedureSelect}
+          onCidSelect={handleCidSelect}
         />
       </div>
     </main>

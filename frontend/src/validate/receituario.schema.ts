@@ -5,8 +5,12 @@ const requiredString = (msg: string) => z.string().min(1, msg);
 export const receituarioExamesSchema = z.object({
   examPatient: requiredString("Informe o nome do paciente."),
   examJustificativa: requiredString("Informe a justificativa."),
-  examSelected: z.array(z.string()).min(1, "Selecione pelo menos um exame."),
-});
+  examSelected: z.array(z.string()),
+  examOther: z.string().optional(),
+}).refine(
+  (data) => data.examSelected.length > 0 || !!data.examOther?.trim(),
+  { message: "Selecione pelo menos um exame ou informe um exame não listado." },
+);
 
 export const receituarioReceitaSchema = z.object({
   patient: requiredString("Informe o nome do paciente."),
