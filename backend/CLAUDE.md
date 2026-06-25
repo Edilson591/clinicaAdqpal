@@ -210,7 +210,7 @@ npm run prisma:generate  # Regenera o Prisma Client
 
 A documentação completa da API fica disponível automaticamente na **rota raiz** do backend:
 
-> Em produção (`NODE_ENV=production` ou `VERCEL_ENV=production`), o Swagger não é exposto para evitar divulgação das rotas da API.
+> Em produção (`NODE_ENV=production` ou `VERCEL_ENV=production`), a raiz exibe apenas uma página informativa simples. O Swagger não é exposto para evitar divulgação das rotas da API.
 
 | Recurso | URL | Descrição |
 |---------|-----|-----------|
