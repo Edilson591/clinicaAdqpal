@@ -45,6 +45,7 @@ export interface SearchableSelectGroupProps extends Omit<
   options: SearchableOption[];
   placeholder?: string;
   disabled?: boolean;
+  isLoading?: boolean;
   onSearchChange?: (query: string) => void;
 }
 
@@ -76,7 +77,9 @@ export function SearchableSelect({
       const q = search.toLowerCase().trim();
       setFiltered(
         q
-          ? options.filter((o) => `${o.value} ${o.label}`.toLowerCase().includes(q))
+          ? options.filter((o) =>
+              `${o.value} ${o.label}`.toLowerCase().includes(q),
+            )
           : options,
       );
     });
@@ -124,7 +127,7 @@ export function SearchableSelect({
           !value && "text-muted-foreground",
           value && "text-foreground dark:text-muted-foreground",
           "disabled:cursor-not-allowed disabled:opacity-50",
-          className
+          className,
         )}
       >
         <span className="truncate">{value ? selectedLabel : placeholder}</span>
@@ -211,6 +214,7 @@ export function SearchableSelectGroup({
   classNameChildren,
   onSearchChange,
   className,
+  isLoading,
   ...props
 }: SearchableSelectGroupProps) {
   const id = useId();
@@ -225,16 +229,40 @@ export function SearchableSelectGroup({
           {label}
         </Label>
       )}
-      <SearchableSelect
-        options={options}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        error={!!error}
-        className={classNameChildren}
-        disabled={disabled}
-        onSearchChange={onSearchChange}
-      />
+
+      {isLoading && (
+        <div className="divide-y divide-[#F3F4F6] dark:divide-[#334155]">
+          {Array.from({ length: 1 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex flex-col gap-3 px-4 py-4 sm:grid sm:grid-cols-[80px_1fr_120px_4px_140px] sm:items-center sm:px-6"
+            >
+              <div className="h-4 w-14 rounded bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
+              <div className="h-4 w-40 rounded bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
+              <div className="flex justify-center">
+                <div className="h-7 w-24 rounded-full bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
+              </div>
+              <span />
+              <div className="flex justify-center">
+                <div className="h-8 w-28 rounded-lg bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && options.length > 0 &&(
+        <SearchableSelect
+          options={options}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          error={!!error}
+          className={classNameChildren}
+          disabled={disabled}
+          onSearchChange={onSearchChange}
+        />
+      )}
       {(error || helperText) && (
         <p
           className={twMerge(

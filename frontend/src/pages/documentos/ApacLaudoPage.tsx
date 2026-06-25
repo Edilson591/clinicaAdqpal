@@ -105,9 +105,9 @@ export default function ApacLaudoPage() {
     data._selectedDoctorId || "",
   );
 
-  const { options: patientOptions, setQuery: setPatientQuery } =
+  const { options: patientOptions, setQuery: setPatientQuery,isLoading: isLoadingPacient } =
     usePatientSearch();
-  const { data: doctors = [] } = useDoctors();
+  const { data: doctors = [],isLoading: isLoadingDoctor } = useDoctors();
 
   const { data: patient } = usePatient(selectedPatientId);
 
@@ -171,6 +171,7 @@ export default function ApacLaudoPage() {
     },
     [susProcedures, update],
   );
+  
   const handleCidSelect = useCallback(
     (codigo: string) => {
       const proc = (cidRecord ?? []).find((p) => p.value === codigo);
@@ -232,6 +233,7 @@ export default function ApacLaudoPage() {
               value={selectedPatientId}
               onChange={handlePatientChange}
               onSearchChange={setPatientQuery}
+              isLoading={isLoadingPacient}
             />
           </div>
           <div className="flex-1">
@@ -241,6 +243,7 @@ export default function ApacLaudoPage() {
               options={doctorOptions}
               value={selectedDoctorId}
               onChange={handleDoctorChange}
+              isLoading={isLoadingDoctor}
             />
           </div>
         </div>

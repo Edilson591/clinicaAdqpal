@@ -1,0 +1,15 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    - cron: "0 0 * * 0" # toda semana (domingo)
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API
+        run: |
+          curl -f -X GET "${{ secrets.VERCEL_URL }}/internal/keepalive" \
+            -H "Authorization: Bearer ${{ secrets.SYNC_SECRET }}"

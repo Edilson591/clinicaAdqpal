@@ -176,6 +176,7 @@ Copie `.env.example` para `.env` e preencha:
 | `JWT_EXPIRES_IN` | Expiração do token (padrão: `7d`) |
 | `PORT` | Porta do servidor (padrão: `3333`) |
 | `NODE_ENV` | `development` \| `production` \| `test` |
+| `SYNC_SECRET` | Segredo usado por rotas internas automatizadas, como `/internal/keepalive` |
 | `ALLOWED_ORIGINS` | Origens CORS permitidas, separadas por vírgula (padrão: `http://localhost:5174`) |
 | `WHATSAPP_PHONE_NUMBER_ID` | ID do número de telefone (encontrado em business.facebook.com → seu app → WhatsApp → Configuração da API) |
 | `WHATSAPP_TOKEN` | Token permanente de acesso à API |
@@ -218,7 +219,7 @@ A documentação completa da API fica disponível automaticamente na **rota raiz
 
 1. Inicie o servidor: `npm run dev`
 2. Acesse `http://localhost:3333` no navegador
-3. Clique em **Authorize** (🔒) no canto superior direito e insira o token JWT
+3. Clique em **Authorize** (🔒) no canto superior direito e insira o token JWT ou o `SYNC_SECRET` nas rotas internas
 4. Explore e teste todos os endpoints diretamente pela interface
 
 ### O que está documentado
@@ -228,6 +229,8 @@ Todas as rotas públicas e privadas da API, incluindo schemas de requisição/re
 ### Arquivo de configuração
 
 A especificação OpenAPI fica em `src/interfaces/http/swagger.ts`. Para adicionar novos endpoints, basta editar o objeto `paths` seguindo o padrão OpenAPI 3.0.3.
+
+O workflow que chama o endpoint interno de keep-alive fica em `.github/workflows/keep-alive.yml`.
 
 ---
 
@@ -296,6 +299,18 @@ model User {
 | `GET` | `/health` | Health check |
 | `POST` | `/users/register` | Criar usuário |
 | `POST` | `/users/login` | Autenticar usuário |
+
+### Rotas Internas
+
+| Método | Rota | Autenticação | Descrição |
+|---|---|---|---|
+| `GET` | `/internal/keepalive` | `Authorization: Bearer <SYNC_SECRET>` quando `SYNC_SECRET` estiver definido | Executa `SELECT 1` via Prisma para manter a conexão com o banco ativa |
+
+Exemplo:
+
+```bash
+curl -H "Authorization: Bearer $SYNC_SECRET" http://localhost:3333/internal/keepalive
+```
 
 ### Rotas Privadas (requerem `Authorization: Bearer <token>`)
 

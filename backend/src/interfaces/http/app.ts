@@ -20,6 +20,7 @@ import passwordRoutes from "../routes/passwordRoutes";
 import notaFiscalRoutes from "../routes/notaFiscalRoutes";
 import patientNotaFiscalRoutes from "../routes/patientNotaFiscalRoutes";
 import susProcedureRoutes from "../routes/susProcedureRoutes";
+import internalRoutes from "../routes/internalRoutes";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import cors from "cors";
 import { swaggerSpec } from "./swagger";
@@ -167,6 +168,7 @@ app.use("/transcribe", transcribeRoutes);
 app.use("/password", passwordRoutes);
 app.use("/patients/:patientId/notas-fiscais", patientNotaFiscalRoutes);
 app.use("/sus-procedures", susProcedureRoutes);
+app.use("/internal", internalRoutes);
 
 app.use(errorMiddleware);
 
