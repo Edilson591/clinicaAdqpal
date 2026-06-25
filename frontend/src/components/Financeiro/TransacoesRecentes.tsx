@@ -121,11 +121,11 @@ export function TransacoesRecentes({
       </div>
 
       <div className="border-t border-[#E2E8F0] dark:border-[#334155] pt-3 flex flex-col gap-1.5 mt-auto">
-        <div className="flex justify-between text-[12px]">
+        <div className="flex flex-col gap-1 text-[12px] sm:flex-row sm:justify-between">
           <span className="text-[#64748B] dark:text-[#94A3B8]">Total entradas</span>
           <span className="font-semibold text-[#38A169]">{formatCurrency(totalIncome)}</span>
         </div>
-        <div className="flex justify-between text-[12px]">
+        <div className="flex flex-col gap-1 text-[12px] sm:flex-row sm:justify-between">
           <span className="text-[#64748B] dark:text-[#94A3B8]">Total saídas</span>
           <span className="font-semibold text-[#EF4444]">{formatCurrency(totalExpense)}</span>
         </div>

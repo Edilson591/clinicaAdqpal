@@ -63,10 +63,10 @@ export function CalendarWeek({ onDateChange }: CalendarWeekProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] rounded-xl p-6 transition-colors duration-200">
+    <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] rounded-xl p-4 sm:p-6 transition-colors duration-200">
       {/* Nav bar */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-0 md:gap-2">
+      <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between gap-0 md:gap-2 sm:justify-start">
           <button
             onClick={prevPeriod}
             className="p-1.5 rounded-lg text-[#64748B] dark:text-[#94A3B8] hover:bg-[#F1F5F9] dark:hover:bg-[#263548] transition-colors cursor-pointer"
@@ -74,7 +74,7 @@ export function CalendarWeek({ onDateChange }: CalendarWeekProps) {
           >
             <ChevronLeft size={18} />
           </button>
-          <span className="text-lg font-semibold text-[#1E293B] dark:text-[#F1F5F9] min-w-40 text-center">
+          <span className="text-base sm:text-lg font-semibold text-[#1E293B] dark:text-[#F1F5F9] min-w-0 flex-1 text-center sm:min-w-40 sm:flex-none">
             {formatMonthYear(anchor)}
           </span>
           <button
@@ -92,7 +92,7 @@ export function CalendarWeek({ onDateChange }: CalendarWeekProps) {
             <button
               key={v}
               onClick={() => setView(v)}
-              className={`h-7 px-4 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                className={`h-7 flex-1 px-4 rounded-md text-xs font-medium transition-all cursor-pointer sm:flex-none ${
                 view === v
                   ? "bg-white dark:bg-[#1E293B] text-[#1E293B] dark:text-[#F1F5F9] shadow-sm"
                   : "text-[#64748B] dark:text-[#94A3B8]"
@@ -106,7 +106,7 @@ export function CalendarWeek({ onDateChange }: CalendarWeekProps) {
 
       {/* ── WEEK VIEW ── */}
       {view === "semana" && (
-        <div className="grid grid-cols-5 gap-3">
+        <div className="grid grid-cols-5 gap-1 sm:gap-3">
           {weekDays.map(({ label, date }) => {
             const isSelected = isSameDay(date, selectedDate);
             const isToday = isSameDay(date, today);
@@ -114,7 +114,7 @@ export function CalendarWeek({ onDateChange }: CalendarWeekProps) {
               <button
                 key={label}
                 onClick={() => handleSelect(date)}
-                className={`flex flex-col items-center justify-center gap-1 h-20 transition-all cursor-pointer ${dayBtnClass(date)}`}
+                 className={`flex flex-col items-center justify-center gap-1 h-16 sm:h-20 transition-all cursor-pointer ${dayBtnClass(date)}`}
               >
                 <span
                   className={`text-sm ${
@@ -127,7 +127,7 @@ export function CalendarWeek({ onDateChange }: CalendarWeekProps) {
                 >
                   {label}
                 </span>
-                <span className={`text-2xl font-semibold ${numClass(date)}`}>
+                <span className={`text-xl sm:text-2xl font-semibold ${numClass(date)}`}>
                   {date.getDate()}
                 </span>
               </button>

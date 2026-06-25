@@ -183,12 +183,12 @@ export default function ApacLaudoPage() {
   );
 
   return (
-    <main className="flex-1 relative dark:bg-[#0F172A] overflow-y-auto">
+    <main className="flex-1 min-w-0 relative dark:bg-[#0F172A] overflow-y-auto">
       <div className="absolute inset-0 bg-[url('/bg-fundo.jpeg')] bg-no-repeat bg-cover bg-center opacity-10 z-[-1] dark:bg-none" />
       <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
         <Header />
 
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-start">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#1E293B] dark:text-[#F1F5F9]">
               Laudo APAC

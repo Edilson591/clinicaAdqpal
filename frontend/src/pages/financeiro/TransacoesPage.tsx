@@ -109,14 +109,14 @@ function TransactionRow({
   const isConfirming = confirmId === t.id;
 
   return (
-    <div className="flex items-center gap-3 sm:gap-4 p-4 border-b border-[#F1F5F9] dark:border-[#1E293B] last:border-0 hover:bg-[#F8FAFC] dark:hover:bg-[#0F172A] transition-colors">
+    <div className="flex flex-wrap items-center gap-3 sm:gap-4 p-4 border-b border-[#F1F5F9] dark:border-[#1E293B] last:border-0 hover:bg-[#F8FAFC] dark:hover:bg-[#0F172A] transition-colors">
       <TransactionTypeIcon type={t.type} />
 
       <div className="flex-1 min-w-0">
         <p className="text-[13px] font-medium text-[#1E293B] dark:text-[#F1F5F9] truncate">
           {t.description}
         </p>
-        <p className="text-[11px] text-[#94A3B8] mt-0.5">
+        <p className="text-[11px] text-[#94A3B8] mt-0.5 truncate">
           {formatDate(t.dueDate)}
           {t.category ? ` · ${t.category.name}` : ""}
           {t.account ? ` · ${t.account.name}` : ""}
@@ -210,14 +210,14 @@ export default function TransacoesPage() {
   }
 
   return (
-    <main className="flex-1 relative dark:bg-[#0F172A] overflow-y-auto">
+    <main className="flex-1 min-w-0 relative dark:bg-[#0F172A] overflow-y-auto">
       <div className="absolute inset-0 bg-[url('/bg-fundo.jpeg')] bg-no-repeat bg-cover bg-center opacity-10 z-[-1] dark:bg-none" />
-      <div className="p-4 sm:p-8 flex flex-col gap-6">
+          <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
         <Header isSearchAvaliable={false} />
         <FinanceiroHeader />
 
         {/* Filtros */}
-        <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-[#E2E8F0] dark:border-[#334155] p-4 flex flex-col sm:flex-row gap-3 transition-colors duration-200">
+        <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-[#E2E8F0] dark:border-[#334155] p-4 flex flex-col lg:flex-row gap-3 transition-colors duration-200">
           {/* Search */}
           <div className="flex-1 relative">
             <Search
@@ -245,7 +245,7 @@ export default function TransacoesPage() {
                 setTypeFilter(e.target.value as TransactionType | "");
                 setPage(1);
               }}
-              className="h-9.5 px-2 rounded-lg bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#334155] text-[13px] text-[#475569] dark:text-[#CBD5E1] focus:outline-none cursor-pointer"
+              className="h-9.5 min-w-0 flex-1 px-2 rounded-lg bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#334155] text-[13px] text-[#475569] dark:text-[#CBD5E1] focus:outline-none cursor-pointer lg:flex-none"
             >
               <option value="">Todos os tipos</option>
               <option value="INCOME">Entradas</option>
@@ -272,7 +272,7 @@ export default function TransacoesPage() {
           {/* Nova transação */}
           <button
             onClick={() => navigate("/financeiro/nova")}
-            className="flex items-center gap-2 h-9.5 px-3.5 rounded-lg bg-[#38A169] text-white text-[13px] font-semibold hover:bg-[#2F9259] transition-colors cursor-pointer shrink-0"
+            className="flex items-center justify-center gap-2 h-9.5 px-3.5 rounded-lg bg-[#38A169] text-white text-[13px] font-semibold hover:bg-[#2F9259] transition-colors cursor-pointer shrink-0"
           >
             <Plus size={15} />
             Nova
@@ -282,7 +282,7 @@ export default function TransacoesPage() {
         {/* Lista de transações */}
         <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-[#E2E8F0] dark:border-[#334155] overflow-hidden transition-colors duration-200">
           {/* Cabeçalho da tabela */}
-          <div className="hidden sm:grid grid-cols-[32px_1fr_120px_120px_80px_60px] items-center gap-4 px-4 py-3 border-b border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A]">
+          <div className="hidden sm:grid grid-cols-[32px_1fr_120px_120px_60px] items-center gap-4 px-4 py-3 border-b border-[#E2E8F0] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F172A]">
             <div />
             <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wide">
               Descrição
@@ -328,7 +328,7 @@ export default function TransacoesPage() {
 
         {/* Paginação */}
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-[12px] text-[#94A3B8]">
               {pagination.total} transações · página {pagination.page} de{" "}
               {pagination.totalPages}

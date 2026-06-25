@@ -27,7 +27,7 @@ export function DocumentSidebar({ documents, activeId, search, onSearchChange, o
   }, [activeId]);
 
   return (
-    <aside ref={sidebarRef} className="h-fit max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-sm dark:border-[#334155] dark:bg-[#1E293B] lg:sticky lg:top-6">
+    <aside ref={sidebarRef} className="h-fit max-h-[calc(100dvh-8rem)] min-w-0 overflow-y-auto rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-sm dark:border-[#334155] dark:bg-[#1E293B] lg:sticky lg:top-6">
       <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-[#64748B] dark:text-[#94A3B8]">
         Buscar modelo
       </label>

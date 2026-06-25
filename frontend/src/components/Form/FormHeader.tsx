@@ -17,8 +17,8 @@ export const FormHeader = ({
   pacientName,
 }: FormHeaderProps) => {
   return (
-    <div className="flex items-start justify-between">
-      <div className="flex flex-col gap-1">
+    <div className="flex items-start justify-between min-w-0">
+      <div className="flex min-w-0 flex-col gap-1">
         <div className="flex items-center gap-2 flex-wrap">
           <Link
             to={link}
@@ -29,7 +29,7 @@ export const FormHeader = ({
           </Link>
           <span className="text-[#CBD5E1] text-sm">/</span>
           <FilePlus size={20} className="text-[#38A169]" />
-          <h1 className="text-[22px] font-semibold text-[#1E293B] dark:text-[#64748B] ">
+          <h1 className="text-xl sm:text-[22px] font-semibold text-[#1E293B] dark:text-[#64748B] break-words">
             {subTitle}
           </h1>
         </div>

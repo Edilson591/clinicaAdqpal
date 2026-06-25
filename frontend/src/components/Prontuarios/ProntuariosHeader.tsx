@@ -1,7 +1,6 @@
-import {  FileText, Plus, Search } from "lucide-react";
+import { FileText, Search } from "lucide-react";
 // import { useSidebarContext } from "../../context/useSidebarContext";
 import { Header } from "../Dashboard/Header";
-import { useNavigate } from "react-router-dom";
 
 interface ProntuariosHeaderProps {
   total: number;
@@ -15,12 +14,11 @@ export function ProntuariosHeader({
   onSearchChange,
 }: ProntuariosHeaderProps) {
   // const { toggleMobile } = useSidebarContext();
-  const navigate = useNavigate();
   return (
     <div>
       {/* Linha 1 — Título + ações */}
       <Header isSearchAvaliable={false} />
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex flex-col items-stretch justify-between gap-4 mb-4 sm:flex-row sm:items-start">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <FileText size={20} className="text-[#38A169]" />
@@ -46,7 +44,7 @@ export function ProntuariosHeader({
       </div>
 
       {/* Linha 2 — Search bar — pen: 2CiFa */}
-      <div className="relative w-full max-w-sm">
+      <div className="relative w-full sm:max-w-sm">
         <Search
           size={15}
           className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#94A3B8] dark:text-[#64748B]"

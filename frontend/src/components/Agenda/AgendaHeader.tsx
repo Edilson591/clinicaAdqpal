@@ -25,7 +25,7 @@ export function AgendaHeader({
     <div>
       {/* Linha 1 — Título + ações */}
       <Header isSearchAvaliable={false} />
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex flex-col items-stretch justify-between gap-4 mb-4 sm:flex-row sm:items-start">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Calendar size={20} className="text-[#38A169]" />
@@ -42,7 +42,7 @@ export function AgendaHeader({
           {/* Nova Consulta — pen: v27Cr · bg #38A169, h:44, w:180 */}
           <Link
             to="/agenda/nova"
-            className="flex items-center gap-2 h-11 px-5 bg-[#38A169] hover:bg-[#2F9259] text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+            className="flex w-full items-center justify-center gap-2 h-11 px-5 bg-[#38A169] hover:bg-[#2F9259] text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap sm:w-auto"
           >
             <Plus size={16} />
             Nova Consulta
@@ -51,7 +51,7 @@ export function AgendaHeader({
       </div>
 
       {/* Linha 2 — Busca */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <SearchBar
           value={search}
           onChange={onSearchChange}
@@ -62,7 +62,7 @@ export function AgendaHeader({
           // label="Médico"
           // error={errors.doctorId?.message}
           placeholder="Buscar médico pelo nome..."
-          className=" max-w-96 "
+          className="w-full sm:max-w-96"
           classNameChildren="h-11 bg-white dark:bg-[#1E293B]"
           options={doctorOptions}
           value={selectDoctor}

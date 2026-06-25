@@ -35,7 +35,7 @@ function Auth2faCard({
 }: Auth2faCardProps) {
   return (
     <div
-      className="w-full max-w-120 bg-white rounded-2xl p-8 sm:p-12 flex flex-col items-center"
+      className="w-full max-w-120 bg-white rounded-2xl p-6 sm:p-12 flex flex-col items-center"
       style={{
         boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.25)",
       }}
@@ -48,14 +48,14 @@ function Auth2faCard({
       </div>
 
       <h1
-        className="text-[28px] font-bold mt-6 text-center leading-tight"
+        className="text-2xl sm:text-[28px] font-bold mt-6 text-center leading-tight"
         style={{ color: "#1a365d" }}
       >
         Verificação em duas etapas
       </h1>
 
       <p
-        className="text-base font-normal text-center mt-2 max-w-sm"
+        className="text-sm sm:text-base font-normal text-center mt-2 max-w-sm break-words"
         style={{ color: "#718096" }}
       >
         Digite o código de 6 dígitos enviado para{" "}
@@ -87,7 +87,7 @@ function Auth2faCard({
             "aria-label": "Digite o código de 6 dígitos",
             disabled: isLoading,
             className:
-              "text-center text-2xl tracking-[0.5em] font-mono placeholder:tracking-normal",
+              "text-center text-xl sm:text-2xl tracking-[0.35em] sm:tracking-[0.5em] font-mono placeholder:tracking-normal",
           }}
         />
 

@@ -13,7 +13,7 @@ export function PatientList({ patients, isLoading }: PatientListProps) {
     // pen: jBwnl · bg #FFFFFF light · #1E293B dark · border #E2E8F0 / #334155 · cornerRadius 12
     <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] rounded-xl overflow-hidden transition-colors duration-200">
       {/* Título — pen: wcwRS "Lista de Pacientes" */}
-      <div className="px-5 py-4 border-b border-[#E2E8F0] dark:border-[#334155]">
+      <div className="px-4 py-4 sm:px-5 border-b border-[#E2E8F0] dark:border-[#334155]">
         <h2 className="text-base font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
           Lista de Pacientes
         </h2>
@@ -39,7 +39,7 @@ export function PatientList({ patients, isLoading }: PatientListProps) {
       {/* Tabela — pen: CYc32 header · #F1F5F9 light · #263548 dark */}
       {!isLoading && patients.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[420px] text-sm sm:min-w-0">
             <thead>
               <tr className="border-b border-[#E2E8F0] dark:border-[#334155] bg-[#F1F5F9] dark:bg-[#263548]">
                 {["Nome", "CPF", "Telefone", "Última Consulta", ""].map((col, i) => (

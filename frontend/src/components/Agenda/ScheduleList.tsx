@@ -134,14 +134,14 @@ export function ScheduleList({
       {/* pen: ysozS · bg #FFFFFF light · #1E293B dark · border #E2E8F0 / #334155 · cornerRadius 12 */}
       <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] rounded-xl overflow-hidden transition-colors duration-200">
         {/* Título — pen: uuauv */}
-        <div className="px-6 py-5 border-b border-[#E2E8F0] dark:border-[#334155]">
-          <h2 className="text-xl font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
+        <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-[#E2E8F0] dark:border-[#334155]">
+          <h2 className="text-lg sm:text-xl font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
             {title}
           </h2>
         </div>
 
         {/* Rows — pen: O5G23 */}
-        <div className="flex flex-col gap-3 p-6">
+        <div className="flex flex-col gap-3 p-4 sm:p-6">
           {isLoading && (
             <div className="flex flex-col gap-4 p-6">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -166,10 +166,10 @@ export function ScheduleList({
             return (
               <div
                 key={appt.id}
-                className="flex items-center gap-4 px-4 py-3 rounded-lg bg-[#F8FAFC] dark:bg-[#263548] transition-colors"
+                className="flex flex-col gap-3 px-4 py-3 rounded-lg bg-[#F8FAFC] dark:bg-[#263548] transition-colors sm:flex-row sm:items-center sm:gap-4"
               >
                 {/* Horário */}
-                <span className="text-base font-semibold text-[#1E293B] dark:text-[#F1F5F9] w-14 shrink-0">
+                <span className="text-base font-semibold text-[#1E293B] dark:text-[#F1F5F9] sm:w-14 sm:shrink-0">
                   {timeStr}
                 </span>
 
@@ -187,7 +187,7 @@ export function ScheduleList({
 
                 {/* Status badge */}
                 <span
-                  className={`shrink-0 h-7 px-4 flex items-center rounded-full text-xs font-medium ${s.bgLight} ${s.textLight} ${s.bgDark} ${s.textDark}`}
+                  className={`h-7 w-fit px-4 flex items-center rounded-full text-xs font-medium sm:shrink-0 ${s.bgLight} ${s.textLight} ${s.bgDark} ${s.textDark}`}
                 >
                   {s.label}
                 </span>
@@ -195,7 +195,7 @@ export function ScheduleList({
                 {/* Botão Ver */}
                 <button
                   onClick={() => setSelected(appt)}
-                  className="shrink-0 h-8 w-8 flex items-center cursor-pointer justify-center rounded-lg border border-[#38A169] text-[#38A169] hover:bg-[#DCFCE7] dark:hover:bg-[#1E3A2F] transition-colors"
+                  className="h-8 w-full flex items-center cursor-pointer justify-center rounded-lg border border-[#38A169] text-[#38A169] hover:bg-[#DCFCE7] dark:hover:bg-[#1E3A2F] transition-colors sm:w-8 sm:shrink-0"
                   title="Ver consulta"
                 >
                   <Eye size={15} />

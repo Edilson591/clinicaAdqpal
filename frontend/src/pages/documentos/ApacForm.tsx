@@ -47,12 +47,13 @@ export function ApacForm({
   onCidSelect
 }: ApacFormProps) {
   return (
-    <div className="bg-white dark:bg-[#1E293B] rounded-xl shadow-sm border border-[#E2E8F0] dark:border-[#334155] p-3 sm:p-6">
-      <div className="flex justify-center">
+    <div className="bg-white dark:bg-[#1E293B] rounded-xl shadow-sm border border-[#E2E8F0] dark:border-[#334155] p-3 sm:p-6 overflow-hidden">
+      <div className="max-h-[calc(100dvh-18rem)] w-full overflow-auto print:max-h-none print:overflow-visible">
+        <div className="flex min-w-max justify-center pb-2 print:min-w-0 print:pb-0">
         <div
           ref={formRef}
           id="apac-form"
-          className="apac-page  p-[3mm] bg-white text-[10pt] font-sans flex flex-col shadow-sm overflow-hidden"
+          className="apac-page w-[794px] max-w-none shrink-0 p-[3mm] bg-white text-[10pt] font-sans flex flex-col shadow-sm overflow-hidden print:w-full print:shrink"
         >
           {/* HEADER SUS */}
           <div className="flex border border-black shrink-0">
@@ -677,6 +678,7 @@ export function ApacForm({
           <div className="text-[5pt] text-[#555] pt-px shrink-0">
             01-Laudo Solic. Proc. Amb Atualizada_21-10-10.vsd
           </div>
+        </div>
         </div>
       </div>
 
