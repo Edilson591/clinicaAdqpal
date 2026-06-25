@@ -20,7 +20,7 @@ export function Header({ isSearchAvaliable, search, onSearchChange }: propsHeade
   const greeting = user ? `Olá, Dr. ${user.username}` : "Olá!";
 
   return (
-    <div className="flex items-center justify-between shrink-0 mb-6">
+    <div className="flex items-center justify-between gap-3 shrink-0 mb-6">
       {/* Left: toggle + greeting */}
       <div className="flex items-center gap-3 min-w-0">
         <MenuSidebar />
@@ -37,7 +37,7 @@ export function Header({ isSearchAvaliable, search, onSearchChange }: propsHeade
       </div>
 
       {/* Right: search + theme toggle */}
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {/* Search — oculto no mobile */}
         {isSearchAvaliable && (
           <div className="relative hidden sm:block">
@@ -50,7 +50,7 @@ export function Header({ isSearchAvaliable, search, onSearchChange }: propsHeade
               placeholder="Buscar (PX, CPF, ...)"
               value={search ?? ""}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="w-70 lg:w-[320px] h-10 pl-9 pr-4 bg-white dark:bg-[#1E293B] border border-[#E5E7EB] dark:border-[#334155] rounded-lg text-sm text-[#374151] dark:text-[#F1F5F9] placeholder:text-[#9CA3AF] dark:placeholder:text-[#64748B] focus:outline-none focus:border-[#38A169] focus:ring-1 focus:ring-[#38A169] transition-colors"
+              className="w-56 lg:w-[320px] h-10 pl-9 pr-4 bg-white dark:bg-[#1E293B] border border-[#E5E7EB] dark:border-[#334155] rounded-lg text-sm text-[#374151] dark:text-[#F1F5F9] placeholder:text-[#9CA3AF] dark:placeholder:text-[#64748B] focus:outline-none focus:border-[#38A169] focus:ring-1 focus:ring-[#38A169] transition-colors"
             />
           </div>
         )}
@@ -59,7 +59,7 @@ export function Header({ isSearchAvaliable, search, onSearchChange }: propsHeade
         <button
           onClick={toggleTheme}
           aria-label={isDark ? "Modo claro" : "Modo escuro"}
-          className="flex items-center gap-2 h-10 px-3 rounded-lg text-sm font-medium border border-[#E5E7EB] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-[#6B7280] dark:text-[#94A3B8] hover:opacity-80 transition-all cursor-pointer"
+          className="flex items-center gap-2 h-10 px-2.5 sm:px-3 rounded-lg text-sm font-medium border border-[#E5E7EB] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-[#6B7280] dark:text-[#94A3B8] hover:opacity-80 transition-all cursor-pointer"
         >
           {isDark ? <Sun size={16} /> : <Moon size={16} />}
           <span className="hidden md:inline">

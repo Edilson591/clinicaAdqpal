@@ -38,13 +38,13 @@ export default function RhPage() {
   } = useRhPage();
 
   return (
-    <main className="flex-1 relative dark:bg-[#0F172A] overflow-y-auto">
+    <main className="flex-1 min-w-0 relative dark:bg-[#0F172A] overflow-y-auto">
       <div className="absolute inset-0 bg-[url('/bg-fundo.jpeg')] bg-no-repeat bg-cover bg-center opacity-10 z-[-1] dark:bg-none" />
       <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
         <Header />
 
         {/* Título */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-start">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#1E293B] dark:text-[#F1F5F9]">
               Recursos Humanos
@@ -56,7 +56,7 @@ export default function RhPage() {
           <Button
             variant="primary"
             onClick={() => navigate("/rh/novo")}
-            className="bg-[#38A169] from-[#38A169] to-[#38A169] hover:from-[#2F9259] hover:to-[#2F9259] h-10 px-4 flex items-center gap-2 shrink-0"
+            className="bg-[#38A169] from-[#38A169] to-[#38A169] hover:from-[#2F9259] hover:to-[#2F9259] h-10 px-4 flex items-center justify-center gap-2 shrink-0"
           >
             <UserPlus size={16} />
             Novo Funcionário
@@ -86,7 +86,7 @@ export default function RhPage() {
               name="rhInput"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 max-w-sm py-2.5 text-sm rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-[#1E293B] dark:text-[#F1F5F9] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#38A169]/40"
+              className="w-full pl-9 pr-4 sm:max-w-sm py-2.5 text-sm rounded-lg border border-[#E2E8F0] dark:border-[#334155] bg-white dark:bg-[#1E293B] text-[#1E293B] dark:text-[#F1F5F9] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#38A169]/40"
             />
           </div>
           <div className="w-full sm:w-56">

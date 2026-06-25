@@ -33,7 +33,7 @@ function LoginCard({
 }: LoginCardProps) {
   return (
     <div
-      className="w-full max-w-120 bg-white rounded-2xl p-8 sm:p-12 flex flex-col items-center"
+      className="w-full max-w-120 bg-white rounded-2xl p-6 sm:p-12 flex flex-col items-center"
       style={{
         boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.25)",
       }}
@@ -44,7 +44,7 @@ function LoginCard({
 
       {/* Título - ID: XPRor */}
       <h1
-        className="text-[28px] font-bold mt-4 text-center leading-tight"
+        className="text-2xl sm:text-[28px] font-bold mt-4 text-center leading-tight"
         style={{ color: "#1a365d" }}
       >
         Bem-vindo ao ADQPAL
@@ -52,7 +52,7 @@ function LoginCard({
 
       {/* Subtítulo - ID: WRpo5 */}
       <p
-        className="text-base font-normal text-center mt-2"
+        className="text-sm sm:text-base font-normal text-center mt-2"
         style={{ color: "#718096" }}
       >
         Acesse sua conta para gerenciar a clínica.

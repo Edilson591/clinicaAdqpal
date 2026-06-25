@@ -28,7 +28,7 @@ export function PatientCard({ patient }: PatientCardProps) {
               {patient.name.charAt(0).toUpperCase()}
             </span>
           </div>
-          <span className="text-sm font-medium text-[#1E293B] dark:text-[#F1F5F9]">
+          <span className="text-sm font-medium text-[#1E293B] dark:text-[#F1F5F9] break-words">
             {patient.name}
           </span>
         </div>
@@ -51,14 +51,14 @@ export function PatientCard({ patient }: PatientCardProps) {
 
       {/* Ações */}
       <td className="px-4 py-3.5 text-right">
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <Link
             to={`/pacientes/${patient.id}/historico`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#3B82F6] border border-[#3B82F6] bg-transparent hover:bg-[#3B82F6] hover:text-white transition-colors"
             title="Ver histórico do paciente"
           >
             <ClipboardList size={12} />
-            Histórico
+            <span className="hidden sm:inline">Histórico</span>
           </Link>
           <button
             onClick={() =>
@@ -70,7 +70,7 @@ export function PatientCard({ patient }: PatientCardProps) {
             title="Ver prontuário"
           >
             <FileText size={12} />
-            Prontuário
+            <span className="hidden sm:inline">Prontuário</span>
           </button>
           <Link
             to={`/pacientes/${patient.id}/editar`}

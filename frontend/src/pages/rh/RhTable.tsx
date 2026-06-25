@@ -66,7 +66,7 @@ export function RhTable({
 
       <div className="overflow-x-auto flex-1">
         {isLoading ? (
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[520px] text-sm md:min-w-0">
             <thead>
               <tr className="bg-[#F8FAFC] dark:bg-[#0F172A]">
                 <th className="text-left px-5 py-3 font-semibold text-xs text-[#64748B] dark:text-[#94A3B8] w-55">Funcionário</th>
@@ -148,8 +148,8 @@ export function RhTable({
                         <div className="w-9 h-9 rounded-full bg-[#DBEAFE] flex items-center justify-center shrink-0">
                           <span className="text-[#3182CE] text-xs font-bold">{emp.initials}</span>
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-sm text-[#1E293B] dark:text-[#F1F5F9] truncate">{emp.name}</p>
+                         <div className="min-w-0">
+                         <p className="font-semibold text-sm text-[#1E293B] dark:text-[#F1F5F9] truncate">{emp.name}</p>
                           {emp.email && (
                             <p className="text-xs text-[#94A3B8] truncate">{emp.email}</p>
                           )}
@@ -206,7 +206,7 @@ export function RhTable({
                           </Button>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-end gap-2">
+                         <div className="flex flex-wrap items-center justify-end gap-2">
                           <Button
                             variant="ghost"
                             onClick={() => navigate(`/rh/${emp.id}/editar`)}

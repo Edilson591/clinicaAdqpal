@@ -22,13 +22,13 @@ export default function AdministrativoPage() {
   } = useAdministrativoPage();
 
   return (
-    <main className="relative flex-1 overflow-y-auto bg-[#F8FAFC] dark:bg-[#0F172A]">
+    <main className="relative flex-1 min-w-0 overflow-y-auto bg-[#F8FAFC] dark:bg-[#0F172A]">
       <style>{administrativePrintStyles}</style>
       <div className="pointer-events-none absolute inset-0 z-0 bg-[url('/bg-fundo.jpeg')] bg-cover bg-center bg-no-repeat opacity-10 dark:bg-none" />
       <div className="relative p-4 sm:p-6 lg:p-8">
         <Header />
 
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4 print:hidden">
+        <div className="mb-6 flex flex-col items-stretch justify-between gap-4 print:hidden sm:flex-row sm:items-start">
           <div>
             <h1 className="text-xl font-bold text-[#1E293B] dark:text-[#F1F5F9] sm:text-2xl">
               Documentacao Administrativa
@@ -37,16 +37,16 @@ export default function AdministrativoPage() {
               Primeira etapa da migracao: modelos componentizados, seguros e alinhados ao layout do sistema.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Button
               variant="primary"
               onClick={handlePrint}
-              className="bg-[#1565c0] from-[#1565c0] to-[#1565c0] hover:from-[#1250a0] hover:to-[#1250a0] h-10 px-4 flex items-center gap-2 shrink-0"
+              className="bg-[#1565c0] from-[#1565c0] to-[#1565c0] hover:from-[#1250a0] hover:to-[#1250a0] h-10 px-4 flex items-center justify-center gap-2 shrink-0"
             >
               <Printer size={16} />
               Imprimir
             </Button>
-            <Button variant="destructive" onClick={handleClear} className="h-10 px-4 flex items-center gap-2 shrink-0">
+            <Button variant="destructive" onClick={handleClear} className="h-10 px-4 flex items-center justify-center gap-2 shrink-0">
               <Trash2 size={16} />
               Limpar
             </Button>
@@ -67,8 +67,8 @@ export default function AdministrativoPage() {
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] print:block">
-          <div className="print:hidden">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(240px,320px)_minmax(0,1fr)] print:block">
+          <div className="min-w-0 print:hidden">
             <DocumentSidebar
               documents={filteredDocuments}
               activeId={activeDocument.id}
@@ -78,7 +78,7 @@ export default function AdministrativoPage() {
             />
           </div>
 
-          <div className="space-y-6 print:space-y-0">
+          <div className="min-w-0 space-y-6 print:space-y-0">
             <div className="print:hidden">
               <DocumentForm document={activeDocument} values={activeValues} errors={errors} onChange={updateValue} />
             </div>

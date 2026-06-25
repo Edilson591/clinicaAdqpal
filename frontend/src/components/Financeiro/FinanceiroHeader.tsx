@@ -54,7 +54,7 @@ export function FinanceiroHeader() {
           </h1>
 
           {/* Seletor de mês */}
-          <div className="w-48">
+          <div className="w-full sm:w-48">
             <SearchableSelect
               options={MONTH_OPTIONS}
               value={selectedMonth}
@@ -67,7 +67,7 @@ export function FinanceiroHeader() {
 
         <button
           onClick={() => navigate("/financeiro/nova")}
-          className="flex items-center gap-2 h-9.5 px-3.5 rounded-lg bg-[#38A169] text-white text-[13px] font-semibold hover:bg-[#2F9259] transition-colors cursor-pointer self-start sm:self-auto"
+          className="flex w-full items-center justify-center gap-2 h-9.5 px-3.5 rounded-lg bg-[#38A169] text-white text-[13px] font-semibold hover:bg-[#2F9259] transition-colors cursor-pointer sm:w-auto sm:self-auto"
         >
           <Plus size={15} />
           Nova Transação
@@ -75,7 +75,7 @@ export function FinanceiroHeader() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-[#E2E8F0] dark:border-[#334155]">
+      <div className="flex gap-1 overflow-x-auto border-b border-[#E2E8F0] dark:border-[#334155]">
         {TABS.map((tab) => {
           const isActive =
             tab.path === "/financeiro" ? pathname === "/financeiro" : pathname === tab.path;

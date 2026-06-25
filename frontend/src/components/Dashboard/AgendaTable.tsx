@@ -60,7 +60,7 @@ export function AgendaTable({
       </div>
 
       {/* Table header — pen: CYc32 · #F9FAFB light · #263548 dark */}
-      <div className="grid grid-cols-[80px_1fr_120px_4px_140px] items-center px-6 py-3 bg-[#F9FAFB] dark:bg-[#263548] border-b border-[#E5E7EB] dark:border-[#334155]">
+      <div className="hidden sm:grid grid-cols-[80px_1fr_120px_4px_140px] items-center px-6 py-3 bg-[#F9FAFB] dark:bg-[#263548] border-b border-[#E5E7EB] dark:border-[#334155]">
         {["Horário", "Paciente", "Status", "", "Ações"].map((col, i) => (
           <span
             key={i}
@@ -77,7 +77,7 @@ export function AgendaTable({
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="grid grid-cols-[80px_1fr_120px_4px_140px] items-center px-6 py-4"
+              className="flex flex-col gap-3 px-4 py-4 sm:grid sm:grid-cols-[80px_1fr_120px_4px_140px] sm:items-center sm:px-6"
             >
               <div className="h-4 w-14 rounded bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
               <div className="h-4 w-40 rounded bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
@@ -108,26 +108,26 @@ export function AgendaTable({
           return (
             <div
               key={item.id}
-              className="grid grid-cols-[80px_1fr_120px_4px_140px] items-center px-6 py-4 border-b border-[#F3F4F6] dark:border-[#334155] last:border-0 hover:bg-[#F9FAFB] dark:hover:bg-[#263548] transition-colors"
+              className="flex flex-col gap-3 px-4 py-4 border-b border-[#F3F4F6] dark:border-[#334155] last:border-0 hover:bg-[#F9FAFB] dark:hover:bg-[#263548] transition-colors sm:grid sm:grid-cols-[80px_1fr_120px_4px_140px] sm:items-center sm:px-6"
             >
               <span className="text-sm font-medium text-[#374151] dark:text-[#F1F5F9]">
                 {item.horario}
               </span>
-              <span className="text-sm text-[#374151] dark:text-[#CBD5E1]">
+              <span className="text-sm text-[#374151] dark:text-[#CBD5E1] break-words">
                 {item.paciente}
               </span>
-              <div className="flex justify-center">
+              <div className="flex sm:justify-center">
                 <StatusBadge status={item.status} />
               </div>
-              <span />
-              <div className="flex justify-center">
+              <span className="hidden sm:block" />
+              <div className="flex sm:justify-center">
                 <button
                   onClick={() =>
                     item.medicalRecordId
                       ? navigate(`/prontuarios/${item.medicalRecordId}/editar`)
                       : navigate(`/prontuarios?patientId=${item.patientId}`)
                   }
-                  className="text-xs font-medium text-[#38A169] border border-[#38A169] rounded-lg px-4 py-2 hover:bg-[#38A169] hover:text-white transition-colors whitespace-nowrap cursor-pointer"
+                  className="w-full text-xs font-medium text-[#38A169] border border-[#38A169] rounded-lg px-4 py-2 hover:bg-[#38A169] hover:text-white transition-colors whitespace-nowrap cursor-pointer sm:w-auto"
                 >
                   Ver Prontuário
                 </button>

@@ -36,7 +36,7 @@ export function UsersTable({
     return (
       <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-[#E5E7EB] dark:border-[#334155] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[420px] text-sm sm:min-w-0">
             <thead className="">
               <tr className="border-b border-[#E5E7EB] dark:border-[#334155]  dark:bg-[#0F172A]">
                 <th className="text-left px-4 sm:px-5 py-3 font-medium text-[#64748B] dark:text-[#94A3B8]">Usuário</th>
@@ -92,7 +92,7 @@ export function UsersTable({
   return (
     <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-[#E5E7EB] dark:border-[#334155] overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[420px] text-sm sm:min-w-0">
           <thead>
             <tr className="border-b border-[#E5E7EB] dark:border-[#334155] dark:bg-[#0F172A]">
               <th className="text-left px-4 sm:px-5 py-3 font-medium text-[#64748B] dark:text-[#94A3B8]">
@@ -185,7 +185,7 @@ export function UsersTable({
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
                       <Button
                         variant="outline"
                         onClick={() => navigate(`/configuracoes/usuarios/${user.id}/editar`)}

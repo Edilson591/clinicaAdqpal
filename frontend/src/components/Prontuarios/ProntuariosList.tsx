@@ -13,8 +13,8 @@ export function ProntuariosList({ records, isLoading }: ProntuariosListProps) {
     // pen: uYC4k · bg #FFFFFF light · #1E293B dark · border #E2E8F0 / #334155 · cornerRadius 12
     <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] rounded-xl overflow-hidden transition-colors duration-200">
       {/* Título */}
-      <div className="px-6 py-5 border-b border-[#E2E8F0] dark:border-[#334155]">
-        <h2 className="text-xl font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
+      <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-[#E2E8F0] dark:border-[#334155]">
+        <h2 className="text-lg sm:text-xl font-semibold text-[#1E293B] dark:text-[#F1F5F9]">
           Prontuários Recentes
         </h2>
       </div>
@@ -39,7 +39,7 @@ export function ProntuariosList({ records, isLoading }: ProntuariosListProps) {
       {/* Tabela */}
       {!isLoading && records.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[380px] text-sm sm:min-w-0">
             {/* pen: P27zP · bg #F1F5F9 light · #263548 dark */}
             <thead>
               <tr className="bg-[#F1F5F9] dark:bg-[#263548] border-b border-[#E2E8F0] dark:border-[#334155]">
@@ -80,7 +80,7 @@ export function ProntuariosList({ records, isLoading }: ProntuariosListProps) {
                             {patientName.charAt(0).toUpperCase()}
                           </span>
                         </div>
-                        <span className="font-medium text-[#1E293B] dark:text-[#F1F5F9]">
+                        <span className="font-medium text-[#1E293B] dark:text-[#F1F5F9] break-words">
                           {patientName}
                         </span>
                       </div>

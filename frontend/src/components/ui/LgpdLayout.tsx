@@ -24,7 +24,7 @@ export function LgpdLayout({ title, lastUpdated, sections }: LgpdLayoutProps) {
           "linear-gradient(135deg, #1a365d 0%, #2d3748 50%, #38a169 100%)",
       }}
     >
-      <div className="w-full max-w-3xl bg-white rounded-2xl p-8 sm:p-12 my-8"
+      <div className="w-full max-w-3xl bg-white rounded-2xl p-6 sm:p-12 my-4 sm:my-8"
         style={{ boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.25)" }}
       >
         {/* Voltar */}
