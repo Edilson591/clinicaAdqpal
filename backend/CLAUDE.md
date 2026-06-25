@@ -210,6 +210,8 @@ npm run prisma:generate  # Regenera o Prisma Client
 
 A documentação completa da API fica disponível automaticamente na **rota raiz** do backend:
 
+> Em produção (`NODE_ENV=production` ou `VERCEL_ENV=production`), o Swagger não é exposto para evitar divulgação das rotas da API.
+
 | Recurso | URL | Descrição |
 |---------|-----|-----------|
 | Swagger UI | `http://localhost:3333/` | Interface interativa para testar endpoints |

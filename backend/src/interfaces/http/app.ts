@@ -111,6 +111,8 @@ app.get("/health", (_req, res) => {
 });
 
 // ── Swagger UI — documentação interativa ─────────────────────────────────────
+const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+
 // NOTA: não usar swaggerUi.serve+setup (express.static do swagger-ui-dist), pois
 // no serverless do Vercel assets de node_modules não são servidos corretamente.
 // Em vez disso, carregamos tudo via CDN.
@@ -146,10 +148,12 @@ const swaggerHtml = `<!DOCTYPE html>
 </body>
 </html>`;
 
-app.get(["/", "/api-docs"], (_req, res) => res.send(swaggerHtml));
-app.get("/api-docs.json", (_req, res) => {
-  res.json(swaggerSpec);
-});
+if (!isProduction) {
+  app.get(["/", "/api-docs"], (_req, res) => res.send(swaggerHtml));
+  app.get("/api-docs.json", (_req, res) => {
+    res.json(swaggerSpec);
+  });
+}
 
 app.use("/users", userRoutes);
 app.use("/patients", patientRoutes);
