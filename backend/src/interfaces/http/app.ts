@@ -113,6 +113,52 @@ app.get("/health", (_req, res) => {
 // ── Swagger UI — documentação interativa ─────────────────────────────────────
 const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
 
+const productionLandingHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADQPAL API</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    body {
+      display: grid;
+      min-height: 100vh;
+      margin: 0;
+      place-items: center;
+    }
+    main {
+      max-width: 520px;
+      padding: 32px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 12px;
+      color: #166534;
+      font-size: clamp(2rem, 6vw, 3rem);
+      letter-spacing: -0.04em;
+    }
+    p {
+      margin: 0;
+      color: #475569;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ADQPAL API</h1>
+    <p>Servico oficial da plataforma ADQPAL para operacoes internas do sistema clinico. Esta interface publica e apenas informativa.</p>
+  </main>
+</body>
+</html>`;
+
 // NOTA: não usar swaggerUi.serve+setup (express.static do swagger-ui-dist), pois
 // no serverless do Vercel assets de node_modules não são servidos corretamente.
 // Em vez disso, carregamos tudo via CDN.
@@ -153,6 +199,8 @@ if (!isProduction) {
   app.get("/api-docs.json", (_req, res) => {
     res.json(swaggerSpec);
   });
+} else {
+  app.get("/", (_req, res) => res.send(productionLandingHtml));
 }
 
 app.use("/users", userRoutes);
