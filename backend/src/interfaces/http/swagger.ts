@@ -23,6 +23,11 @@ export const swaggerSpec: swaggerUi.JsonObject = {
         bearerFormat: "JWT",
         description: "Token JWT obtido via POST /users/login ou verify-2fa",
       },
+      syncSecretAuth: {
+        type: "http",
+        scheme: "bearer",
+        description: "Token interno definido em SYNC_SECRET",
+      },
     },
     schemas: {
       // ─── Error ──────────────────────────────────────────────────────────
@@ -621,6 +626,37 @@ export const swaggerSpec: swaggerUi.JsonObject = {
                     timestamp: { type: "string", format: "date-time" },
                   },
                 },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    "/internal/keepalive": {
+      get: {
+        tags: ["Internal"],
+        summary: "Keep-alive interno do banco de dados",
+        description: "Executa uma consulta simples (`SELECT 1`) para manter a conexão com o banco ativa. Quando `SYNC_SECRET` estiver configurado, exige `Authorization: Bearer <SYNC_SECRET>`.",
+        security: [{ syncSecretAuth: [] }],
+        responses: {
+          "200": {
+            description: "Banco acessível.",
+            content: {
+              "text/plain": {
+                schema: { type: "string", example: "ok" },
+              },
+            },
+          },
+          "401": {
+            description: "Token interno ausente ou inválido.",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/ApiError" } } },
+          },
+          "500": {
+            description: "Falha ao executar a consulta no banco.",
+            content: {
+              "text/plain": {
+                schema: { type: "string", example: "error" },
               },
             },
           },
