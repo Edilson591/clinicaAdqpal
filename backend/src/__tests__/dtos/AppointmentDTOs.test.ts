@@ -33,14 +33,14 @@ describe("CreateAppointmentSchema", () => {
     if (result.success) expect(result.data.scheduledAt.toISOString()).toBe("2026-07-08T11:00:00.000Z");
   });
 
-  it("preserves scheduledAt with explicit UTC timezone", () => {
+  it("treats scheduledAt with explicit UTC timezone as Sao Paulo wall-clock time", () => {
     const result = CreateAppointmentSchema.safeParse({
       ...base,
       scheduledAt: "2026-07-08T08:00:00.000Z",
     });
 
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data.scheduledAt.toISOString()).toBe("2026-07-08T08:00:00.000Z");
+    if (result.success) expect(result.data.scheduledAt.toISOString()).toBe("2026-07-08T11:00:00.000Z");
   });
 
   it("rejects notes longer than 1000 chars", () => {
