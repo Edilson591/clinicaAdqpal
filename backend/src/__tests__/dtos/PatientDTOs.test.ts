@@ -48,9 +48,10 @@ describe("CreatePatientSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects CPF with non-numeric characters", () => {
+  it("strips CPF mask and accepts formatted CPF", () => {
     const result = CreatePatientSchema.safeParse({ ...validCreate, cpf: "123.456.789-01" });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.cpf).toBe("12345678901");
   });
 
   it("accepts valid 11-digit CPF", () => {
@@ -112,5 +113,21 @@ describe("UpdatePatientSchema", () => {
 
   it("rejects CPF with non-11 digits on update", () => {
     expect(UpdatePatientSchema.safeParse({ cpf: "123" }).success).toBe(false);
+  });
+
+  it("accepts masked CPF on update", () => {
+    const result = UpdatePatientSchema.safeParse({ cpf: "123.456.789-01" });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.cpf).toBe("12345678901");
+  });
+
+  it("accepts masked CEP on update", () => {
+    const result = UpdatePatientSchema.safeParse({ zipCode: "01310-100" });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.zipCode).toBe("01310100");
+  });
+
+  it("accepts gender and agreement on update", () => {
+    expect(UpdatePatientSchema.safeParse({ gender: "Feminino", agreement: "Unimed" }).success).toBe(true);
   });
 });

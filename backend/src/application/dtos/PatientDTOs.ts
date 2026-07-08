@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+const documentSchema = z
+  .string()
+  .transform((v) => v.replace(/\D/g, ""))
+  .refine((v) => v.length === 11, "CPF deve ter 11 dígitos numéricos");
+
+const zipCodeSchema = z
+  .string()
+  .transform((v) => v.replace(/\D/g, ""))
+  .refine((v) => !v || v.length === 8, {
+    message: "CEP deve ter 8 dígitos",
+  });
+
 // ─── Create ───────────────────────────────────────────────────────────────────
 
 export const CreatePatientSchema = z.object({
@@ -16,11 +28,7 @@ export const CreatePatientSchema = z.object({
     .nullable()
     .optional(),
   phone: z.string().max(20).trim().nullable().optional(),
-  cpf: z
-    .string()
-    .regex(/^\d{11}$/, "CPF deve ter 11 dígitos numéricos")
-    .nullable()
-    .optional(),
+  cpf: documentSchema.nullable().optional(),
   dateOfBirth: z.string().nullable().optional(),
   gender: z.string().min(1, "Gênero é obrigatório"),
   agreement: z.string().min(1, "Convênio é obrigatório"),
@@ -33,14 +41,7 @@ export const CreatePatientSchema = z.object({
     .toUpperCase()
     .nullable()
     .optional(),
-  zipCode: z
-    .string()
-    .transform((v) => v?.replace(/\D/g, ""))
-    .refine((v) => !v || v.length === 8, {
-      message: "CEP deve ter 8 dígitos",
-    })
-    .nullable()
-    .optional(),
+  zipCode: zipCodeSchema.nullable().optional(),
   additionalInfo: z.string().max(1000).trim().nullable().optional(),
 });
 
@@ -53,21 +54,15 @@ export const UpdatePatientSchema = z
     name: z.string().min(2).max(100).trim().optional(),
     email: z.string().email().toLowerCase().trim().nullable().optional(),
     phone: z.string().max(20).trim().nullable().optional(),
-    cpf: z
-      .string()
-      .regex(/^\d{11}$/)
-      .nullable()
-      .optional(),
+    cpf: documentSchema.nullable().optional(),
     dateOfBirth: z.string().nullable().optional(),
+    gender: z.string().min(1, "Gênero é obrigatório").nullable().optional(),
+    agreement: z.string().min(1, "Convênio é obrigatório").nullable().optional(),
     street: z.string().max(255).trim().nullable().optional(),
     streetNumber: z.string().max(20).trim().nullable().optional(),
     city: z.string().max(100).trim().nullable().optional(),
     state: z.string().length(2).toUpperCase().nullable().optional(),
-    zipCode: z
-      .string()
-      .regex(/^\d{5}-?\d{3}$/)
-      .nullable()
-      .optional(),
+    zipCode: zipCodeSchema.nullable().optional(),
     additionalInfo: z.string().max(1000).trim().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {

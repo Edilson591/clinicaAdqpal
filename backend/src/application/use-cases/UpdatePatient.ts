@@ -1,4 +1,5 @@
 import type { IPatientRepository } from "../../domain/repositories/IPatientRepository";
+import type { UpdatePatientData } from "../../domain/entities/Patient";
 import type { UpdatePatientDTO, PatientResponseDTO } from "../dtos/PatientDTOs";
 import { NotFoundError, ConflictError } from "../../domain/errors/DomainError";
 import { toPatientResponseDTO } from "../mappers/patientMapper";
@@ -15,10 +16,13 @@ export class UpdatePatient {
       if (existing) throw new ConflictError("CPF já pertence a outro paciente.");
     }
 
-    const updated = await this.patientRepository.update(id, {
-      ...dto,
-      dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
-    });
+    const { dateOfBirth, ...rest } = dto;
+    const data: UpdatePatientData = { ...rest };
+    if (dateOfBirth !== undefined) {
+      data.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+    }
+
+    const updated = await this.patientRepository.update(id, data);
     return toPatientResponseDTO(updated);
   }
 }
