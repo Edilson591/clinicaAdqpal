@@ -58,7 +58,6 @@ export class PreLoginUser {
 
     return {
       preAuthToken,
-      user: toUserResponseDTO(user),
     };
   }
 }

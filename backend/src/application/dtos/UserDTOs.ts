@@ -172,7 +172,7 @@ export interface LoginResponseDTO {
 
 export interface PreLoginResponseDTO {
   preAuthToken: string;
-  user: UserResponseDTO; // Seu DTO de retorno de usuário padrão
+  user?: UserResponseDTO;
 }
 
 export interface ApiResponse<T = void> {

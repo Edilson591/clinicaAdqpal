@@ -49,6 +49,8 @@ services:
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
       - TWILIO_FROM_NUMBER=${TWILIO_FROM_NUMBER}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_USER=${SMTP_USER}
     ports:
       - "${PORT:-3333}:${PORT:-3333}"
     depends_on:

@@ -26,8 +26,7 @@ export class PatientHistoryController {
           .status(400)
           .json({
             success: false,
-            message: "Dados inválidos.",
-            errors: parsed.error.flatten().fieldErrors,
+            message: "Dados inválidos. Verifique as informações enviadas.",
           });
         return;
       }

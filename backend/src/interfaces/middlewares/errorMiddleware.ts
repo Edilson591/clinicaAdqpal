@@ -11,12 +11,23 @@ interface ErrorResponse {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const errorMiddleware: ErrorRequestHandler = (
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ): void => {
+  const isProd = process.env.NODE_ENV === "production";
+  const hidesValidationDetails = ["POST", "PUT", "PATCH"].includes(req.method);
+
   // Erros de validação Zod
   if (err instanceof ZodError) {
+    if (hidesValidationDetails) {
+      res.status(422).json({
+        success: false,
+        message: "Dados inválidos. Verifique as informações enviadas.",
+      });
+      return;
+    }
+
     const errors: Record<string, string[]> = {};
     for (const issue of err.issues) {
       const field = issue.path.join(".");
@@ -34,13 +45,13 @@ export const errorMiddleware: ErrorRequestHandler = (
 
   // Erros de domínio tipados
   if (err instanceof DomainError) {
-    const body: ErrorResponse = { success: false, message: err.message };
+    const message = isProd && err.statusCode >= 500 ? "Erro interno do servidor." : err.message;
+    const body: ErrorResponse = { success: false, message };
     res.status(err.statusCode).json(body);
     return;
   }
 
   // Erros inesperados
-  const isProd = process.env.NODE_ENV === "production";
   const message = isProd
     ? "Erro interno do servidor."
     : err instanceof Error

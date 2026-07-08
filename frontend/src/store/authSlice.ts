@@ -58,7 +58,7 @@ const authSlice = createSlice({
   initialState: loadInitialState(),
   reducers: {
     setCredentials(state, action: PayloadAction<{ user: UserResponse; token: string }>) {
-      state.user = action.payload.user;
+      state.user = action.payload.user ?? null;
       state.token = action.payload.token;
       setUserCookie(action.payload.user);
       localStorage.setItem("adqpal_token", action.payload.token);

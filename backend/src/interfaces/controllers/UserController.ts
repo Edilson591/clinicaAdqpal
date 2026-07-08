@@ -13,7 +13,7 @@ import { LoginUser } from "../../application/use-cases/LoginUser";
 import { GetUser } from "../../application/use-cases/GetUser";
 import { UpdateUser } from "../../application/use-cases/UpdateUser";
 import { DeleteUser } from "../../application/use-cases/DeleteUser";
-import { UnauthorizedError } from "../../domain/errors/DomainError";
+import { ForbiddenError, UnauthorizedError } from "../../domain/errors/DomainError";
 import { toUserResponseDTO } from "../../application/mappers/userMapper";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaUserRepository } from "../../infrastructure/repositories/PrismaUserRepository";
@@ -109,6 +109,10 @@ export class UserController {
       ).execute({ ...dto, isTrusted: isDeviceTrusted });
 
       if (isDeviceTrusted) {
+        if (!result.user) {
+          throw new UnauthorizedError("Usuário não encontrado.");
+        }
+
         const definitiveToken = tokenService.sign({
           sub: result.user.id,
           email: result.user.email,
@@ -143,7 +147,6 @@ export class UserController {
           data: {
             requires2fa: true,
             tempToken: result.preAuthToken,
-            user: result.user,
           },
         });
       }
@@ -301,6 +304,10 @@ export class UserController {
     try {
       const dto = req.body as UpdateUserDTO;
 
+      if (dto.roleId !== undefined && req.userRoleId !== 1) {
+        throw new ForbiddenError("Você não tem permissão para alterar o tipo de usuário.");
+      }
+
       const oldUser = await userRepository.findById(req.params.id as string);
       const user = await new UpdateUser(userRepository, hashService).execute(
         req.params.id as string,
@@ -350,7 +357,7 @@ export class UserController {
       const { email } = req.body as { email?: string };
 
       if (!email) {
-        res.status(400).json({ message: "Email is required" });
+        res.status(400).json({ success: false, message: "Dados inválidos. Verifique as informações enviadas." });
       }
     } catch (error) {}
   }

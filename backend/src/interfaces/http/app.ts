@@ -121,41 +121,214 @@ const productionLandingHtml = `<!DOCTYPE html>
   <title>ADQPAL API</title>
   <style>
     :root {
-      color-scheme: light dark;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f8fafc;
       color: #0f172a;
+      --green-50: #f0fdf4;
+      --green-100: #dcfce7;
+      --green-500: #22c55e;
+      --green-600: #16a34a;
+      --green-700: #15803d;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-900: #0f172a;
+    }
+    * {
+      box-sizing: border-box;
     }
     body {
-      display: grid;
       min-height: 100vh;
       margin: 0;
+      padding: 24px;
+      display: grid;
       place-items: center;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(34, 197, 94, 0.24), transparent 26rem),
+        radial-gradient(circle at 82% 76%, rgba(20, 184, 166, 0.18), transparent 28rem),
+        linear-gradient(135deg, #f8fafc 0%, #eef7f1 54%, #f8fafc 100%);
+      overflow: hidden;
+    }
+    .shell {
+      position: relative;
+      width: min(100%, 960px);
+    }
+    .glow {
+      position: absolute;
+      inset: -80px;
+      pointer-events: none;
+      background:
+        linear-gradient(115deg, transparent 0 36%, rgba(255, 255, 255, 0.72) 44%, transparent 54%),
+        radial-gradient(circle, rgba(34, 197, 94, 0.14), transparent 58%);
+      filter: blur(4px);
+      transform: rotate(-8deg);
+    }
+    .orb {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(20, 184, 166, 0.16));
+      box-shadow: inset 0 1px 20px rgba(255, 255, 255, 0.65), 0 24px 70px rgba(22, 163, 74, 0.2);
+    }
+    .orb-one {
+      top: -42px;
+      left: -34px;
+    }
+    .orb-two {
+      right: -28px;
+      bottom: -36px;
+      width: 88px;
+      height: 88px;
+      opacity: 0.72;
     }
     main {
-      max-width: 520px;
-      padding: 32px;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      padding: clamp(28px, 6vw, 64px);
       text-align: center;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.78));
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 34px;
+      box-shadow: 0 30px 90px rgba(15, 23, 42, 0.14);
+      backdrop-filter: blur(22px);
+    }
+    main::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        linear-gradient(90deg, rgba(34, 197, 94, 0.18), transparent 24%, transparent 76%, rgba(20, 184, 166, 0.16)),
+        radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.16), transparent 32rem);
+    }
+    .brand-mark {
+      display: grid;
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 22px;
+      place-items: center;
+      color: white;
+      background: linear-gradient(135deg, var(--green-600), var(--green-700));
+      border-radius: 24px;
+      box-shadow: 0 18px 38px rgba(22, 163, 74, 0.28);
+      font-size: 1.7rem;
+      font-weight: 900;
+      letter-spacing: -0.08em;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 8px 15px;
+      color: #14532d;
+      background: rgba(220, 252, 231, 0.86);
+      border: 1px solid rgba(187, 247, 208, 0.9);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: var(--green-500);
+      border-radius: 999px;
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.16);
     }
     h1 {
-      margin: 0 0 12px;
-      color: #166534;
-      font-size: clamp(2rem, 6vw, 3rem);
-      letter-spacing: -0.04em;
+      max-width: 760px;
+      margin: 0 auto 18px;
+      color: var(--slate-900);
+      font-size: clamp(2.75rem, 8vw, 5.8rem);
+      line-height: 0.95;
+      letter-spacing: -0.08em;
+    }
+    h1 span {
+      display: block;
+      color: var(--green-700);
     }
     p {
-      margin: 0;
-      color: #475569;
-      font-size: 1rem;
-      line-height: 1.7;
+      max-width: 560px;
+      margin: 0 auto;
+      color: var(--slate-600);
+      font-size: clamp(1rem, 2.5vw, 1.12rem);
+      line-height: 1.75;
+    }
+    .panel {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 620px;
+      margin: 34px auto 0;
+    }
+    .panel-item {
+      padding: 16px 14px;
+      color: var(--slate-600);
+      background: rgba(248, 250, 252, 0.74);
+      border: 1px solid rgba(226, 232, 240, 0.86);
+      border-radius: 18px;
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    .panel-item strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--slate-900);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .footer {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 30px;
+      padding-top: 24px;
+      border-top: 1px solid #e2e8f0;
+      color: var(--slate-500);
+      font-size: 0.9rem;
+    }
+    @media (max-width: 520px) {
+      body {
+        padding: 16px;
+      }
+      main {
+        border-radius: 26px;
+      }
+      .brand-mark {
+        width: 60px;
+        height: 60px;
+        border-radius: 20px;
+      }
+      .panel {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <main>
-    <h1>ADQPAL API</h1>
-    <p>Servico oficial da plataforma ADQPAL para operacoes internas do sistema clinico. Esta interface publica e apenas informativa.</p>
-  </main>
+  <div class="shell">
+    <div class="glow"></div>
+    <div class="orb orb-one"></div>
+    <div class="orb orb-two"></div>
+    <main>
+      <div class="brand-mark">A</div>
+      <div class="badge">Servico ativo</div>
+      <h1>ADQPAL <span>API</span></h1>
+      <p>Camada segura de comunicacao da plataforma ADQPAL, criada para apoiar as operacoes digitais do sistema clinico.</p>
+      <section class="panel" aria-label="Resumo do servico">
+        <div class="panel-item"><strong>Confiavel</strong>Operacao monitorada para uso institucional.</div>
+        <div class="panel-item"><strong>Seguro</strong>Acesso restrito aos canais autorizados.</div>
+        <div class="panel-item"><strong>Privado</strong>Sem documentacao publica nesta area.</div>
+      </section>
+      <div class="footer">Interface publica apenas informativa</div>
+    </main>
+  </div>
 </body>
 </html>`;
 
