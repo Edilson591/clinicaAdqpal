@@ -8,6 +8,7 @@ import type {
 } from "../../types/api";
 import { useUpdateAppointment } from "../../hooks/useAppointments";
 import { Button } from "../ui/Button";
+import { formatTime } from "../../utils/formatTime";
 
 interface Props {
   appointment: AppointmentResponse;
@@ -67,13 +68,9 @@ export function AppointmentDetailModal({
     day: "2-digit",
     month: "long",
     year: "numeric",
-    timeZone: "UTC",
+    timeZone: "America/Sao_Paulo",
   });
-  const timeStr = scheduledDate.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "UTC",
-  });
+  const timeStr = formatTime(appointment.scheduledAt);
 
   const currentStatus = STATUS_OPTIONS.find(
     (s) => s.value === appointment.status,

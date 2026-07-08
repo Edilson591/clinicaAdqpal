@@ -1,11 +1,22 @@
 import { z } from "zod";
 
+const SAO_PAULO_OFFSET = "-03:00";
+
+const appointmentDateSchema = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+
+  const hasTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value);
+  const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value);
+
+  return hasTime && !hasTimezone ? `${value}${SAO_PAULO_OFFSET}` : value;
+}, z.coerce.date());
+
 // ─── Create ───────────────────────────────────────────────────────────────────
 
 export const CreateAppointmentSchema = z.object({
   userId: z.string({ required_error: "userId é obrigatório" }).uuid("userId deve ser um UUID"),
   patientId: z.string({ required_error: "patientId é obrigatório" }).uuid("patientId deve ser um UUID"),
-  scheduledAt: z.coerce.date({ required_error: "scheduledAt é obrigatório" }),
+  scheduledAt: appointmentDateSchema,
   medico: z.string().max(200).nullable().optional(),
   type: z.enum(["IN_PERSON", "ONLINE", "HOME_CARE"]).optional(),
   specialtyId: z.string().uuid("specialtyId deve ser um UUID").nullable().optional(),
@@ -33,7 +44,7 @@ export type CreateAppointmentDTO = z.infer<typeof CreateAppointmentSchema>;
 export const UpdateAppointmentSchema = z.object({
   userId: z.string().uuid().optional(),
   patientId: z.string().uuid().optional(),
-  scheduledAt: z.coerce.date().optional(),
+  scheduledAt: appointmentDateSchema.optional(),
   medico: z.string().max(200).nullable().optional(),
   status: z.enum(["SCHEDULED", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELED", "NO_SHOW", "CANCELLED"]).optional(),
   type: z.enum(["IN_PERSON", "ONLINE", "HOME_CARE"]).optional(),

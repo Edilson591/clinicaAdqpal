@@ -47,7 +47,7 @@ function buildMessage(
   return [
     `Olá, ${patientName}! 👋`,
     "",
-    "Sua consulta está confirmada no *Instituto ADQPAL*:",
+    "Sua consulta está confirmada no *Instituto ADQPAL – Associação dos Dependentes Químicos e Portadores de Doenças Psiquiátricas de São Miguel dos Campos – Alagoas",
     "",
     `📅 *Data:* ${formatDate(scheduledAt)}`,
     `🕐 *Horário:* ${formatTime(scheduledAt)}`,

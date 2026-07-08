@@ -68,7 +68,6 @@ export class WhatsAppService implements INotificationService {
           timeout: 15_000,
         },
       );
-
     } catch (err) {
       const axiosErr = err as AxiosError;
       let apiMessage = axiosErr.message;

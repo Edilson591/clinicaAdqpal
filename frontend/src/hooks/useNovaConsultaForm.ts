@@ -69,15 +69,7 @@ export function useNovaConsultaForm() {
 
     const horaDate = data.hora as Date;
 
-    const scheduledAt = new Date(
-      Date.UTC(
-        data.data.getFullYear(),
-        data.data.getMonth(),
-        data.data.getDate(),
-        horaDate.getHours(),
-        horaDate.getMinutes(),
-      ),
-    ).toISOString();
+    const scheduledAt = `${date}T${String(horaDate.getHours()).padStart(2, "0")}:${String(horaDate.getMinutes()).padStart(2, "0")}`;
 
     createAppointment(
       {
