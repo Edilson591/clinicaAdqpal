@@ -6,12 +6,12 @@ describe('formatTime', () => {
     expect(formatTime('14:30')).toBe('14:30');
   });
 
-  it('formats ISO datetime string in Sao Paulo time', () => {
-    expect(formatTime('2024-01-15T14:30:00.000Z')).toBe('11:30');
+  it('extracts HH:mm from ISO datetime string without shifting timezone', () => {
+    expect(formatTime('2024-01-15T14:30:00.000Z')).toBe('14:30');
   });
 
-  it('formats stored UTC appointment time back to Sao Paulo time', () => {
-    expect(formatTime('2026-07-08T11:00:00.000Z')).toBe('08:00');
+  it('keeps backend appointment time unchanged', () => {
+    expect(formatTime('2026-07-08T11:00:00.000Z')).toBe('11:00');
   });
 
   it('extracts HH:mm from datetime with offset', () => {

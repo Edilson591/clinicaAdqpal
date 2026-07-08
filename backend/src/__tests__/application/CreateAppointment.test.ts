@@ -62,5 +62,6 @@ describe("CreateAppointment", () => {
 
     expect(result).toHaveProperty("id", "appt-1");
     expect(result).toHaveProperty("status", "SCHEDULED");
+    expect(result.scheduledAt).toBe("2025-06-01T11:30:00-03:00");
   });
 });
