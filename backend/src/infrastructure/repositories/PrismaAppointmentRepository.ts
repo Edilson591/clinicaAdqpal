@@ -76,20 +76,32 @@ function toDomain(row: {
 // WHERE BUILDERS
 // =============================================================================
 
-/** Parseia "HH:MM" e aplica ao Date base em UTC — retorna novo Date */
-function applyTime(base: Date, hhmm: string, endOfMinute = false): string {
+const SAO_PAULO_OFFSET = "-03:00";
+
+function dateOnly(base: Date): string {
+  return [
+    base.getUTCFullYear(),
+    String(base.getUTCMonth() + 1).padStart(2, "0"),
+    String(base.getUTCDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+/** Parseia "HH:MM" como horário de São Paulo e retorna o instante UTC equivalente. */
+function applyTime(base: Date, hhmm: string, endOfMinute = false): Date {
   const [h, m] = hhmm.split(":").map(Number);
+  const seconds = endOfMinute ? "59" : "00";
+  const milliseconds = endOfMinute ? "999" : "000";
   return new Date(
-    Date.UTC(
-      base.getUTCFullYear(),
-      base.getUTCMonth(),
-      base.getUTCDate(),
-      h,
-      m,
-      endOfMinute ? 59 : 0,
-      endOfMinute ? 999 : 0,
-    ),
-  ).toISOString();
+    `${dateOnly(base)}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${seconds}.${milliseconds}${SAO_PAULO_OFFSET}`,
+  );
+}
+
+function startOfSaoPauloDay(base: Date): Date {
+  return new Date(`${dateOnly(base)}T00:00:00.000${SAO_PAULO_OFFSET}`);
+}
+
+function endOfSaoPauloDay(base: Date): Date {
+  return new Date(`${dateOnly(base)}T23:59:59.999${SAO_PAULO_OFFSET}`);
 }
 
 /** Condição impossível — garante que nenhum registro seja retornado */
@@ -115,32 +127,8 @@ function buildBaseWhere(
   if (filters?.date) {
     const d = new Date(filters.date);
 
-    gte = filters.timeStart
-      ? applyTime(d, filters.timeStart, false)
-      : new Date(
-          Date.UTC(
-            d.getUTCFullYear(),
-            d.getUTCMonth(),
-            d.getUTCDate(),
-            0,
-            0,
-            0,
-            0,
-          ),
-        );
-    lte = filters.timeEnd
-      ? applyTime(d, filters.timeEnd, true)
-      : new Date(
-          Date.UTC(
-            d.getUTCFullYear(),
-            d.getUTCMonth(),
-            d.getUTCDate(),
-            23,
-            59,
-            59,
-            999,
-          ),
-        );
+    gte = filters.timeStart ? applyTime(d, filters.timeStart, false) : startOfSaoPauloDay(d);
+    lte = filters.timeEnd ? applyTime(d, filters.timeEnd, true) : endOfSaoPauloDay(d);
   }
 
   return {

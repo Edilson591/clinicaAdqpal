@@ -23,6 +23,26 @@ describe("CreateAppointmentSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("treats scheduledAt without timezone as Sao Paulo time", () => {
+    const result = CreateAppointmentSchema.safeParse({
+      ...base,
+      scheduledAt: "2026-07-08T08:00",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.scheduledAt.toISOString()).toBe("2026-07-08T11:00:00.000Z");
+  });
+
+  it("preserves scheduledAt with explicit UTC timezone", () => {
+    const result = CreateAppointmentSchema.safeParse({
+      ...base,
+      scheduledAt: "2026-07-08T08:00:00.000Z",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.scheduledAt.toISOString()).toBe("2026-07-08T08:00:00.000Z");
+  });
+
   it("rejects notes longer than 1000 chars", () => {
     const result = CreateAppointmentSchema.safeParse({ ...base, notes: "x".repeat(1001) });
     expect(result.success).toBe(false);
@@ -59,5 +79,11 @@ describe("UpdateAppointmentSchema", () => {
   it("accepts partial update with notes only", () => {
     const result = UpdateAppointmentSchema.safeParse({ notes: "Observação" });
     expect(result.success).toBe(true);
+  });
+
+  it("treats scheduledAt without timezone as Sao Paulo time on update", () => {
+    const result = UpdateAppointmentSchema.safeParse({ scheduledAt: "2026-07-08T08:00" });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.scheduledAt?.toISOString()).toBe("2026-07-08T11:00:00.000Z");
   });
 });
