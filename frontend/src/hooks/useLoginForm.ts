@@ -30,7 +30,9 @@ function useLoginForm() {
         sessionStorage.setItem("adqpal_2fa_email", variables.email);
         navigate("/auth2fa", { state: { email: variables.email } });
       } else {
-        dispatch(setCredentials({ user: result.user, token: result.token }));
+        dispatch(
+          setCredentials({ user: result.user!, token: result.token ?? "" }),
+        );
         navigate("/dashboard");
       }
     },

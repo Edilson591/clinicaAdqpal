@@ -35,8 +35,8 @@ export interface UserResponse {
 }
 
 export interface LoginResponse {
-  token: string;
-  user: UserResponse;
+  token?: string;
+  user?: UserResponse;
   requires2fa?: boolean;
   tempToken?: string;
 }

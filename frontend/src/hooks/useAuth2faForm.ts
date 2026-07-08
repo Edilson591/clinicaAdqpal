@@ -34,6 +34,11 @@ export function useAuth2faForm() {
     mutationFn: (data: Auth2faInput) =>
       auth2faService.verify({ code: data.code }),
     onSuccess: (result) => {
+      if (!result?.user || !result?.token) {
+        setGeneralError("Erro ao autenticar. Tente novamente.");
+        return;
+      }
+
       dispatch(clearTempToken());
       sessionStorage.removeItem("adqpal_2fa_email");
       dispatch(setCredentials({ user: result.user, token: result.token }));

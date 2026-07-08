@@ -3,3 +3,5 @@ dist/
 .env
 .env.prod
 *.js.map
+
+prisma/teste.ts

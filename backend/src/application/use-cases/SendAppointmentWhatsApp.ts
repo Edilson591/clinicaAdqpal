@@ -49,7 +49,7 @@ export class SendAppointmentWhatsApp {
     const message = [
       `Olá, ${appointment.patient.name}! 👋`,
       "",
-      "Sua consulta está confirmada no *Instituto ADQPAL*:",
+      "Sua consulta está confirmada no *Instituto ADQPAL – Associação dos Dependentes Químicos e Portadores de Doenças Psiquiátricas de São Miguel dos Campos – Alagoas*:",
       "",
       `📅 *Data:* ${formatDate(appointment.scheduledAt)}`,
       `🕐 *Horário:* ${formatTime(appointment.scheduledAt)}`,

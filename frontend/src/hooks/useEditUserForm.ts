@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useZodForm } from "./useZodForm";
@@ -43,6 +43,8 @@ export function useEditUserForm(userId: string) {
 
   const { data: specialtiesData = [] } = useSpecialtiesByDoctor(user?.id ?? "");
   const { data: allSpecialties = [] } = useSpecialties();
+
+  console.log(specialtiesData);
 
   const linkedEmployee = user
     ? (allEmployees.find((e) => e.email === user.email) ?? null)
@@ -94,11 +96,19 @@ export function useEditUserForm(userId: string) {
     },
   });
 
+  const employee = useMemo(
+    () => allEmployees.find((e) => e.email === user?.email) ?? null,
+    [allEmployees, user?.email],
+  );
+
+  const especialidades = useMemo(
+    () => specialtiesData?.map((s) => s.name) ?? [],
+    [specialtiesData],
+  );
+
   // Popula o form quando usuário (e possível funcionário) carregam
   useEffect(() => {
     if (!user) return;
-    const emp = allEmployees.find((e) => e.email === user.email) ?? null;
-    const especialidades = specialtiesData?.map((name) => name.name);
 
     reset({
       username: user.username,
@@ -111,23 +121,23 @@ export function useEditUserForm(userId: string) {
           : "",
       newPassword: "",
       confirmPassword: "",
-      isEmployee: !!emp,
-      position: emp?.position ?? "",
-      department: emp?.department ?? "",
-      phone: emp?.phone ?? "",
-      hireDate: emp?.hireDate ? emp.hireDate.slice(0, 10) : "",
-      salary: emp?.salary != null ? String(emp.salary) : "",
-      dateOfBirth: emp?.dateOfBirth ? emp.dateOfBirth.slice(0, 10) : "",
-      gender: emp?.gender ?? "",
-      street: emp?.street ?? "",
-      streetNumber: emp?.streetNumber ?? "",
-      city: emp?.city ?? "",
-      state: emp?.state ?? "",
-      zipCode: emp?.zipCode ?? "",
-      notes: emp?.notes ?? "",
+      isEmployee: !!employee,
+      position: employee?.position ?? "",
+      department: employee?.department ?? "",
+      phone: employee?.phone ?? "",
+      hireDate: employee?.hireDate ? employee.hireDate.slice(0, 10) : "",
+      salary: employee?.salary != null ? String(employee.salary) : "",
+      dateOfBirth: employee?.dateOfBirth ? employee.dateOfBirth.slice(0, 10) : "",
+      gender: employee?.gender ?? "",
+      street: employee?.street ?? "",
+      streetNumber: employee?.streetNumber ?? "",
+      city: employee?.city ?? "",
+      state: employee?.state ?? "",
+      zipCode: employee?.zipCode ?? "",
+      notes: employee?.notes ?? "",
       especialidades: especialidades,
     });
-  }, [user, allEmployees, reset, specialtiesData]);
+  }, [user, employee, reset, especialidades]);
 
   const mutation = useMutation({
     mutationFn: async (data: EditUserInput) => {
