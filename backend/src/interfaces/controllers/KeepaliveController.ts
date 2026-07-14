@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import prisma from "../../infrastructure/database/prismaClient";
+import prismaDev from "../../infrastructure/database/prismaClientDev";
 
 export default class KeepaliveController {
   async keepalive(req: Request, res: Response): Promise<void> {
@@ -11,6 +12,9 @@ export default class KeepaliveController {
       }
 
       await prisma.$queryRaw`SELECT 1`;
+
+      await prismaDev.$queryRaw`SELECT 1`;
+  
 
       res.status(200).send("ok");
       return;
