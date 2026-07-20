@@ -13,12 +13,13 @@ import {
 import { Header } from "../../components/Dashboard/Header";
 import { BoletoList } from "../../components/Filiacao/BoletoList";
 import { BoletoLoadingOverlay } from "../../components/Filiacao/BoletoLoadingOverlay";
-import { useBoletos, useCreateBoleto } from "../../hooks/useBoletos";
-import { boletoErrorMessage } from "../../services/Boleto";
+import { useBoletos, useCancelBoleto, useCreateBoleto } from "../../hooks/useBoletos";
+import { boletoCancellationErrorMessage, boletoErrorMessage } from "../../services/Boleto";
 import type {
   BoletoKind,
   BoletoStatus,
   CreateBoletoRequest,
+  CancelBoletoRequest,
 } from "../../types/boleto";
 import {
   boletoFormSchema,
@@ -98,6 +99,9 @@ export default function FiliacaoPage() {
   const [status, setStatus] = useState<BoletoStatus | "">("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [cancellationMessage, setCancellationMessage] = useState<string | null>(null);
+  const [cancellationError, setCancellationError] = useState<string | null>(null);
+  const [cancellingKey, setCancellingKey] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim());
   const [pendingOperation, setPendingOperation] = useState<{
     fingerprint: string;
@@ -133,7 +137,33 @@ export default function FiliacaoPage() {
   const amountField = register("amount");
   const amountCents = amount ? amountToCents(amount) : 0;
   const createBoleto = useCreateBoleto();
+  const cancelBoleto = useCancelBoleto();
   const boletoQuery = useBoletos();
+
+  const cancelTarget = async (target: CancelBoletoRequest) => {
+    const key = target.scope === "BOLETO"
+      ? `boleto:${target.boletoId}`
+      : target.scope === "CARNET"
+        ? `carnet:${target.seriesId}`
+        : `installment:${target.seriesId}:${target.installmentNumber}`;
+    setCancellingKey(key);
+    setCancellationError(null);
+    setCancellationMessage(null);
+    try {
+      await cancelBoleto.mutateAsync(target);
+      setCancellationMessage(
+        target.scope === "CARNET"
+          ? "Carnê cancelado. As parcelas em aberto foram atualizadas."
+          : target.scope === "CARNET_INSTALLMENT"
+            ? `Parcela ${target.installmentNumber} cancelada com sucesso.`
+            : "Boleto cancelado com sucesso.",
+      );
+    } catch (error) {
+      setCancellationError(boletoCancellationErrorMessage(error));
+    } finally {
+      setCancellingKey(null);
+    }
+  };
 
   const onSubmit = handleSubmit(async (form: BoletoFormInput) => {
     setCreateError(null);
@@ -456,6 +486,17 @@ export default function FiliacaoPage() {
             </div>
           </div>
 
+          {cancellationError && (
+            <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+              {cancellationError}
+            </div>
+          )}
+          {cancellationMessage && (
+            <div role="status" className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+              <CheckCircle2 size={17} className="shrink-0" /> {cancellationMessage}
+            </div>
+          )}
+
           <BoletoList
             items={boletoQuery.data?.items ?? []}
             search={deferredSearch}
@@ -463,6 +504,8 @@ export default function FiliacaoPage() {
             isLoading={boletoQuery.isLoading}
             isError={boletoQuery.isError}
             onRetry={() => boletoQuery.refetch()}
+            onCancel={cancelTarget}
+            cancellingKey={cancellingKey}
           />
 
         </section>

@@ -5,6 +5,8 @@ import type {
   BoletoListResponse,
   CreateBoletoRequest,
   CreateBoletoResponse,
+  CancelBoletoRequest,
+  CancelBoletoResponse,
 } from "../types/boleto";
 
 export const BoletoService = {
@@ -57,6 +59,14 @@ export const BoletoService = {
     });
     return response.data;
   },
+
+  async cancel(payload: CancelBoletoRequest): Promise<CancelBoletoResponse> {
+    const csrfResponse = await api.get<{ csrfToken: string }>("/users/csrf");
+    const response = await api.post<CancelBoletoResponse>("/boletos/cancellations", payload, {
+      headers: { "X-CSRF-Token": csrfResponse.data.csrfToken },
+    });
+    return response.data;
+  },
 };
 
 export function boletoErrorMessage(error: unknown): string {
@@ -72,4 +82,10 @@ export function boletoErrorMessage(error: unknown): string {
       ? "A emissão está demorando mais que o esperado. Consulte a lista antes de tentar novamente."
       : "Não foi possível concluir a emissão. Verifique os dados e tente novamente.")
   );
+}
+
+export function boletoCancellationErrorMessage(error: unknown): string {
+  if (!isAxiosError(error)) return "Não foi possível cancelar a cobrança. Tente novamente.";
+  const data = error.response?.data as { message?: string; error?: { message?: string } } | undefined;
+  return data?.error?.message ?? data?.message ?? "Não foi possível cancelar a cobrança. Verifique o status e tente novamente.";
 }
