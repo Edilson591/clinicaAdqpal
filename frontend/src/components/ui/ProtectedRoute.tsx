@@ -5,7 +5,7 @@ import { userService } from "../../services/User";
 import { LoadingSpinner } from "./Spinner";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../../store";
-import { logout as logoutAction } from "../../store/authSlice";
+import { logout as logoutAction, setUser } from "../../store/authSlice";
 import { useTheme } from "../../context/ThemeContext";
 
 function ProtectedRoute() {
@@ -21,6 +21,7 @@ function ProtectedRoute() {
 
     userService
       .getById(user.id)
+      .then((freshUser) => dispatch(setUser(freshUser)))
       .catch((err) => {
         console.error(err);
         setIsVerifying(false);

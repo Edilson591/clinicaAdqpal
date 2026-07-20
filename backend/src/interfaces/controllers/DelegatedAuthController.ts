@@ -132,9 +132,9 @@ export class DelegatedAuthController {
       }
 
       const identityUser = readIdentityUser(upstream.data);
-      const user = await this.requireClinicalUser(identityUser.id);
+      const responseUser = await this.resolveIdentityUser(identityUser);
       relayMetadata(res, upstream);
-      hydrateRequest(req, user.id, identityUser.email, user.roleId);
+      hydrateRequest(req, responseUser.id, responseUser.email, responseUser.roleId);
       await this.audit.login(req);
       clearLegacyTrustedDevice(res);
       res.status(200).json({
@@ -143,7 +143,7 @@ export class DelegatedAuthController {
         data: {
           requires2fa: false,
           token: requireString(data.token, "token"),
-          user: toUserResponseDTO(user),
+          user: responseUser,
         },
       });
     } catch (error) {
@@ -164,9 +164,9 @@ export class DelegatedAuthController {
       if (!isSuccess(upstream)) return relayFailure(res, upstream);
 
       const identityUser = readIdentityUser(upstream.data);
-      const user = await this.requireClinicalUser(identityUser.id);
+      const responseUser = await this.resolveIdentityUser(identityUser);
       relayMetadata(res, upstream);
-      hydrateRequest(req, user.id, identityUser.email, user.roleId);
+      hydrateRequest(req, responseUser.id, responseUser.email, responseUser.roleId);
       await this.audit.fromRequest(req, "LOGIN", "USER");
       clearLegacyTrustedDevice(res);
       const data = readEnvelopeData(upstream.data);
@@ -175,7 +175,7 @@ export class DelegatedAuthController {
         message: "Autenticação concluída com sucesso.",
         data: {
           token: requireString(data.token, "token"),
-          user: toUserResponseDTO(user),
+          user: responseUser,
         },
       });
     } catch (error) {
@@ -217,7 +217,7 @@ export class DelegatedAuthController {
       });
       if (!isSuccess(upstream)) return relayFailure(res, upstream);
       const identityUser = readIdentityUser(upstream.data);
-      const user = await this.requireClinicalUser(identityUser.id);
+      const responseUser = await this.resolveIdentityUser(identityUser);
       relayMetadata(res, upstream);
       const data = readEnvelopeData(upstream.data);
       res.status(200).json({
@@ -225,7 +225,7 @@ export class DelegatedAuthController {
         message: "Sessão renovada com sucesso.",
         data: {
           token: requireString(data.token, "token"),
-          user: toUserResponseDTO(user),
+          user: responseUser,
         },
       });
     } catch (error) {
@@ -267,12 +267,6 @@ export class DelegatedAuthController {
     }
   }
 
-  private async requireClinicalUser(id: string) {
-    const user = await this.users.findById(id);
-    if (!user) throw new UnauthorizedError("Perfil clínico não encontrado para esta identidade.");
-    return user;
-  }
-
   private async hydrateForAudit(req: Request): Promise<void> {
     try {
       const response = await this.identity.request({
@@ -282,11 +276,18 @@ export class DelegatedAuthController {
       });
       if (!isSuccess(response)) return;
       const identityUser = readIdentityUser(response.data);
-      const user = await this.users.findById(identityUser.id);
-      if (user) hydrateRequest(req, user.id, identityUser.email, user.roleId);
+      const responseUser = await this.resolveIdentityUser(identityUser);
+      hydrateRequest(req, responseUser.id, responseUser.email, responseUser.roleId);
     } catch {
       // Logout remains best-effort even when the session has already expired.
     }
+  }
+
+  private async resolveIdentityUser(identity: IdentityUser) {
+    if (hasCompleteIdentityUser(identity)) return toIdentityUserResponse(identity);
+    const clinicalUser = await this.users.findById(identity.id);
+    if (!clinicalUser) throw new UnauthorizedError("Perfil clínico não encontrado para esta identidade.");
+    return toUserResponseDTO(clinicalUser);
   }
 }
 
@@ -344,7 +345,19 @@ function readEnvelopeData(body: unknown): Record<string, unknown> {
   return data as Record<string, unknown>;
 }
 
-function readIdentityUser(body: unknown): { id: string; email: string; name: string } {
+type IdentityUser = {
+  id: string;
+  email: string;
+  name: string;
+  roleId?: number;
+  cpf?: string | null;
+  cnpj?: string | null;
+  specialties?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+function readIdentityUser(body: unknown): IdentityUser {
   const root = body && typeof body === "object" ? body as Record<string, unknown> : {};
   const data = "data" in root && root.data && typeof root.data === "object"
     ? root.data as Record<string, unknown>
@@ -354,10 +367,50 @@ function readIdentityUser(body: unknown): { id: string; email: string; name: str
     throw new UnauthorizedError("Resposta inválida do serviço de identidade.");
   }
   const user = value as Record<string, unknown>;
+  const roleId = user.roleId;
+  const specialties = user.specialties;
+  const createdAt = user.createdAt;
+  const updatedAt = user.updatedAt;
   return {
     id: requireString(user.id, "user.id"),
     email: requireString(user.email, "user.email"),
     name: requireString(user.name, "user.name"),
+    ...(typeof roleId === "number" ? { roleId } : {}),
+    ...(user.cpf === null || typeof user.cpf === "string" ? { cpf: user.cpf } : {}),
+    ...(user.cnpj === null || typeof user.cnpj === "string" ? { cnpj: user.cnpj } : {}),
+    ...(Array.isArray(specialties)
+      ? { specialties: specialties.filter((value): value is string => typeof value === "string") }
+      : {}),
+    ...(typeof createdAt === "string" ? { createdAt } : {}),
+    ...(typeof updatedAt === "string" ? { updatedAt } : {}),
+  };
+}
+
+type CompleteIdentityUser = IdentityUser & {
+  roleId: number;
+  specialties: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+function hasCompleteIdentityUser(user: IdentityUser): user is CompleteIdentityUser {
+  return typeof user.roleId === "number"
+    && Array.isArray(user.specialties)
+    && typeof user.createdAt === "string"
+    && typeof user.updatedAt === "string";
+}
+
+function toIdentityUserResponse(user: CompleteIdentityUser) {
+  return {
+    id: user.id,
+    username: user.name,
+    email: user.email,
+    roleId: user.roleId,
+    cpf: user.cpf,
+    cnpj: user.cnpj,
+    specialties: user.specialties,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
 }
 

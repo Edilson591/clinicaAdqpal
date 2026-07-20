@@ -669,13 +669,16 @@ export const swaggerSpec: swaggerUi.JsonObject = {
     "/users/register": {
       post: {
         tags: ["Usuários"],
-        summary: "Registrar novo usuário",
+        summary: "Registrar novo usuário no Paperless (ADMIN)",
+        security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: { "application/json": { schema: { $ref: "#/components/schemas/RegisterUserInput" } } },
         },
         responses: {
           "201": { description: "Usuário criado com sucesso." },
+          "401": { description: "Sessão inválida ou ausente." },
+          "403": { description: "Apenas administradores podem criar usuários." },
           "400": { description: "Dados inválidos.", content: { "application/json": { schema: { $ref: "#/components/schemas/ApiError" } } } },
           "409": { description: "E-mail, username, CPF ou CNPJ já cadastrado." },
         },

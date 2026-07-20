@@ -2,7 +2,7 @@ import axios, { type AxiosInstance } from "axios";
 import { ServiceUnavailableError } from "../../domain/errors/DomainError";
 
 export type IdentityRequest = {
-  method: "GET" | "POST";
+  method: "GET" | "POST" | "PUT" | "DELETE";
   path: string;
   body?: unknown;
   headers?: Record<string, string>;

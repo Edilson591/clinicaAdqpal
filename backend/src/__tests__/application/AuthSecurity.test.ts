@@ -5,10 +5,6 @@ import {
   generateTwoFactorCode,
   hashTwoFactorCode,
 } from "../../application/services/TwoFactorCodeService";
-import { RegisterUser } from "../../application/use-cases/RegisterUser";
-import type { User } from "../../domain/entities/User";
-import type { IUserRepository } from "../../domain/repositories/IUserRepository";
-import type { IHashService } from "../../domain/services/IHashService";
 import { InMemoryAuth2FA } from "../../infrastructure/cache/InMemoryAuth2FA";
 import { CachedCode2FA } from "../../infrastructure/cache/CachedCode2FA";
 import type Redis from "ioredis";
@@ -28,23 +24,14 @@ describe("auth security", () => {
     restoreEnv("AUTH_OTP_PEPPER", originalOtpPepper);
   });
 
-  it("ignores a client-supplied role and assigns the public role", async () => {
+  it("preserves the role selected by the authenticated administrator", () => {
     const parsed = RegisterUserSchema.parse({
       username: "usuario",
       email: "usuario@example.com",
       password: "SenhaSegura1",
       roleId: 1,
     });
-    expect("roleId" in parsed).toBe(false);
-
-    const repository = makeUserRepository();
-    const hashService: IHashService = {
-      hash: jest.fn().mockResolvedValue("hash"),
-      compare: jest.fn(),
-    };
-    await new RegisterUser(repository, hashService).execute(parsed);
-
-    expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({ roleId: 2 }));
+    expect(parsed.roleId).toBe(1);
   });
 
   it("requires an explicit JWT purpose", () => {
@@ -124,32 +111,6 @@ describe("auth security", () => {
     })).toEqual({ id: "user-1", nested: { name: "Usuario" } });
   });
 });
-
-function makeUserRepository(): jest.Mocked<IUserRepository> {
-  const createdUser: User = {
-    id: "user-1",
-    username: "usuario",
-    email: "usuario@example.com",
-    passwordHash: "hash",
-    roleId: 2,
-    cpf: null,
-    cnpj: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  return {
-    findById: jest.fn(),
-    findByEmail: jest.fn().mockResolvedValue(null),
-    findByUsername: jest.fn().mockResolvedValue(null),
-    findAll: jest.fn(),
-    count: jest.fn(),
-    create: jest.fn().mockResolvedValue(createdUser),
-    update: jest.fn(),
-    updateSpecialties: jest.fn(),
-    delete: jest.fn(),
-  };
-}
 
 function restoreEnv(name: string, value: string | undefined): void {
   if (value === undefined) {

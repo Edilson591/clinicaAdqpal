@@ -37,7 +37,7 @@ describe("delegated authentication", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("hydrates the clinical user and preserves separate session cookies", async () => {
+  it("uses the Paperless profile and preserves separate session cookies", async () => {
     const identity = mockIdentity(response(200, {
       success: true,
       data: { user: identityUser(), token: "access-token" },
@@ -53,7 +53,7 @@ describe("delegated authentication", () => {
 
     await controller.login(req, res, next);
 
-    expect(users.findById).toHaveBeenCalledWith(CLINICAL_USER.id);
+    expect(users.findById).not.toHaveBeenCalled();
     expect(res.append).toHaveBeenNthCalledWith(1, "Set-Cookie", "pb_session=access; Path=/; HttpOnly");
     expect(res.append).toHaveBeenNthCalledWith(2, "Set-Cookie", "pb_refresh=refresh; Path=/users; HttpOnly");
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
@@ -63,26 +63,6 @@ describe("delegated authentication", () => {
         user: expect.objectContaining({ roleId: 3 }),
       }),
     }));
-  });
-
-  it("does not install identity cookies when the clinical profile is missing", async () => {
-    const identity = mockIdentity(response(200, {
-      success: true,
-      data: { user: identityUser(), token: "access-token" },
-    }, ["pb_session=access; Path=/; HttpOnly"]));
-    const controller = new DelegatedAuthController(
-      identity,
-      mockUsers({ findById: null }),
-      mockAudit(),
-    );
-    const { req, res, next } = httpContext({
-      body: { email: "user@example.com", password: "StrongPass1" },
-    });
-
-    await controller.login(req, res, next);
-
-    expect(res.append).not.toHaveBeenCalled();
-    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 401 }));
   });
 
   it("preserves the upstream failure when login auditing fails", async () => {
@@ -185,7 +165,7 @@ describe("delegated authentication", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("validates the external session and sources authorization from the clinical profile", async () => {
+  it("validates the external session and sources authorization from Paperless", async () => {
     const identity = mockIdentity(response(200, { user: identityUser() }));
     const users = mockUsers();
     const middleware = createAuthMiddleware(identity, users);
@@ -202,6 +182,7 @@ describe("delegated authentication", () => {
     });
     expect(req.userId).toBe(CLINICAL_USER.id);
     expect(req.userRoleId).toBe(3);
+    expect(users.updateSpecialties).toHaveBeenCalledWith(CLINICAL_USER.id, []);
     expect(next).toHaveBeenCalledWith();
   });
 
@@ -249,7 +230,17 @@ const CLINICAL_USER: User = {
 };
 
 function identityUser() {
-  return { id: CLINICAL_USER.id, name: CLINICAL_USER.username, email: CLINICAL_USER.email };
+  return {
+    id: CLINICAL_USER.id,
+    name: CLINICAL_USER.username,
+    email: CLINICAL_USER.email,
+    roleId: CLINICAL_USER.roleId,
+    cpf: CLINICAL_USER.cpf,
+    cnpj: CLINICAL_USER.cnpj,
+    specialties: [],
+    createdAt: CLINICAL_USER.createdAt.toISOString(),
+    updatedAt: CLINICAL_USER.updatedAt.toISOString(),
+  };
 }
 
 function response(status: number, data: unknown, setCookies: string[] = []): IdentityResponse {

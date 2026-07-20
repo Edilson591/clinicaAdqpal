@@ -19,6 +19,10 @@ export const RegisterUserSchema = z.object({
     .max(72, "Senha deve ter no máximo 72 caracteres")
     .regex(/[A-Z]/, "Senha deve conter pelo menos uma letra maiúscula")
     .regex(/[0-9]/, "Senha deve conter pelo menos um número"),
+  roleId: z
+    .number({ required_error: "Tipo de usuário é obrigatório" })
+    .int("Tipo de usuário inválido")
+    .positive("Tipo de usuário inválido"),
   cpf: z
     .string()
     .regex(/^\d{11}$/, "CPF deve ter 11 dígitos numéricos")
@@ -139,10 +143,6 @@ export const UpdateUserSchema = z
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "Ao menos um campo deve ser fornecido para atualização",
-  })
-  .refine((data) => !data.password || !!data.currentPassword, {
-    message: "Senha atual é obrigatória para alterar a senha",
-    path: ["currentPassword"],
   });
 
 export type UpdateUserDTO = z.infer<typeof UpdateUserSchema>;
