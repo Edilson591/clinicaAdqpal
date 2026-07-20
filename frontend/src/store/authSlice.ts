@@ -63,6 +63,10 @@ const authSlice = createSlice({
       setUserCookie(action.payload.user);
       localStorage.setItem("adqpal_token", action.payload.token);
     },
+    setUser(state, action: PayloadAction<UserResponse>) {
+      state.user = action.payload;
+      setUserCookie(action.payload);
+    },
     setTempToken(state, action: PayloadAction<string>) {
       state.tempToken = action.payload;
       state.token = null;
@@ -86,5 +90,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, setTempToken, clearTempToken, logout } = authSlice.actions;
+export const { setCredentials, setUser, setTempToken, clearTempToken, logout } = authSlice.actions;
 export default authSlice.reducer;

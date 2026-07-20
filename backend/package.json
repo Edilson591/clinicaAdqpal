@@ -16,7 +16,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "postinstall": "prisma generate",
-    "db:deploy:prod": "dotenv -e .env.prod -- npx prisma migrate deploy"
+    "db:deploy:prod": "dotenv -e .env.prod -- npx prisma migrate deploy",
+    "sync:paperless-users": "ts-node scripts/syncPaperlessUsers.ts"
   },
   "jest": {
     "preset": "ts-jest",
