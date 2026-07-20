@@ -18,22 +18,19 @@ describe("boleto gateway facade", () => {
     expect(dashboardResponse.status).toBe(401);
   });
 
-  it.each([ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.IT_SUPPORT])(
-    "allows financial role %s",
-    (roleId) => {
-      const middleware = requireRole(ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.IT_SUPPORT);
-      const req = { userRoleId: roleId } as Request;
-      const next = jest.fn() as NextFunction;
+  it("allows the administrator role", () => {
+    const middleware = requireRole(ROLES.ADMIN);
+    const req = { userRoleId: ROLES.ADMIN } as Request;
+    const next = jest.fn() as NextFunction;
 
-      middleware(req, {} as Response, next);
+    middleware(req, {} as Response, next);
 
-      expect(next).toHaveBeenCalledWith();
-    },
-  );
+    expect(next).toHaveBeenCalledWith();
+  });
 
   it("rejects roles without financial permission", () => {
-    const middleware = requireRole(ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.IT_SUPPORT);
-    const req = { userRoleId: ROLES.DOCTOR } as Request;
+    const middleware = requireRole(ROLES.ADMIN);
+    const req = { userRoleId: ROLES.RECEPTIONIST } as Request;
     const next = jest.fn() as NextFunction;
 
     middleware(req, {} as Response, next);

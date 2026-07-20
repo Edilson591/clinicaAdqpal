@@ -11,7 +11,7 @@ export function FinanceiroGuard() {
   const { canAccessFinanceiro } = usePermissions();
 
   if (!canAccessFinanceiro) {
-    return <AcessoNegado />;
+    return <AcessoNegado allowedRoles="Administrador" />;
   }
 
   return <Outlet />;

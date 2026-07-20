@@ -4,17 +4,13 @@ import { USER_ROLES } from "../types/roles";
 import { PermissionsContext } from "./PermissionsContext";
 
 // Roles com acesso à área financeira
-const FINANCIAL_ROLES = [
-  USER_ROLES.ADMIN,
-  USER_ROLES.RECEPTIONIST,
-  USER_ROLES.IT_SUPPORT,
-] as const;
+const FINANCIAL_ROLES = [USER_ROLES.ADMIN] as const;
 
 // Roles com acesso ao gerenciamento de usuários
 const USERS_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
 
 const NOTES_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
-const RH_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
+const RH_ROLES = [USER_ROLES.ADMIN] as const;
 const DOCUMENTOS_ROLES = [USER_ROLES.ADMIN] as const;
 
 export function PermissionsProvider({ children }: { children: ReactNode }) {
