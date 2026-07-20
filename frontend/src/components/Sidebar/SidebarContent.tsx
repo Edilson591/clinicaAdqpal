@@ -17,7 +17,7 @@ interface SidebarContentProps {
 
 function SidebarContent({ expanded, user, logout }: SidebarContentProps) {
   const { pathname } = useLocation();
-  const { canAccessDocumentos } = usePermissions();
+  const { canAccessDocumentos, canAccessFinanceiro } = usePermissions();
 
   // Inicializa aberto se algum filho estiver ativo
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(() => {
@@ -50,6 +50,7 @@ function SidebarContent({ expanded, user, logout }: SidebarContentProps) {
       <nav className="flex-1 py-4 px-3 flex flex-col gap-0.5 overflow-hidden">
         {navItems
           .filter((item) => !item.adminOnly || canAccessDocumentos)
+          .filter((item) => !item.financialOnly || canAccessFinanceiro)
           .map(({ label, icon: Icon, path, children }) => {
           const hasChildren = !!children?.length;
           const isOpen = openMenus[path] ?? false;

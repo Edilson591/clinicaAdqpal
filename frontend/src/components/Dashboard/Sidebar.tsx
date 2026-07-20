@@ -11,6 +11,7 @@ import {
   FilePlus,
   FileSignature,
   Files,
+  HandCoins,
   // Receipt,
   type LucideIcon,
 } from "lucide-react";
@@ -30,6 +31,7 @@ export interface NavItem {
   icon: LucideIcon;
   path: string;
   adminOnly?: boolean;
+  financialOnly?: boolean;
   children?: NavChild[];
 }
 
@@ -49,7 +51,8 @@ export const navItems: NavItem[] = [
       { label: "Administrativo", icon: Files, path: "/documentos/administrativo" },
     ],
   },
-  { label: "Financeiro", icon: DollarSign, path: "/financeiro" },
+  { label: "Financeiro", icon: DollarSign, path: "/financeiro", financialOnly: true },
+  { label: "Filiação", icon: HandCoins, path: "/filiacao", financialOnly: true },
   // { label: "Notas Fiscais", icon: Receipt, path: "/notas-fiscais" },
   { label: "Recursos Humanos", icon: Briefcase, path: "/rh" },
   {
