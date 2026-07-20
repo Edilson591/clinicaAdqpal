@@ -3,9 +3,16 @@ import type {
   BoletoGatewayClient,
   BoletoGatewayResponse,
 } from "../../infrastructure/services/PaperlessBoletoGatewayClient";
+import { boletoGatewayTimeoutMs } from "../../infrastructure/services/PaperlessBoletoGatewayClient";
 import { BoletoProxyController } from "../../interfaces/controllers/BoletoProxyController";
 
 describe("boleto gateway facade", () => {
+  it("uses a dedicated timeout for long-running boleto creation", () => {
+    expect(boletoGatewayTimeoutMs({})).toBe(60_000);
+    expect(boletoGatewayTimeoutMs({ BOLETO_GATEWAY_TIMEOUT_MS: "90000" })).toBe(90_000);
+    expect(boletoGatewayTimeoutMs({ BOLETO_GATEWAY_TIMEOUT_MS: "invalid" })).toBe(60_000);
+  });
+
   it("forwards query, authentication and tracing headers", async () => {
     const gateway = mockGateway();
     const controller = new BoletoProxyController(gateway);

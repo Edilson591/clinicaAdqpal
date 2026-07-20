@@ -32,6 +32,7 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - IDENTITY_GATEWAY_URL=${IDENTITY_GATEWAY_URL:-http://host.docker.internal:3000}
       - IDENTITY_GATEWAY_TIMEOUT_MS=${IDENTITY_GATEWAY_TIMEOUT_MS:-5000}
+      - BOLETO_GATEWAY_TIMEOUT_MS=${BOLETO_GATEWAY_TIMEOUT_MS:-60000}
       - IDENTITY_SERVICE_TOKEN=${IDENTITY_SERVICE_TOKEN:-change-me-local-clinical-identity-token}
       - REDIS_URL=redis://redis:6379
     ports:

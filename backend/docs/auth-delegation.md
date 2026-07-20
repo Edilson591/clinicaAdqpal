@@ -36,6 +36,7 @@ O cookie legado `adqpal_token` e aceito temporariamente como bearer externo para
 
 - `IDENTITY_GATEWAY_URL`: URL do gateway, sem barra final.
 - `IDENTITY_GATEWAY_TIMEOUT_MS`: timeout HTTP; default 5000 ms.
+- `BOLETO_GATEWAY_TIMEOUT_MS`: timeout da fachada de boletos; default 60000 ms para permitir a criacao sincrona de carnes na Efi.
 - `IDENTITY_SERVICE_TOKEN`: segredo compartilhado usado apenas pela sincronizacao de senha.
 
 Em desenvolvimento Docker, o gateway padrao e `http://host.docker.internal:3000`. Em producao, URL e token sao obrigatorios. O mesmo valor de `IDENTITY_SERVICE_TOKEN` deve estar em `CLINICAL_IDENTITY_TOKEN` no API Gateway. Use um secret manager e pelo menos 32 bytes aleatorios.
