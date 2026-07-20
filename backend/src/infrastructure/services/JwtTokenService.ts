@@ -24,6 +24,7 @@ export class JwtTokenService implements ITokenService {
     options?: TokenOptions,
   ): string {
     return jwt.sign({ ...payload, jti: randomUUID() }, this.secret, {
+      algorithm: "HS256",
       // Se options?.expiresIn existir, ele sobrescreve o padrão da classe
       expiresIn: (options?.expiresIn ??
         this.expiresIn) as jwt.SignOptions["expiresIn"],
@@ -32,7 +33,11 @@ export class JwtTokenService implements ITokenService {
 
   verify(token: string): TokenPayload {
     try {
-      return jwt.verify(token, this.secret) as TokenPayload;
+      const payload = jwt.verify(token, this.secret, { algorithms: ["HS256"] }) as TokenPayload;
+      if (!payload.tokenUse) {
+        throw new UnauthorizedError("Token sem finalidade válida.");
+      }
+      return payload;
     } catch {
       throw new UnauthorizedError("Token inválido ou expirado.");
     }

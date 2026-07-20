@@ -6,6 +6,7 @@ import { IMailService } from "../../domain/services/IMailService";
 import { ITokenService } from "../../domain/services/ITokenService";
 import { LoginUserDTO, PreLoginResponseDTO } from "../dtos/UserDTOs";
 import { toUserResponseDTO } from "../mappers/userMapper";
+import { generateTwoFactorCode, hashTwoFactorCode } from "../services/TwoFactorCodeService";
 
 export type PreLoginInput = LoginUserDTO & {
   isTrusted?: boolean;
@@ -40,9 +41,9 @@ export class PreLoginUser {
       };
     }
 
-    const code2FA = Math.floor(100000 + Math.random() * 900000).toString();
+    const code2FA = generateTwoFactorCode();
 
-    await this.auth2FA.saveCode(user.id, code2FA);
+    await this.auth2FA.saveCode(user.id, hashTwoFactorCode(user.id, code2FA));
 
     await this.emailService.send2FACode(user.email, code2FA, user);
 
@@ -51,7 +52,7 @@ export class PreLoginUser {
         sub: user.id,
         email: user.email,
         roleId: user.roleId,
-        isDefinitive: false,
+        tokenUse: "PRE_AUTH",
       },
       { expiresIn: "1h" }, // Caso o seu tokenService aceite opções, ou configure direto no seu service interno
     );

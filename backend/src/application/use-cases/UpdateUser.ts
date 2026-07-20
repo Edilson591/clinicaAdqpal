@@ -3,11 +3,13 @@ import type { IHashService } from "../../domain/services/IHashService";
 import type { UpdateUserDTO, UserResponseDTO } from "../dtos/UserDTOs";
 import { NotFoundError, ConflictError, ValidationError } from "../../domain/errors/DomainError";
 import { toUserResponseDTO } from "../mappers/userMapper";
+import type { IIdentityPasswordService } from "../../domain/services/IIdentityPasswordService";
 
 export class UpdateUser {
   constructor(
     private readonly userRepository: IUserRepository,
     private readonly hashService: IHashService,
+    private readonly identityPasswordService: IIdentityPasswordService,
   ) {}
 
   async execute(id: string, dto: UpdateUserDTO): Promise<UserResponseDTO> {
@@ -17,8 +19,7 @@ export class UpdateUser {
     }
 
     if (dto.email && dto.email !== user.email) {
-      const emailTaken = await this.userRepository.findByEmail(dto.email);
-      if (emailTaken) throw new ConflictError("Este e-mail já está em uso.");
+      throw new ValidationError("O e-mail de acesso deve ser alterado no serviço de identidade.");
     }
 
     if (dto.username && dto.username !== user.username) {
@@ -30,10 +31,7 @@ export class UpdateUser {
       if (!dto.currentPassword) {
         throw new ValidationError("Senha atual é obrigatória para alterar a senha.");
       }
-      const valid = await this.hashService.compare(dto.currentPassword, user.passwordHash);
-      if (!valid) {
-        throw new ValidationError("Senha atual incorreta.");
-      }
+      await this.identityPasswordService.resetPassword(id, dto.password, dto.currentPassword);
     }
 
     const updateData: Parameters<IUserRepository["update"]>[1] = {};

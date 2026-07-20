@@ -7,11 +7,13 @@ import { MailService } from "../../infrastructure/services/MailService ";
 import { ForgotPasswordDTO, ResetPasswordDTO } from "../../application/dtos/UserPasswordDTOS";
 import { ForgotPassword } from "../../application/use-cases/ForgotPassword";
 import { ResetPassword } from "../../application/use-cases/ResetPassword";
+import { DelegatedIdentityPasswordService } from "../../infrastructure/services/DelegatedIdentityPasswordService";
 
 const prismaUserRepo = new PrismaUserRepository(prisma);
 const prismaPasswordResetRepo = new PrismaPasswordResetRepository(prisma);
 const mailService = new MailService() as any;
 const hashService = new BcryptHashService();
+const identityPasswordService = new DelegatedIdentityPasswordService();
 export class ForgotPasswordController {
   async forgot(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -33,6 +35,7 @@ export class ForgotPasswordController {
         prismaPasswordResetRepo,
         prismaUserRepo,
         hashService,
+        identityPasswordService,
       ).execute(token, password);
       res.status(200).json({ success: true, message: result.message });
     } catch (err) {

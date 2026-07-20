@@ -21,6 +21,7 @@ import notaFiscalRoutes from "../routes/notaFiscalRoutes";
 import patientNotaFiscalRoutes from "../routes/patientNotaFiscalRoutes";
 import susProcedureRoutes from "../routes/susProcedureRoutes";
 import internalRoutes from "../routes/internalRoutes";
+import { boletoRoutes, dashboardRoutes as boletoDashboardRoutes } from "../routes/boletoRoutes";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import cors from "cors";
 import { swaggerSpec } from "./swagger";
@@ -62,7 +63,15 @@ app.use(
       }
     },
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-CSRF-Token",
+      "X-Request-Id",
+      "X-Correlation-Id",
+      "Idempotency-Key",
+      "X-Idempotency-Key",
+    ],
   }),
 );
 
@@ -96,6 +105,7 @@ const authLimiter = rateLimit({
 app.use(globalLimiter);
 app.use("/users/login", authLimiter);
 app.use("/users/register", authLimiter); // previne criação em massa de contas
+app.use("/users/verify-2fa", authLimiter);
 
 if (process.env.NODE_ENV !== "test") {
   // Formato customizado: loga apenas o path (sem query string) para não
@@ -394,6 +404,8 @@ app.use("/password", passwordRoutes);
 app.use("/patients/:patientId/notas-fiscais", patientNotaFiscalRoutes);
 app.use("/sus-procedures", susProcedureRoutes);
 app.use("/internal", internalRoutes);
+app.use("/boletos", boletoRoutes);
+app.use("/dashboard", boletoDashboardRoutes);
 
 app.use(errorMiddleware);
 

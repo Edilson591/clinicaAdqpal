@@ -1,3 +1,4 @@
+
 import type { PrismaClient } from "@prisma/client";
 import type { IPatientRepository } from "../../domain/repositories/IPatientRepository";
 import type {
@@ -12,41 +13,27 @@ import { EncryptionService } from "../services/EncryptionService";
 
 const crypto = new EncryptionService();
 
-function toDomain(row: {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  cpf: string | null;
-  dateOfBirth: Date | null;
-  gender: string | null;
-  agreement: string | null;
-  street: string | null;
-  streetNumber: string | null;
-  city: string | null;
-  state: string | null;
-  zipCode: string | null;
-  additionalInfo: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}): Patient {
+function toDomain(row: any): Patient {
+  // support both snake_case (DB) and camelCase (already-mapped) shapes
+  const get = (snake: string, camel: string) => row[snake] ?? row[camel];
+
   return {
-    id: row.id,
-    name: row.name,
-    email: crypto.decrypt(row.email),
-    phone: crypto.decrypt(row.phone),
-    cpf: crypto.decrypt(row.cpf),
-    dateOfBirth: row.dateOfBirth,
-    gender: row.gender,
-    agreement: crypto.decrypt(row.agreement),
-    street: crypto.decrypt(row.street),
-    streetNumber: crypto.decrypt(row.streetNumber),
-    city: crypto.decrypt(row.city),
-    state: crypto.decrypt(row.state),
-    zipCode: crypto.decrypt(row.zipCode),
-    additionalInfo: crypto.decrypt(row.additionalInfo),
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
+    id: get("id", "id"),
+    name: get("name", "name"),
+    email: crypto.decrypt(get("email", "email") ?? null),
+    phone: crypto.decrypt(get("phone", "phone") ?? null),
+    cpf: crypto.decrypt(get("cpf", "cpf") ?? null),
+    dateOfBirth: get("date_of_birth", "dateOfBirth") ?? null,
+    gender: get("gender", "gender") ?? null,
+    agreement: crypto.decrypt(get("agreement", "agreement") ?? null),
+    street: crypto.decrypt(get("street", "street") ?? null),
+    streetNumber: crypto.decrypt(get("street_number", "streetNumber") ?? null),
+    city: crypto.decrypt(get("city", "city") ?? null),
+    state: crypto.decrypt(get("state", "state") ?? null),
+    zipCode: crypto.decrypt(get("zip_code", "zipCode") ?? null),
+    additionalInfo: crypto.decrypt(get("additional_info", "additionalInfo") ?? null),
+    createdAt: get("created_at", "createdAt"),
+    updatedAt: get("updated_at", "updatedAt"),
   };
 }
 
@@ -117,10 +104,13 @@ export class PrismaPatientRepository implements IPatientRepository {
     try {
       const row = await this.prisma.patient.create({
         data: {
-          ...data,
+          name: data.name,
+          registration_number: crypto.encrypt(data.registrationNumber ?? "") ?? "",
           email: crypto.encrypt(data.email ?? null),
           phone: crypto.encrypt(data.phone ?? null),
           cpf: crypto.encrypt(data.cpf ?? null),
+          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+          gender: data.gender,
           agreement: crypto.encrypt(data.agreement ?? null),
           street: crypto.encrypt(data.street ?? null),
           streetNumber: crypto.encrypt(data.streetNumber ?? null),
@@ -128,7 +118,6 @@ export class PrismaPatientRepository implements IPatientRepository {
           state: crypto.encrypt(data.state ?? null),
           zipCode: crypto.encrypt(data.zipCode ?? null),
           additionalInfo: crypto.encrypt(data.additionalInfo ?? null),
-          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
         },
       });
       return toDomain(row);
@@ -142,10 +131,11 @@ export class PrismaPatientRepository implements IPatientRepository {
       const row = await this.prisma.patient.update({
         where: { id },
         data: {
-          ...data,
+          ...(data.name !== undefined && { name: data.name }),
           ...(data.email !== undefined && { email: crypto.encrypt(data.email) }),
           ...(data.phone !== undefined && { phone: crypto.encrypt(data.phone) }),
           ...(data.cpf !== undefined && { cpf: crypto.encrypt(data.cpf) }),
+          ...(data.gender !== undefined && { gender: data.gender }),
           ...(data.agreement !== undefined && { agreement: crypto.encrypt(data.agreement) }),
           ...(data.street !== undefined && { street: crypto.encrypt(data.street) }),
           ...(data.streetNumber !== undefined && { streetNumber: crypto.encrypt(data.streetNumber) }),
@@ -153,6 +143,8 @@ export class PrismaPatientRepository implements IPatientRepository {
           ...(data.state !== undefined && { state: crypto.encrypt(data.state) }),
           ...(data.zipCode !== undefined && { zipCode: crypto.encrypt(data.zipCode) }),
           ...(data.additionalInfo !== undefined && { additionalInfo: crypto.encrypt(data.additionalInfo) }),
+          ...(data.dateOfBirth !== undefined && { dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null }),
+          ...(data.registrationNumber !== undefined && { registration_number: crypto.encrypt(data.registrationNumber ?? "") ?? "" }),
         },
       });
       return toDomain(row);

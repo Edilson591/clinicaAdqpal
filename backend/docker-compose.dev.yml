@@ -24,14 +24,18 @@ services:
     environment:
       - NODE_ENV=development
       - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL_DEV=${DATABASE_URL_DEV:-${DATABASE_URL}}
       - JWT_SECRET=${JWT_SECRET}
+      - AUTH_OTP_PEPPER=${AUTH_OTP_PEPPER:-}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
       - PORT=${PORT:-3333}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - IDENTITY_GATEWAY_URL=${IDENTITY_GATEWAY_URL:-http://host.docker.internal:3000}
+      - IDENTITY_GATEWAY_TIMEOUT_MS=${IDENTITY_GATEWAY_TIMEOUT_MS:-5000}
+      - IDENTITY_SERVICE_TOKEN=${IDENTITY_SERVICE_TOKEN:-change-me-local-clinical-identity-token}
       - REDIS_URL=redis://redis:6379
     ports:
       - "${PORT:-3333}:${PORT:-3333}"
     depends_on:
       redis:
         condition: service_healthy
-

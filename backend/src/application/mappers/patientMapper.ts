@@ -4,6 +4,7 @@ import type { PatientResponseDTO } from "../dtos/PatientDTOs";
 export function toPatientResponseDTO(patient: Patient): PatientResponseDTO {
   return {
     id: patient.id,
+    registrationNumber: patient.registrationNumber,
     name: patient.name,
     email: patient.email,
     phone: patient.phone,
