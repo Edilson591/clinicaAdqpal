@@ -17,23 +17,22 @@ model Role {
 }
 
 model User {
-  id               String            @id @default(uuid())
-  email            String            @unique
-  passwordHash     String            @map("password_hash")
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @updatedAt @map("updated_at")
-  cnpj             String?           @unique
-  cpf              String?           @unique
-  roleId           Int               @map("role_id")
-  username         String            @unique
+  id               String               @id @default(uuid())
+  email            String               @unique
+  passwordHash     String               @map("password_hash")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  updatedAt        DateTime             @updatedAt @map("updated_at")
+  cnpj             String?              @unique
+  cpf              String?              @unique
+  roleId           Int                  @map("role_id")
+  username         String               @unique
+  resetTokens      PasswordResetToken[]
   appointments     Appointment[]
   specialties      DoctorSpecialty[]
-  notasFiscais     NotaFiscal[]      @relation("NotaFiscalCreator")
-  patientHistories PatientHistory[]  @relation("DoctorHistories")
-  transactions     Transaction[]     @relation("TransactionCreator")
-  role             Role              @relation(fields: [roleId], references: [id])
-
-  resetTokens PasswordResetToken[]
+  notasFiscais     NotaFiscal[]         @relation("NotaFiscalCreator")
+  patientHistories PatientHistory[]     @relation("DoctorHistories")
+  transactions     Transaction[]        @relation("TransactionCreator")
+  role             Role                 @relation(fields: [roleId], references: [id])
 
   @@map("users")
 }
@@ -49,27 +48,28 @@ model PasswordResetToken {
 }
 
 model Patient {
-  id               String           @id @default(uuid())
-  name             String
-  email            String?          @unique
-  phone            String?
-  cpf              String?          @unique
-  dateOfBirth      DateTime?        @map("date_of_birth")
-  createdAt        DateTime         @default(now()) @map("created_at")
-  updatedAt        DateTime         @updatedAt @map("updated_at")
-  additionalInfo   String?          @map("additional_info")
-  city             String?
-  state            String?
-  street           String?
-  streetNumber     String?          @map("street_number")
-  zipCode          String?          @map("zip_code")
-  agreement        String?
-  gender           String?
-  appointments     Appointment[]
-  medicalRecords   MedicalRecord[]
-  notasFiscais     NotaFiscal[]
-  patientHistories PatientHistory[]
-  transactions     Transaction[]
+  id                  String           @id @default(uuid())
+  name                String
+  email               String?          @unique
+  phone               String?
+  cpf                 String?          @unique
+  dateOfBirth         DateTime?        @map("date_of_birth")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+  additionalInfo      String?          @map("additional_info")
+  city                String?
+  state               String?
+  street              String?
+  streetNumber        String?          @map("street_number")
+  zipCode             String?          @map("zip_code")
+  agreement           String?
+  gender              String?
+  registration_number String?          @unique
+  appointments        Appointment[]
+  medicalRecords      MedicalRecord[]
+  notasFiscais        NotaFiscal[]
+  patientHistories    PatientHistory[]
+  transactions        Transaction[]
 
   @@map("patients")
 }
@@ -302,6 +302,36 @@ model EmpresaConfig {
   @@map("empresa_config")
 }
 
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  before    Json?    @map("before")
+  after     Json?    @map("after")
+  ip        String?
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SusProcedure {
+  id         String   @id @default(uuid())
+  codigo     String   @unique
+  nome       String
+  modalidade String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("sus_procedures")
+}
+
 enum AppointmentStatus {
   SCHEDULED
   COMPLETED
@@ -369,40 +399,10 @@ enum EmployeeStatus {
   TERMINATED
 }
 
-model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String   @map("user_id")
-  action     String
-  entity     String
-  entityId   String?  @map("entity_id")
-  before     Json?    @map("before")
-  after      Json?    @map("after")
-  ip         String?
-  userAgent  String?  @map("user_agent")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@index([userId])
-  @@index([action])
-  @@index([entity])
-  @@index([createdAt])
-  @@map("audit_logs")
-}
-
 enum NotaFiscalStatus {
   PENDENTE
-  PROCESSANDO
-  ERRO
   EMITIDA
   CANCELADA
-}
-
-model SusProcedure {
-  id         String   @id @default(uuid())
-  codigo     String   @unique
-  nome       String
-  modalidade String
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-
-  @@map("sus_procedures")
+  PROCESSANDO
+  ERRO
 }

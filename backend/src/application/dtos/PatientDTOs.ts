@@ -57,7 +57,11 @@ export const UpdatePatientSchema = z
     cpf: documentSchema.nullable().optional(),
     dateOfBirth: z.string().nullable().optional(),
     gender: z.string().min(1, "Gênero é obrigatório").nullable().optional(),
-    agreement: z.string().min(1, "Convênio é obrigatório").nullable().optional(),
+    agreement: z
+      .string()
+      .min(1, "Convênio é obrigatório")
+      .nullable()
+      .optional(),
     street: z.string().max(255).trim().nullable().optional(),
     streetNumber: z.string().max(20).trim().nullable().optional(),
     city: z.string().max(100).trim().nullable().optional(),
@@ -75,6 +79,7 @@ export type UpdatePatientDTO = z.infer<typeof UpdatePatientSchema>;
 
 export interface PatientResponseDTO {
   id: string;
+  registrationNumber?: string;
   name: string;
   email: string | null;
   phone: string | null;

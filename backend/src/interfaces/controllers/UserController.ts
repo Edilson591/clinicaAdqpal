@@ -25,32 +25,18 @@ import { tokenBlacklist } from "../../infrastructure/cache/TokenBlacklist";
 import { MailService } from "../../infrastructure/services/MailService ";
 import { CachedCode2FA } from "../../infrastructure/cache/CachedCode2FA";
 import { getRedisClient } from "../../infrastructure/cache/RedisClient";
-import type { IAuth2FA } from "../../domain/repositories/IAuth2FA";
 import { PreLoginUser } from "../../application/use-cases/PreLoginUser";
 import { PreLoginResend } from "../../application/use-cases/PreLoginResend";
+import { DelegatedIdentityPasswordService } from "../../infrastructure/services/DelegatedIdentityPasswordService";
 
 const userRepository = new PrismaUserRepository(prisma);
 const hashService = new BcryptHashService();
 const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
 const tokenService = new JwtTokenService();
 const redis = getRedisClient();
-const auth2FAService = new CachedCode2FA(
-  new (class implements IAuth2FA {
-    private store = new Map<string, string>();
-    async saveCode(userId: string, code: string): Promise<void> {
-      this.store.set(userId, code);
-      setTimeout(() => this.store.delete(userId), 15 * 60 * 1000);
-    }
-    async getCode(userId: string): Promise<string | null> {
-      return this.store.get(userId) ?? null;
-    }
-    async invalidateCode(userId: string): Promise<void> {
-      this.store.delete(userId);
-    }
-  })(),
-  redis,
-);
+const auth2FAService = new CachedCode2FA(redis);
 const emailService = new MailService();
+const identityPasswordService = new DelegatedIdentityPasswordService();
 
 export class UserController {
   async register(
@@ -92,7 +78,12 @@ export class UserController {
 
           // Buscamos o usuário pelo e-mail do body para bater com o id do cookie
           const checkUser = await userRepository.findByEmail(dto.email);
-          if (checkUser && payload.sub === checkUser.id) {
+          if (
+            checkUser
+            && payload.sub === checkUser.id
+            && payload.tokenUse === "TRUSTED_DEVICE"
+            && !(await tokenBlacklist.has(payload.jti))
+          ) {
             isDeviceTrusted = true;
           }
         } catch (err) {
@@ -117,7 +108,7 @@ export class UserController {
           sub: result.user.id,
           email: result.user.email,
           roleId: result.user.roleId,
-          isDefinitive: true,
+          tokenUse: "ACCESS",
         });
 
         auditService.login(req);
@@ -236,24 +227,40 @@ export class UserController {
   }
 
   async logout(req: Request, res: Response): Promise<void> {
-    // Tenta revogar o token antes de limpar o cookie
-    const rawToken =
-      req.cookies?.adqpal_token ??
+    const tokens = [
+      req.cookies?.adqpal_token,
       (req.headers.authorization?.startsWith("Bearer ")
         ? req.headers.authorization.slice(7)
-        : undefined);
+        : undefined),
+      req.cookies?.adqpal_trusted_device,
+    ].filter((token): token is string => typeof token === "string" && token.length > 0);
 
-    if (rawToken) {
-      const payload = tokenService.decode(rawToken);
-      const now = Math.floor(Date.now() / 1000);
-      if (payload?.jti && payload.exp && payload.exp > now) {
-        await tokenBlacklist.add(payload.jti, payload.exp);
+    for (const token of new Set(tokens)) {
+      try {
+        const payload = tokenService.verify(token);
+        req.userId = payload.sub;
+        req.userEmail = payload.email;
+        req.userRoleId = payload.roleId;
+        req.userJti = payload.jti;
+        req.userExp = payload.exp ?? 0;
+        const now = Math.floor(Date.now() / 1000);
+        if (payload.exp && payload.exp > now) {
+          await tokenBlacklist.add(payload.jti, payload.exp);
+        }
+      } catch {
+        // Cookies inválidos ainda devem ser removidos do cliente.
       }
     }
 
-    auditService.logout(req);
+    await auditService.logout(req);
 
     res.clearCookie("adqpal_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      path: "/",
+    });
+    res.clearCookie("adqpal_trusted_device", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "none",
@@ -309,7 +316,7 @@ export class UserController {
       }
 
       const oldUser = await userRepository.findById(req.params.id as string);
-      const user = await new UpdateUser(userRepository, hashService).execute(
+      const user = await new UpdateUser(userRepository, hashService, identityPasswordService).execute(
         req.params.id as string,
         dto,
       );

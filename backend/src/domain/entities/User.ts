@@ -17,6 +17,7 @@ export interface User {
 export type PublicUser = Omit<User, "passwordHash">;
 
 export interface CreateUserData {
+  id?: string;
   username: string;
   email: string;
   passwordHash: string;

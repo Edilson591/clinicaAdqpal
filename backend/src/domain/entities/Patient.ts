@@ -4,6 +4,7 @@
 
 export interface Patient {
   id: string;
+  registrationNumber?: string;
   name: string;
   email: string | null;
   phone: string | null;
@@ -30,6 +31,7 @@ export interface PacientFilters {
 
 export interface CreatePatientData {
   name: string;
+  registrationNumber?: string;
   email?: string | null;
   phone?: string | null;
   cpf?: string | null;
@@ -46,6 +48,7 @@ export interface CreatePatientData {
 
 export interface UpdatePatientData {
   name?: string;
+  registrationNumber?: string;
   email?: string | null;
   phone?: string | null;
   cpf?: string | null;

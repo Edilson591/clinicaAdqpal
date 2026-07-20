@@ -2,6 +2,7 @@ import { NotFoundError } from "../../domain/errors/DomainError";
 import { IPasswordResetRepository } from "../../domain/repositories/IPasswordResetRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IHashService } from "../../domain/services/IHashService";
+import type { IIdentityPasswordService } from "../../domain/services/IIdentityPasswordService";
 import { ResetPasswordResponseDTO } from "../dtos/UserPasswordDTOS";
 
 export class ResetPassword {
@@ -9,6 +10,7 @@ export class ResetPassword {
     private readonly passwordResetRepository: IPasswordResetRepository,
     private readonly userRepository: IUserRepository,
     private readonly hashService: IHashService,
+    private readonly identityPasswordService: IIdentityPasswordService,
   ) {}
 
   async execute(token: string, password: string): Promise<ResetPasswordResponseDTO> {
@@ -22,8 +24,9 @@ export class ResetPassword {
       throw new NotFoundError("Token expirado");
     }
 
-    const passwordHash = await this.hashService.hash(password);
+    await this.identityPasswordService.resetPassword(tokenData.userId, password);
 
+    const passwordHash = await this.hashService.hash(password);
     await this.userRepository.update(tokenData.userId, {
       passwordHash,
     });

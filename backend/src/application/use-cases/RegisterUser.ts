@@ -4,6 +4,8 @@ import type { RegisterUserDTO, UserResponseDTO } from "../dtos/UserDTOs";
 import { ConflictError } from "../../domain/errors/DomainError";
 import { toUserResponseDTO } from "../mappers/userMapper";
 
+const DEFAULT_PUBLIC_ROLE_ID = 2;
+
 export class RegisterUser {
   constructor(
     private readonly userRepository: IUserRepository,
@@ -27,7 +29,7 @@ export class RegisterUser {
       username: dto.username,
       email: dto.email,
       passwordHash,
-      roleId: dto.roleId,
+      roleId: DEFAULT_PUBLIC_ROLE_ID,
       cpf: dto.cpf ?? null,
       cnpj: dto.cnpj ?? null,
     });

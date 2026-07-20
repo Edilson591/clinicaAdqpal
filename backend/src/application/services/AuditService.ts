@@ -2,6 +2,38 @@ import type { Request } from "express";
 import type { IAuditLogRepository } from "../../domain/repositories/IAuditLogRepository";
 import type { AuditAction, AuditEntity, CreateAuditLogData } from "../../domain/entities/AuditLog";
 
+const SENSITIVE_KEYS = new Set([
+  "password",
+  "passwordHash",
+  "currentPassword",
+  "cpf",
+  "cnpj",
+  "token",
+  "accessToken",
+  "refreshToken",
+  "defaultToken",
+  "preAuthToken",
+  "secret",
+  "code",
+]);
+
+export function sanitizeAuditValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sanitizeAuditValue);
+  }
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, nestedValue] of Object.entries(value as Record<string, unknown>)) {
+    if (!SENSITIVE_KEYS.has(key)) {
+      sanitized[key] = sanitizeAuditValue(nestedValue);
+    }
+  }
+  return sanitized;
+}
+
 function computeDiff(before: unknown, after: unknown): { before: Record<string, unknown> | null; after: Record<string, unknown> | null } {
   if (!before || !after || typeof before !== "object" || typeof after !== "object") {
     return { before: before as Record<string, unknown>, after: after as Record<string, unknown> };
@@ -9,7 +41,7 @@ function computeDiff(before: unknown, after: unknown): { before: Record<string, 
 
   const b = before as Record<string, unknown>;
   const a = after as Record<string, unknown>;
-  const EXCLUDE = new Set(["id", "createdAt", "updatedAt", "passwordHash"]);
+  const EXCLUDE = new Set(["id", "createdAt", "updatedAt", ...SENSITIVE_KEYS]);
   const diffB: Record<string, unknown> = {};
   const diffA: Record<string, unknown> = {};
   let hasDiff = false;
@@ -33,7 +65,11 @@ export class AuditService {
 
   private async log(data: CreateAuditLogData): Promise<void> {
     try {
-      await this.repository.create(data);
+      await this.repository.create({
+        ...data,
+        before: sanitizeAuditValue(data.before) as Record<string, unknown> | null | undefined,
+        after: sanitizeAuditValue(data.after) as Record<string, unknown> | null | undefined,
+      });
     } catch {
       // Falha no audit log não deve quebrar a requisição principal
     }

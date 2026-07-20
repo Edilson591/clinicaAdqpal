@@ -6,7 +6,7 @@ export interface TokenPayload {
   jti: string; // JWT ID único — usado para revogação na blacklist
   exp?: number; // unix timestamp de expiração (preenchido pelo jwt.sign)
   iat?: number;
-  isDefinitive?: boolean;
+  tokenUse: "PRE_AUTH" | "ACCESS" | "TRUSTED_DEVICE";
 }
 
 export interface TokenOptions {

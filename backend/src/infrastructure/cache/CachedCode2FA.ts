@@ -1,58 +1,106 @@
 import Redis from "ioredis";
-import { IAuth2FA } from "../../domain/repositories/IAuth2FA";
-
+import { ServiceUnavailableError } from "../../domain/errors/DomainError";
+import type {
+  IAuth2FA,
+  TwoFactorVerificationResult,
+} from "../../domain/repositories/IAuth2FA";
 
 const TWO_FACTOR_PREFIX = "auth:2fa:";
+const RESEND_PREFIX = "auth:2fa:resend:";
 const EXPIRATION_IN_SECONDS = 15 * 60;
+const RESEND_COOLDOWN_SECONDS = 60;
+const MAX_ATTEMPTS = 5;
+
+const VERIFY_SCRIPT = `
+local codeHash = redis.call("HGET", KEYS[1], "codeHash")
+if not codeHash then return "EXPIRED" end
+local attempts = tonumber(redis.call("HGET", KEYS[1], "attempts") or "0")
+if attempts >= tonumber(ARGV[2]) then
+  redis.call("DEL", KEYS[1])
+  return "LOCKED"
+end
+if codeHash == ARGV[1] then
+  redis.call("DEL", KEYS[1])
+  return "VALID"
+end
+attempts = attempts + 1
+if attempts >= tonumber(ARGV[2]) then
+  redis.call("DEL", KEYS[1])
+  return "LOCKED"
+end
+redis.call("HSET", KEYS[1], "attempts", attempts)
+return "INVALID"
+`;
 
 export class CachedCode2FA implements IAuth2FA {
-  constructor(
-    private readonly repo: IAuth2FA,
-    private readonly redis: Redis,
-  ) {}
+  constructor(private readonly redis: Redis) {}
 
-  async getCode(userId: string): Promise<string | null> {
-    const key = `${TWO_FACTOR_PREFIX}${userId}`;
-
+  async saveCode(userId: string, codeHash: string): Promise<void> {
     try {
-      const cachedCode = await this.redis.get(key);
-      if (cachedCode !== null) return cachedCode;
+      const result = await this.redis
+        .multi()
+        .hset(this.challengeKey(userId), "codeHash", codeHash, "attempts", "0")
+        .expire(this.challengeKey(userId), EXPIRATION_IN_SECONDS)
+        .exec();
+      if (!result || result.some(([error]) => error !== null)) {
+        throw new Error("Redis recusou a gravação do desafio 2FA.");
+      }
     } catch (error) {
-      console.error(
-        "[Redis] Falha ao buscar 2FA, consultando repositório principal:",
-        error,
-      );
-      return this.repo.getCode(userId);
+      throw unavailable(error);
     }
-
-    return null;
   }
+
+  async hasActiveCode(userId: string): Promise<boolean> {
+    try {
+      return (await this.redis.exists(this.challengeKey(userId))) === 1;
+    } catch (error) {
+      throw unavailable(error);
+    }
+  }
+
+  async reserveResend(userId: string): Promise<boolean> {
+    try {
+      const result = await this.redis.set(
+        `${RESEND_PREFIX}${userId}`,
+        "1",
+        "EX",
+        RESEND_COOLDOWN_SECONDS,
+        "NX",
+      );
+      return result === "OK";
+    } catch (error) {
+      throw unavailable(error);
+    }
+  }
+
+  async verifyCode(userId: string, codeHash: string): Promise<TwoFactorVerificationResult> {
+    try {
+      return await this.redis.eval(
+        VERIFY_SCRIPT,
+        1,
+        this.challengeKey(userId),
+        codeHash,
+        MAX_ATTEMPTS.toString(),
+      ) as TwoFactorVerificationResult;
+    } catch (error) {
+      throw unavailable(error);
+    }
+  }
+
   async invalidateCode(userId: string): Promise<void> {
-    const key = `${TWO_FACTOR_PREFIX}${userId}`;
-
     try {
-      // 1. Deleta do Redis
-      await this.redis.del(key);
+      await this.redis.del(this.challengeKey(userId));
     } catch (error) {
-      console.error("[Redis] Falha ao invalidar no cache:", error);
+      throw unavailable(error);
     }
   }
 
-  async saveCode(userId: string, code: string): Promise<void> {
-    const key = `${TWO_FACTOR_PREFIX}${userId}`;
-
-    try {
-      // 1. Tenta salvar no Redis de forma atômica com TTL
-      await this.redis.set(key, code, "EX", EXPIRATION_IN_SECONDS);
-    } catch (error) {
-      console.error(
-        "[Redis] Falha ao salvar 2FA, acionando repositório principal:",
-        error,
-      );
-
-      // 2. FALLBACK (Se o Redis cair, seu app não para! Salva no banco de dados)
-      // Excelente para compliance da LGPD (Disponibilidade dos serviços)
-      await this.repo.saveCode(userId, code);
-    }
+  private challengeKey(userId: string): string {
+    return `${TWO_FACTOR_PREFIX}${userId}`;
   }
+}
+
+function unavailable(error: unknown): ServiceUnavailableError {
+  console.error("[Redis] Serviço 2FA indisponível.", error);
+  return new ServiceUnavailableError("Serviço de autenticação temporariamente indisponível.");
 }

@@ -19,10 +19,6 @@ export const RegisterUserSchema = z.object({
     .max(72, "Senha deve ter no máximo 72 caracteres")
     .regex(/[A-Z]/, "Senha deve conter pelo menos uma letra maiúscula")
     .regex(/[0-9]/, "Senha deve conter pelo menos um número"),
-  roleId: z
-    .number({ required_error: "roleId é obrigatório" })
-    .int()
-    .positive("roleId deve ser um número positivo"),
   cpf: z
     .string()
     .regex(/^\d{11}$/, "CPF deve ter 11 dígitos numéricos")
