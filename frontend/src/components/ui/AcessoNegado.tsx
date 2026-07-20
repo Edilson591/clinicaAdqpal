@@ -3,7 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getRoleLabel } from "../../types/roles";
 
-export function AcessoNegado() {
+export function AcessoNegado({
+  allowedRoles = "Administrador, Recepcionista e Suporte de TI",
+}: {
+  allowedRoles?: string;
+}) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const roleLabel = user ? getRoleLabel(user.roleId) : "";
@@ -26,7 +30,7 @@ export function AcessoNegado() {
             não tem permissão para acessar.
           </p>
           <p className="text-[12px] text-[#94A3B8]">
-            Acesso permitido para: Administrador, Recepcionista e Suporte de TI.
+            Acesso permitido para: {allowedRoles}.
           </p>
         </div>
 
