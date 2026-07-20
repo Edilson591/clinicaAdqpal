@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "env": {
+    "BOLETO_GATEWAY_TIMEOUT_MS": "60000"
+  },
   "builds": [
     {
       "src": "server.ts",

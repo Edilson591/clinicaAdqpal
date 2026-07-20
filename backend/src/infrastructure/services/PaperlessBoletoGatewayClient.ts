@@ -33,7 +33,7 @@ export class PaperlessBoletoGatewayClient implements BoletoGatewayClient {
 
   constructor(
     baseUrl = gatewayUrl(),
-    timeoutMs = Number(process.env.IDENTITY_GATEWAY_TIMEOUT_MS ?? 5_000),
+    timeoutMs = boletoGatewayTimeoutMs(),
   ) {
     this.http = axios.create({
       baseURL: baseUrl.replace(/\/$/, ""),
@@ -70,6 +70,13 @@ export class PaperlessBoletoGatewayClient implements BoletoGatewayClient {
 }
 
 export const boletoGatewayClient = new PaperlessBoletoGatewayClient();
+
+export function boletoGatewayTimeoutMs(
+  env: NodeJS.ProcessEnv = process.env,
+): number {
+  const timeout = Number(env.BOLETO_GATEWAY_TIMEOUT_MS ?? 60_000);
+  return Number.isFinite(timeout) && timeout > 0 ? timeout : 60_000;
+}
 
 function gatewayUrl(): string {
   const configured = process.env.IDENTITY_GATEWAY_URL?.trim();
