@@ -7,12 +7,16 @@ import {
   FileText,
   Layers3,
   ReceiptText,
+  Trash2,
 } from "lucide-react";
 import type {
   BoletoGroup,
   BoletoListItem,
   BoletoStatus,
+  CancelBoletoRequest,
 } from "../../types/boleto";
+
+const CANCELLABLE_STATUSES: BoletoStatus[] = ["REGISTERED", "PDF_GENERATED", "SENT"];
 
 const STATUS_LABELS: Record<BoletoStatus, string> = {
   PENDING: "Pendente",
@@ -82,9 +86,36 @@ function StatusBadge({ status }: { status: BoletoStatus }) {
   );
 }
 
-function InstallmentRow({ boleto, isAnnual }: { boleto: BoletoListItem; isAnnual: boolean }) {
+function targetKey(target: CancelBoletoRequest) {
+  if (target.scope === "BOLETO") return `boleto:${target.boletoId}`;
+  if (target.scope === "CARNET") return `carnet:${target.seriesId}`;
+  return `installment:${target.seriesId}:${target.installmentNumber}`;
+}
+
+function InstallmentRow({
+  boleto,
+  isAnnual,
+  confirmKey,
+  cancellingKey,
+  onRequestCancel,
+  onConfirmCancel,
+  onCancelConfirmation,
+}: {
+  boleto: BoletoListItem;
+  isAnnual: boolean;
+  confirmKey: string | null;
+  cancellingKey: string | null;
+  onRequestCancel: (target: CancelBoletoRequest) => void;
+  onConfirmCancel: (target: CancelBoletoRequest) => void;
+  onCancelConfirmation: () => void;
+}) {
+  const target: CancelBoletoRequest = isAnnual
+    ? { scope: "CARNET_INSTALLMENT", seriesId: boleto.seriesId, installmentNumber: boleto.installmentNumber }
+    : { scope: "BOLETO", boletoId: boleto.id };
+  const key = targetKey(target);
+  const canCancel = CANCELLABLE_STATUSES.includes(boleto.status);
   return (
-    <div className="grid gap-3 border-t border-[#E2E8F0] px-4 py-3 dark:border-[#334155] sm:grid-cols-[80px_1fr_120px_130px] sm:items-center">
+    <div className="grid gap-3 border-t border-[#E2E8F0] px-4 py-3 dark:border-[#334155] sm:grid-cols-[70px_1fr_110px_minmax(210px,auto)] sm:items-center">
       <span className="text-xs font-semibold text-[#475569] dark:text-[#CBD5E1]">
         {isAnnual ? `${boleto.installmentNumber}/12` : "Única"}
       </span>
@@ -93,38 +124,49 @@ function InstallmentRow({ boleto, isAnnual }: { boleto: BoletoListItem; isAnnual
         Vence em {formatDate(boleto.dueDate)}
       </div>
       <StatusBadge status={boleto.status} />
-      {boleto.pdfUrl ? (
-        <a
-          href={boleto.pdfUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2F855A] hover:text-[#276749]"
-        >
-          <Download size={14} />
-          Abrir PDF
-        </a>
-      ) : (
-        <span className="text-xs text-[#94A3B8]">PDF em processamento</span>
-      )}
+      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+        {boleto.pdfUrl ? (
+          <a href={boleto.pdfUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2F855A] hover:text-[#276749]">
+            <Download size={14} /> Abrir PDF
+          </a>
+        ) : <span className="text-xs text-[#94A3B8]">PDF em processamento</span>}
+        {canCancel && confirmKey !== key && (
+          <button type="button" onClick={() => onRequestCancel(target)} disabled={Boolean(cancellingKey)} className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+            <Trash2 size={13} /> {isAnnual ? "Cancelar parcela" : "Cancelar boleto"}
+          </button>
+        )}
+        {confirmKey === key && (
+          <span className="inline-flex items-center gap-1 text-xs">
+            <span className="font-semibold text-red-700">Confirmar?</span>
+            <button type="button" onClick={() => onConfirmCancel(target)} disabled={cancellingKey === key} className="cursor-pointer rounded bg-red-600 px-2 py-1 font-bold text-white disabled:cursor-wait disabled:opacity-60">Sim</button>
+            <button type="button" onClick={onCancelConfirmation} className="cursor-pointer rounded border border-[#CBD5E1] px-2 py-1 font-bold text-[#475569]">Não</button>
+          </span>
+        )}
+      </div>
     </div>
   );
 }
 
-function BoletoGroupCard({ group }: { group: BoletoGroup }) {
+function BoletoGroupCard({ group, onCancel, cancellingKey }: { group: BoletoGroup; onCancel: (target: CancelBoletoRequest) => void; cancellingKey: string | null }) {
   const [expanded, setExpanded] = useState(group.kind === "SINGLE");
+  const [confirmKey, setConfirmKey] = useState<string | null>(null);
   const first = group.installments[0];
   const isAnnual = group.kind === "ANNUAL_CARNET";
   const total = isAnnual ? first.amountCents * 12 : first.amountCents;
   const completed = group.installments.filter((item) => item.pdfUrl).length;
+  const carnetTarget: CancelBoletoRequest = { scope: "CARNET", seriesId: group.seriesId };
+  const carnetKey = targetKey(carnetTarget);
+  const canCancelCarnet = isAnnual && group.installments.some((item) => CANCELLABLE_STATUSES.includes(item.status));
+
+  const confirmCancel = (target: CancelBoletoRequest) => {
+    setConfirmKey(null);
+    onCancel(target);
+  };
 
   return (
     <article className="overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm transition-shadow hover:shadow-md dark:border-[#334155] dark:bg-[#1E293B]">
-      <button
-        type="button"
-        onClick={() => setExpanded((current) => !current)}
-        className="flex w-full flex-col gap-4 p-4 text-left sm:flex-row sm:items-center sm:p-5"
-        aria-expanded={expanded}
-      >
+      <div className="flex items-center gap-2 p-4 sm:p-5">
+        <button type="button" onClick={() => setExpanded((current) => !current)} className="flex min-w-0 flex-1 cursor-pointer flex-col gap-4 text-left sm:flex-row sm:items-center" aria-expanded={expanded}>
         <span
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
             isAnnual
@@ -168,12 +210,36 @@ function BoletoGroupCard({ group }: { group: BoletoGroup }) {
             className={`text-[#94A3B8] transition-transform ${expanded ? "rotate-180" : ""}`}
           />
         </div>
-      </button>
+        </button>
+        {canCancelCarnet && confirmKey !== carnetKey && (
+          <button type="button" onClick={() => setConfirmKey(carnetKey)} disabled={Boolean(cancellingKey)} className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900 dark:hover:bg-red-950/30">
+            <Trash2 size={14} /> <span className="hidden sm:inline">Cancelar carnê</span>
+          </button>
+        )}
+        {confirmKey === carnetKey && (
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <span className="text-[11px] font-semibold text-red-700">Cancelar parcelas em aberto?</span>
+            <span className="flex gap-1">
+              <button type="button" onClick={() => confirmCancel(carnetTarget)} disabled={cancellingKey === carnetKey} className="cursor-pointer rounded bg-red-600 px-2 py-1 text-xs font-bold text-white disabled:cursor-wait disabled:opacity-60">Sim</button>
+              <button type="button" onClick={() => setConfirmKey(null)} className="cursor-pointer rounded border border-[#CBD5E1] px-2 py-1 text-xs font-bold text-[#475569]">Não</button>
+            </span>
+          </div>
+        )}
+      </div>
 
       {expanded && (
         <div className="bg-[#F8FAFC]/70 dark:bg-[#0F172A]/40">
           {group.installments.map((boleto) => (
-            <InstallmentRow key={boleto.id} boleto={boleto} isAnnual={isAnnual} />
+            <InstallmentRow
+              key={boleto.id}
+              boleto={boleto}
+              isAnnual={isAnnual}
+              confirmKey={confirmKey}
+              cancellingKey={cancellingKey}
+              onRequestCancel={(target) => setConfirmKey(targetKey(target))}
+              onConfirmCancel={confirmCancel}
+              onCancelConfirmation={() => setConfirmKey(null)}
+            />
           ))}
         </div>
       )}
@@ -201,9 +267,11 @@ interface BoletoListProps {
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
+  onCancel: (target: CancelBoletoRequest) => void;
+  cancellingKey: string | null;
 }
 
-export function BoletoList({ items, search, status, isLoading, isError, onRetry }: BoletoListProps) {
+export function BoletoList({ items, search, status, isLoading, isError, onRetry, onCancel, cancellingKey }: BoletoListProps) {
   if (isLoading) return <ListSkeleton />;
 
   if (isError) {
@@ -246,7 +314,7 @@ export function BoletoList({ items, search, status, isLoading, isError, onRetry 
   return (
     <div className="space-y-3">
       {groups.map((group) => (
-        <BoletoGroupCard key={group.seriesId} group={group} />
+        <BoletoGroupCard key={group.seriesId} group={group} onCancel={onCancel} cancellingKey={cancellingKey} />
       ))}
     </div>
   );

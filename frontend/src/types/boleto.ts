@@ -92,3 +92,19 @@ export interface BoletoGroup {
   kind: BoletoKind;
   installments: BoletoListItem[];
 }
+
+export type CancelBoletoRequest =
+  | { scope: "BOLETO"; boletoId: string }
+  | { scope: "CARNET"; seriesId: string }
+  | { scope: "CARNET_INSTALLMENT"; seriesId: string; installmentNumber: number };
+
+export interface CancelBoletoResponse {
+  success: boolean;
+  message: string;
+  data: {
+    scope: CancelBoletoRequest["scope"];
+    cancelledBoletoIds: string[];
+    seriesId?: string;
+    installmentNumber?: number;
+  };
+}
