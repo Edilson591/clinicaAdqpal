@@ -20,9 +20,14 @@ function DocumentosDisplay() {
   return <div data-testid="result-documentos">{canAccessDocumentos ? 'allowed' : 'denied'}</div>;
 }
 
-function renderWithRole(roleId: number | null, display: 'financeiro' | 'documentos' = 'financeiro') {
+function RhDisplay() {
+  const { canAccessRh } = usePermissions();
+  return <div data-testid="result-rh">{canAccessRh ? 'allowed' : 'denied'}</div>;
+}
+
+function renderWithRole(roleId: number | null, display: 'financeiro' | 'documentos' | 'rh' = 'financeiro') {
   vi.mocked(useAuth).mockReturnValue({
-    user: roleId !== null ? ({ id: 'u1', roleId } as any) : null,
+    user: roleId !== null ? ({ id: 'u1', roleId } as ReturnType<typeof useAuth>['user']) : null,
     token: 'tok',
     isAuthenticated: true,
     logout: vi.fn(),
@@ -30,7 +35,7 @@ function renderWithRole(roleId: number | null, display: 'financeiro' | 'document
 
   render(
     <PermissionsProvider>
-      {display === 'financeiro' ? <FinanceiroDisplay /> : <DocumentosDisplay />}
+      {display === 'financeiro' ? <FinanceiroDisplay /> : display === 'rh' ? <RhDisplay /> : <DocumentosDisplay />}
     </PermissionsProvider>,
   );
 }
@@ -41,14 +46,14 @@ describe('PermissionsProvider — canAccessFinanceiro', () => {
     expect(screen.getByTestId('result-financeiro').textContent).toBe('allowed');
   });
 
-  it('grants access to RECEPTIONIST (roleId=5)', () => {
+  it('denies access to RECEPTIONIST (roleId=5)', () => {
     renderWithRole(USER_ROLES.RECEPTIONIST, 'financeiro');
-    expect(screen.getByTestId('result-financeiro').textContent).toBe('allowed');
+    expect(screen.getByTestId('result-financeiro').textContent).toBe('denied');
   });
 
-  it('grants access to IT_SUPPORT (roleId=9)', () => {
+  it('denies access to IT_SUPPORT (roleId=9)', () => {
     renderWithRole(USER_ROLES.IT_SUPPORT, 'financeiro');
-    expect(screen.getByTestId('result-financeiro').textContent).toBe('allowed');
+    expect(screen.getByTestId('result-financeiro').textContent).toBe('denied');
   });
 
   it('denies access to DOCTOR (roleId=3)', () => {
@@ -69,6 +74,18 @@ describe('PermissionsProvider — canAccessFinanceiro', () => {
   it('denies access when user is null', () => {
     renderWithRole(null, 'financeiro');
     expect(screen.getByTestId('result-financeiro').textContent).toBe('denied');
+  });
+});
+
+describe('PermissionsProvider — canAccessRh', () => {
+  it('grants access to ADMIN', () => {
+    renderWithRole(USER_ROLES.ADMIN, 'rh');
+    expect(screen.getByTestId('result-rh').textContent).toBe('allowed');
+  });
+
+  it('denies access to IT_SUPPORT', () => {
+    renderWithRole(USER_ROLES.IT_SUPPORT, 'rh');
+    expect(screen.getByTestId('result-rh').textContent).toBe('denied');
   });
 });
 

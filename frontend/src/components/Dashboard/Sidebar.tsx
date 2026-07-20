@@ -32,6 +32,7 @@ export interface NavItem {
   path: string;
   adminOnly?: boolean;
   financialOnly?: boolean;
+  rhOnly?: boolean;
   children?: NavChild[];
 }
 
@@ -54,7 +55,7 @@ export const navItems: NavItem[] = [
   { label: "Financeiro", icon: DollarSign, path: "/financeiro", financialOnly: true },
   { label: "Filiação", icon: HandCoins, path: "/filiacao", financialOnly: true },
   // { label: "Notas Fiscais", icon: Receipt, path: "/notas-fiscais" },
-  { label: "Recursos Humanos", icon: Briefcase, path: "/rh" },
+  { label: "Recursos Humanos", icon: Briefcase, path: "/rh", rhOnly: true },
   {
     label: "Configurações",
     icon: Settings,

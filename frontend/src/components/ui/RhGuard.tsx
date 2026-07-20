@@ -6,7 +6,7 @@ export function RhGuard() {
   const { canAccessRh } = usePermissions();
 
   if (!canAccessRh) {
-    return <AcessoNegado />;
+    return <AcessoNegado allowedRoles="Administrador" />;
   }
 
   return <Outlet />;

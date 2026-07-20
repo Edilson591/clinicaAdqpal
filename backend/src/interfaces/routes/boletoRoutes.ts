@@ -6,11 +6,7 @@ import { requireRole, ROLES } from "../middlewares/requireRole";
 const boletoRoutes = Router();
 const dashboardRoutes = Router();
 const controller = new BoletoProxyController();
-const requireFinancialAccess = requireRole(
-  ROLES.ADMIN,
-  ROLES.RECEPTIONIST,
-  ROLES.IT_SUPPORT,
-);
+const requireFinancialAccess = requireRole(ROLES.ADMIN);
 
 boletoRoutes.use(authMiddleware, requireFinancialAccess);
 dashboardRoutes.use(authMiddleware, requireFinancialAccess);
