@@ -17,7 +17,7 @@ interface SidebarContentProps {
 
 function SidebarContent({ expanded, user, logout }: SidebarContentProps) {
   const { pathname } = useLocation();
-  const { canAccessDocumentos, canAccessFinanceiro, canAccessRh } = usePermissions();
+  const { canAccessDocumentos, canAccessFinanceiro, canAccessRh, canAccessUsers } = usePermissions();
 
   // Inicializa aberto se algum filho estiver ativo
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(() => {
@@ -52,6 +52,7 @@ function SidebarContent({ expanded, user, logout }: SidebarContentProps) {
           .filter((item) => !item.adminOnly || canAccessDocumentos)
           .filter((item) => !item.financialOnly || canAccessFinanceiro)
           .filter((item) => !item.rhOnly || canAccessRh)
+          .filter((item) => !item.usersOnly || canAccessUsers)
           .map(({ label, icon: Icon, path, children }) => {
           const hasChildren = !!children?.length;
           const isOpen = openMenus[path] ?? false;
