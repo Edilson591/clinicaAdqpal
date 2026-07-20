@@ -33,6 +33,7 @@ export interface NavItem {
   adminOnly?: boolean;
   financialOnly?: boolean;
   rhOnly?: boolean;
+  usersOnly?: boolean;
   children?: NavChild[];
 }
 
@@ -60,6 +61,7 @@ export const navItems: NavItem[] = [
     label: "Configurações",
     icon: Settings,
     path: "/configuracoes",
+    usersOnly: true,
     children: [
       { label: "Usuários", icon: UserCog, path: "/configuracoes/usuarios" },
     ],

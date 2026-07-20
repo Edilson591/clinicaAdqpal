@@ -7,7 +7,7 @@ import { PermissionsContext } from "./PermissionsContext";
 const FINANCIAL_ROLES = [USER_ROLES.ADMIN] as const;
 
 // Roles com acesso ao gerenciamento de usuários
-const USERS_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
+const USERS_ROLES = [USER_ROLES.ADMIN] as const;
 
 const NOTES_ROLES = [USER_ROLES.ADMIN, USER_ROLES.IT_SUPPORT] as const;
 const RH_ROLES = [USER_ROLES.ADMIN] as const;

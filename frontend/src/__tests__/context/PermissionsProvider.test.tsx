@@ -25,7 +25,12 @@ function RhDisplay() {
   return <div data-testid="result-rh">{canAccessRh ? 'allowed' : 'denied'}</div>;
 }
 
-function renderWithRole(roleId: number | null, display: 'financeiro' | 'documentos' | 'rh' = 'financeiro') {
+function UsersDisplay() {
+  const { canAccessUsers } = usePermissions();
+  return <div data-testid="result-users">{canAccessUsers ? 'allowed' : 'denied'}</div>;
+}
+
+function renderWithRole(roleId: number | null, display: 'financeiro' | 'documentos' | 'rh' | 'users' = 'financeiro') {
   vi.mocked(useAuth).mockReturnValue({
     user: roleId !== null ? ({ id: 'u1', roleId } as ReturnType<typeof useAuth>['user']) : null,
     token: 'tok',
@@ -35,7 +40,7 @@ function renderWithRole(roleId: number | null, display: 'financeiro' | 'document
 
   render(
     <PermissionsProvider>
-      {display === 'financeiro' ? <FinanceiroDisplay /> : display === 'rh' ? <RhDisplay /> : <DocumentosDisplay />}
+      {display === 'financeiro' ? <FinanceiroDisplay /> : display === 'rh' ? <RhDisplay /> : display === 'users' ? <UsersDisplay /> : <DocumentosDisplay />}
     </PermissionsProvider>,
   );
 }
@@ -86,6 +91,18 @@ describe('PermissionsProvider — canAccessRh', () => {
   it('denies access to IT_SUPPORT', () => {
     renderWithRole(USER_ROLES.IT_SUPPORT, 'rh');
     expect(screen.getByTestId('result-rh').textContent).toBe('denied');
+  });
+});
+
+describe('PermissionsProvider — canAccessUsers', () => {
+  it('grants access to ADMIN', () => {
+    renderWithRole(USER_ROLES.ADMIN, 'users');
+    expect(screen.getByTestId('result-users').textContent).toBe('allowed');
+  });
+
+  it('denies access to IT_SUPPORT', () => {
+    renderWithRole(USER_ROLES.IT_SUPPORT, 'users');
+    expect(screen.getByTestId('result-users').textContent).toBe('denied');
   });
 });
 
