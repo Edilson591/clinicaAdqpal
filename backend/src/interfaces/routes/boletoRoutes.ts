@@ -13,6 +13,7 @@ dashboardRoutes.use(authMiddleware, requireFinancialAccess);
 
 boletoRoutes.get("/", controller.forward.bind(controller));
 boletoRoutes.post("/", controller.forward.bind(controller));
+boletoRoutes.post("/cancellations", controller.forward.bind(controller));
 boletoRoutes.get("/:id", controller.forward.bind(controller));
 dashboardRoutes.get("/summary", controller.forward.bind(controller));
 

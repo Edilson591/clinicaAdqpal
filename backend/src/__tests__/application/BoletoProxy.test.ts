@@ -12,9 +12,11 @@ import { requireRole, ROLES } from "../../interfaces/middlewares/requireRole";
 describe("boleto gateway facade", () => {
   it("requires authentication on boleto and boleto dashboard routes", async () => {
     const boletoResponse = await request(app).get("/boletos");
+    const cancellationResponse = await request(app).post("/boletos/cancellations").send({ scope: "BOLETO", boletoId: crypto.randomUUID() });
     const dashboardResponse = await request(app).get("/dashboard/summary");
 
     expect(boletoResponse.status).toBe(401);
+    expect(cancellationResponse.status).toBe(401);
     expect(dashboardResponse.status).toBe(401);
   });
 

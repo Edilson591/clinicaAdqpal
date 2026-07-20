@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BoletoService } from "../services/Boleto";
-import type { BoletoFilters, CreateBoletoRequest } from "../types/boleto";
+import type { BoletoFilters, CancelBoletoRequest, CreateBoletoRequest } from "../types/boleto";
 
 export const boletoKeys = {
   all: ["boletos"] as const,
@@ -32,6 +32,14 @@ export function useCreateBoleto() {
       payload: CreateBoletoRequest;
       idempotencyKey: string;
     }) => BoletoService.create(payload, idempotencyKey),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: boletoKeys.all }),
+  });
+}
+
+export function useCancelBoleto() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CancelBoletoRequest) => BoletoService.cancel(payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: boletoKeys.all }),
   });
 }
