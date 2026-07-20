@@ -110,7 +110,11 @@ export class DelegatedAuthController {
         headers: requestHeaders(req),
       });
       if (!isSuccess(upstream)) {
-        await this.audit.loginFailed(req);
+        try {
+          await this.audit.loginFailed(req);
+        } catch (auditError) {
+          console.error("[AUDIT] Failed to record rejected login:", auditError);
+        }
         return relayFailure(res, upstream);
       }
 
