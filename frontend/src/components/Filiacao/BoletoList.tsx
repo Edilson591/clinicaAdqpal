@@ -75,7 +75,7 @@ function formatDate(date: string) {
 function StatusBadge({ status }: { status: BoletoStatus }) {
   return (
     <span
-      className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_STYLES[status]}`}
+      className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 justify-center  text-[11px] font-semibold ${STATUS_STYLES[status]}`}
     >
       {STATUS_LABELS[status]}
     </span>
