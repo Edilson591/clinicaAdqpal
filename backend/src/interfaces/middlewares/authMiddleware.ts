@@ -25,7 +25,7 @@ declare global {
 
 const tokenService = new JwtTokenService();
 const userRepository = new PrismaUserRepository(prisma);
-
+const EXTERNAL_PASSWORD_HASH = "external-auth:user-service";
 export function createAuthMiddleware(
   identity: IdentityGatewayClient,
   users: IUserRepository,
@@ -127,15 +127,17 @@ async function authenticateIdentity(
       return;
     }
     const identityUser = readIdentityUser(response.data);
-    const clinicalUser = await users.findById(identityUser.id);
-    if (!clinicalUser) {
+    const completeProfile = hasCompleteProfile(identityUser);
+    const clinicalUser = completeProfile ? null : await users.findById(identityUser.id);
+    if (!completeProfile && !clinicalUser) {
       next(new UnauthorizedError("Perfil clínico não encontrado para esta identidade."));
       return;
     }
+    if (completeProfile) await syncProjection(identityUser, users);
 
     req.userId = identityUser.id;
     req.userEmail = identityUser.email;
-    req.userRoleId = clinicalUser.roleId;
+    req.userRoleId = completeProfile ? identityUser.roleId : clinicalUser!.roleId;
     req.userJti = "";
     req.userExp = 0;
     next();
@@ -154,7 +156,15 @@ function identityHeaders(req: Request, fallbackToken?: string): Record<string, s
   return fallbackToken ? { authorization: `Bearer ${fallbackToken}` } : {};
 }
 
-function readIdentityUser(body: unknown): { id: string; email: string } {
+type IdentityProfile = {
+  id: string;
+  name?: string;
+  email: string;
+  roleId?: number;
+  specialties?: string[];
+};
+
+function readIdentityUser(body: unknown): IdentityProfile {
   if (!body || typeof body !== "object" || !("user" in body)) {
     throw new UnauthorizedError("Resposta inválida do serviço de identidade.");
   }
@@ -164,8 +174,58 @@ function readIdentityUser(body: unknown): { id: string; email: string } {
   }
   const id = (user as { id?: unknown }).id;
   const email = (user as { email?: unknown }).email;
+  const roleId = (user as { roleId?: unknown }).roleId;
+  const name = (user as { name?: unknown }).name;
+  const specialties = (user as { specialties?: unknown }).specialties;
   if (typeof id !== "string" || typeof email !== "string") {
     throw new UnauthorizedError("Resposta inválida do serviço de identidade.");
   }
-  return { id, email };
+  return {
+    id,
+    ...(typeof name === "string" ? { name } : {}),
+    email,
+    ...(typeof roleId === "number" ? { roleId } : {}),
+    ...(Array.isArray(specialties)
+      ? { specialties: specialties.filter((value): value is string => typeof value === "string") }
+      : {}),
+  };
+}
+
+type CompleteIdentityProfile = Required<IdentityProfile>;
+
+function hasCompleteProfile(identity: IdentityProfile): identity is CompleteIdentityProfile {
+  return typeof identity.name === "string"
+    && typeof identity.roleId === "number"
+    && Array.isArray(identity.specialties);
+}
+
+async function syncProjection(identity: CompleteIdentityProfile, users: IUserRepository): Promise<void> {
+  const existing = await users.findById(identity.id);
+  if (!existing) {
+    await users.create({
+      id: identity.id,
+      username: identity.name,
+      email: identity.email,
+      passwordHash: EXTERNAL_PASSWORD_HASH,
+      roleId: identity.roleId,
+      cpf: null,
+      cnpj: null,
+    });
+  } else if (
+    existing.username !== identity.name
+    || existing.email !== identity.email
+    || existing.roleId !== identity.roleId
+  ) {
+    await users.update(identity.id, {
+      username: identity.name,
+      email: identity.email,
+      roleId: identity.roleId,
+    });
+  }
+
+  try {
+    await users.updateSpecialties(identity.id, identity.specialties);
+  } catch (error) {
+    console.warn(`[clinical-api] Could not synchronize specialties for ${identity.id}`);
+  }
 }
