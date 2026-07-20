@@ -1,4 +1,5 @@
 import { useDeferredValue, useState, type ReactNode } from "react";
+import { IMaskInput } from "react-imask";
 import {
   CalendarClock,
   CheckCircle2,
@@ -24,6 +25,7 @@ import {
   type BoletoFormInput,
 } from "../../validate/boleto.schema";
 import { useZodForm } from "../../hooks/useZodForm";
+import { formatCpfOrCpnj } from "../../utils/formatCpf";
 
 const STATUS_OPTIONS: Array<{ value: BoletoStatus | ""; label: string }> = [
   { value: "", label: "Todos os status" },
@@ -66,6 +68,15 @@ function Field({
 
 function amountToCents(value: string) {
   return Math.round(Number(value.replace(/\./g, "").replace(",", ".")) * 100);
+}
+
+function formatCurrencyInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 12);
+  if (!digits) return "";
+  return (Number(digits) / 100).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 function cleanOptional(value: string) {
@@ -115,6 +126,11 @@ export default function FiliacaoPage() {
 
   const kind = watch("kind") as BoletoKind;
   const amount = watch("amount");
+  const payerDocument = watch("payerDocument");
+  const payerPhone = watch("payerPhone");
+  const documentField = register("payerDocument");
+  const phoneField = register("payerPhone");
+  const amountField = register("amount");
   const amountCents = amount ? amountToCents(amount) : 0;
   const createBoleto = useCreateBoleto();
   const boletoQuery = useBoletos();
@@ -181,7 +197,7 @@ export default function FiliacaoPage() {
       <div className="pointer-events-none absolute inset-0 bg-[url('/bg-fundo.jpeg')] bg-cover bg-center opacity-[0.06] dark:hidden" />
       {createBoleto.isPending && <BoletoLoadingOverlay kind={kind} />}
 
-      <div className="relative mx-auto flex w-full max-w-[1500px] flex-col gap-6 p-4 sm:p-6 lg:p-8">
+      <div className="relative flex w-full flex-col gap-6 p-4 sm:p-6 lg:p-8">
         <Header isSearchAvaliable={false} />
 
         <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#1D4935] via-[#286B4A] to-[#38A169] p-5 text-white shadow-lg sm:p-7">
@@ -230,7 +246,7 @@ export default function FiliacaoPage() {
                 type="button"
                 onClick={() => setValue("kind", "SINGLE", { shouldValidate: true })}
                 aria-pressed={kind === "SINGLE"}
-                className={`flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-all ${
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 text-left transition-all ${
                   kind === "SINGLE"
                     ? "border-[#38A169] bg-[#F0FFF4] shadow-sm dark:bg-[#1A3A2A]"
                     : "border-[#E2E8F0] hover:border-[#38A169]/40 dark:border-[#334155]"
@@ -248,7 +264,7 @@ export default function FiliacaoPage() {
                 type="button"
                 onClick={() => setValue("kind", "ANNUAL_CARNET", { shouldValidate: true })}
                 aria-pressed={kind === "ANNUAL_CARNET"}
-                className={`flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-all ${
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 p-4 text-left transition-all ${
                   kind === "ANNUAL_CARNET"
                     ? "border-[#38A169] bg-[#F0FFF4] shadow-sm dark:bg-[#1A3A2A]"
                     : "border-[#E2E8F0] hover:border-[#38A169]/40 dark:border-[#334155]"
@@ -270,17 +286,45 @@ export default function FiliacaoPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Nome completo" required error={errors.payerName?.message}>
-                <input className={inputClass} placeholder="Nome do filiado" {...register("payerName")} />
-              </Field>
+              <div className="sm:col-span-2">
+                <Field label="Nome completo" required error={errors.payerName?.message}>
+                  <input className={inputClass} maxLength={100} placeholder="Nome completo do filiado" aria-invalid={Boolean(errors.payerName)} {...register("payerName")} />
+                </Field>
+              </div>
               <Field label="CPF ou CNPJ" required error={errors.payerDocument?.message}>
-                <input className={inputClass} inputMode="numeric" placeholder="Somente números" {...register("payerDocument")} />
+                <input
+                  {...documentField}
+                  value={payerDocument}
+                  onChange={(event) => setValue("payerDocument", formatCpfOrCpnj(event.target.value), {
+                    shouldDirty: true,
+                    shouldValidate: Boolean(errors.payerDocument),
+                  })}
+                  className={inputClass}
+                  inputMode="numeric"
+                  maxLength={18}
+                  placeholder="000.000.000-00"
+                  aria-invalid={Boolean(errors.payerDocument)}
+                />
               </Field>
-              <Field label="E-mail" error={errors.payerEmail?.message}>
-                <input className={inputClass} type="email" placeholder="filiado@email.com" {...register("payerEmail")} />
+              <Field label="E-mail" required error={errors.payerEmail?.message}>
+                <input className={inputClass} type="email" placeholder="filiado@email.com" aria-invalid={Boolean(errors.payerEmail)} {...register("payerEmail")} />
               </Field>
-              <Field label="Telefone" error={errors.payerPhone?.message}>
-                <input className={inputClass} type="tel" placeholder="+55 (82) 99999-9999" {...register("payerPhone")} />
+              <Field label="Telefone" required error={errors.payerPhone?.message}>
+                <IMaskInput
+                  mask="+{55} (00) 00000-0000"
+                  value={payerPhone}
+                  onAccept={(value: string) => setValue("payerPhone", value, {
+                    shouldDirty: true,
+                    shouldValidate: Boolean(errors.payerPhone),
+                  })}
+                  onBlur={phoneField.onBlur}
+                  inputRef={phoneField.ref}
+                  name={phoneField.name}
+                  className={inputClass}
+                  inputMode="tel"
+                  placeholder="+55 (82) 99999-9999"
+                  aria-invalid={Boolean(errors.payerPhone)}
+                />
               </Field>
             </div>
 
@@ -293,15 +337,26 @@ export default function FiliacaoPage() {
               <Field label={kind === "ANNUAL_CARNET" ? "Valor de cada parcela" : "Valor do boleto"} required error={errors.amount?.message}>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#64748B]">R$</span>
-                  <input className={`${inputClass} pl-10`} inputMode="decimal" placeholder="0,00" {...register("amount")} />
+                  <input
+                    {...amountField}
+                    value={amount}
+                    onChange={(event) => setValue("amount", formatCurrencyInput(event.target.value), {
+                      shouldDirty: true,
+                      shouldValidate: Boolean(errors.amount),
+                    })}
+                    className={`${inputClass} pl-10 text-right font-semibold tabular-nums`}
+                    inputMode="numeric"
+                    placeholder="0,00"
+                    aria-invalid={Boolean(errors.amount)}
+                  />
                 </div>
               </Field>
               <Field label={kind === "ANNUAL_CARNET" ? "Primeiro vencimento" : "Vencimento"} required error={errors.dueDate?.message}>
-                <input className={inputClass} type="date" min={localIsoDate()} {...register("dueDate")} />
+                <input className={inputClass} type="date" min={localIsoDate()} aria-invalid={Boolean(errors.dueDate)} {...register("dueDate")} />
               </Field>
               <div className="sm:col-span-2">
-                <Field label="Descrição" error={errors.description?.message}>
-                  <input className={inputClass} placeholder="Ex: Mensalidade de filiação 2026" {...register("description")} />
+                <Field label="Descrição" required error={errors.description?.message}>
+                  <input className={inputClass} maxLength={200} placeholder="Ex: Mensalidade de filiação 2026" aria-invalid={Boolean(errors.description)} {...register("description")} />
                 </Field>
               </div>
             </div>
@@ -321,7 +376,7 @@ export default function FiliacaoPage() {
             <button
               type="submit"
               disabled={createBoleto.isPending}
-              className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#38A169] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#2F855A] disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:w-auto"
+              className="mt-6 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#38A169] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#2F855A] disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:w-auto"
             >
               {kind === "ANNUAL_CARNET" ? <Layers3 size={17} /> : <FilePlus2 size={17} />}
               {kind === "ANNUAL_CARNET" ? "Gerar carnê com 12 parcelas" : "Gerar boleto individual"}
