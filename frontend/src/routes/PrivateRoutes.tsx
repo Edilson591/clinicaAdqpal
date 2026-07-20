@@ -31,6 +31,7 @@ import { NotaFiscalGuard } from "../components/ui/NotaFiscalGuard";
 import { RhGuard } from "../components/ui/RhGuard";
 import { FinanceiroGuard } from "../components/ui/FinanceiroGuard";
 import { DocumentosGuard } from "../components/ui/DocumentosGuard";
+import FiliacaoPage from "../pages/filiacao/FiliacaoPage";
 
 export const privateRoutes = (
   <Route element={<ProtectedRoute />}>
@@ -80,6 +81,7 @@ export const privateRoutes = (
         <Route path="/financeiro" element={<GestaoFinanceiraPage />} />
         <Route path="/financeiro/nova" element={<NovaTransacaoPage />} />
         <Route path="/financeiro/transacoes" element={<TransacoesPage />} />
+        <Route path="/filiacao" element={<FiliacaoPage />} />
       </Route>
     </Route>
   </Route>

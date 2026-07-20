@@ -1,12 +1,48 @@
 import type { NextFunction, Request, Response } from "express";
+import request from "supertest";
 import type {
   BoletoGatewayClient,
   BoletoGatewayResponse,
 } from "../../infrastructure/services/PaperlessBoletoGatewayClient";
 import { boletoGatewayTimeoutMs } from "../../infrastructure/services/PaperlessBoletoGatewayClient";
 import { BoletoProxyController } from "../../interfaces/controllers/BoletoProxyController";
+import app from "../../interfaces/http/app";
+import { requireRole, ROLES } from "../../interfaces/middlewares/requireRole";
 
 describe("boleto gateway facade", () => {
+  it("requires authentication on boleto and boleto dashboard routes", async () => {
+    const boletoResponse = await request(app).get("/boletos");
+    const dashboardResponse = await request(app).get("/dashboard/summary");
+
+    expect(boletoResponse.status).toBe(401);
+    expect(dashboardResponse.status).toBe(401);
+  });
+
+  it.each([ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.IT_SUPPORT])(
+    "allows financial role %s",
+    (roleId) => {
+      const middleware = requireRole(ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.IT_SUPPORT);
+      const req = { userRoleId: roleId } as Request;
+      const next = jest.fn() as NextFunction;
+
+      middleware(req, {} as Response, next);
+
+      expect(next).toHaveBeenCalledWith();
+    },
+  );
+
+  it("rejects roles without financial permission", () => {
+    const middleware = requireRole(ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.IT_SUPPORT);
+    const req = { userRoleId: ROLES.DOCTOR } as Request;
+    const next = jest.fn() as NextFunction;
+
+    middleware(req, {} as Response, next);
+
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Você não tem permissão para executar esta ação." }),
+    );
+  });
+
   it("uses a dedicated timeout for long-running boleto creation", () => {
     expect(boletoGatewayTimeoutMs({})).toBe(60_000);
     expect(boletoGatewayTimeoutMs({ BOLETO_GATEWAY_TIMEOUT_MS: "90000" })).toBe(90_000);

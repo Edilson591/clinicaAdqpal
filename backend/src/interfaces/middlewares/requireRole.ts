@@ -5,6 +5,8 @@ export const ROLES = {
   ADMIN: 1,
   STAFF: 2,
   DOCTOR: 3,
+  RECEPTIONIST: 5,
+  IT_SUPPORT: 9,
 } as const;
 
 export type RoleId = (typeof ROLES)[keyof typeof ROLES];
