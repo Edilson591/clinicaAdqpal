@@ -109,6 +109,7 @@ export class PrismaUserRepository implements IUserRepository {
     try {
       const row = await this.prisma.user.create({
         data: {
+          ...(data.id !== undefined && { id: data.id }),
           username: data.username,
           email: data.email,
           passwordHash: data.passwordHash,

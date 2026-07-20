@@ -1,20 +1,25 @@
 import { Router } from "express";
 import { UserController } from "../controllers/UserController";
-import { authMiddleware, preAuthMiddleware } from "../middlewares/authMiddleware";
+import { DelegatedAuthController } from "../controllers/DelegatedAuthController";
+import { authMiddleware } from "../middlewares/authMiddleware";
 import { validateBody } from "../middlewares/validateBody";
 import { requireRole, requireOwnerOrRole, ROLES } from "../middlewares/requireRole";
 import { RegisterUserSchema, LoginUserSchema, Verify2FACodeSchema, UpdateUserSchema } from "../../application/dtos/UserDTOs";
 
 const router = Router();
 const controller = new UserController();
+const delegatedAuth = new DelegatedAuthController();
 
 // ─── Públicas ─────────────────────────────────────────────────────────────────
 
-router.post("/register", validateBody(RegisterUserSchema), controller.register.bind(controller));
-router.post("/login", validateBody(LoginUserSchema), controller.login.bind(controller));
-router.post("/verify-2fa", preAuthMiddleware, validateBody(Verify2FACodeSchema), controller.verify2fa.bind(controller));
-router.post("/verify-2fa/resend", preAuthMiddleware, controller.resend2FA.bind(controller));
-router.post("/logout", controller.logout.bind(controller));
+router.get("/csrf", delegatedAuth.csrf.bind(delegatedAuth));
+router.get("/csrf-token", delegatedAuth.csrf.bind(delegatedAuth));
+router.post("/register", validateBody(RegisterUserSchema), delegatedAuth.register.bind(delegatedAuth));
+router.post("/login", validateBody(LoginUserSchema), delegatedAuth.login.bind(delegatedAuth));
+router.post("/verify-2fa", validateBody(Verify2FACodeSchema), delegatedAuth.verify2fa.bind(delegatedAuth));
+router.post("/verify-2fa/resend", delegatedAuth.resend2FA.bind(delegatedAuth));
+router.post("/refresh", delegatedAuth.refresh.bind(delegatedAuth));
+router.post("/logout", delegatedAuth.logout.bind(delegatedAuth));
 
 // ─── Privadas ─────────────────────────────────────────────────────────────────
 

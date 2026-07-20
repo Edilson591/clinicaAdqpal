@@ -49,12 +49,11 @@ export const swaggerSpec: swaggerUi.JsonObject = {
       // ─── User ──────────────────────────────────────────────────────────
       RegisterUserInput: {
         type: "object",
-        required: ["username", "email", "password", "roleId"],
+        required: ["username", "email", "password"],
         properties: {
           username: { type: "string", minLength: 3, maxLength: 50, example: "maria.silva" },
           email: { type: "string", format: "email", example: "maria@adqpal.com" },
           password: { type: "string", format: "password", minLength: 8, description: "Deve conter 1 maiúscula e 1 número" },
-          roleId: { type: "integer", description: "1=ADMIN, 2=RECEPCIONISTA, 3=MEDICO" },
           cpf: { type: "string", nullable: true, pattern: "^\\d{11}$", description: "11 dígitos" },
           cnpj: { type: "string", nullable: true, pattern: "^\\d{14}$", description: "14 dígitos" },
           specialtyIds: { type: "array", items: { type: "string", format: "uuid" } },
@@ -701,6 +700,8 @@ export const swaggerSpec: swaggerUi.JsonObject = {
       post: {
         tags: ["Usuários"],
         summary: "Verificar código 2FA",
+        security: [{ bearerAuth: [] }],
+        description: "Use o tempToken retornado pelo login como Bearer token.",
         requestBody: {
           required: true,
           content: { "application/json": { schema: { $ref: "#/components/schemas/Verify2FAInput" } } },
@@ -715,6 +716,8 @@ export const swaggerSpec: swaggerUi.JsonObject = {
       post: {
         tags: ["Usuários"],
         summary: "Reenviar código 2FA",
+        security: [{ bearerAuth: [] }],
+        description: "Use o tempToken retornado pelo login como Bearer token.",
         responses: {
           "200": { description: "Código reenviado." },
         },

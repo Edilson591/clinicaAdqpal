@@ -56,4 +56,10 @@ export class ForbiddenError extends DomainError {
   }
 }
 
+export class ServiceUnavailableError extends DomainError {
+  constructor(message = "Serviço temporariamente indisponível.") {
+    super(message, 503);
+    this.name = "ServiceUnavailableError";
+  }
+}
 

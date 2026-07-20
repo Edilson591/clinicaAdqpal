@@ -1,7 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
 import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
-import { UnauthorizedError } from "../../domain/errors/DomainError";
-import { tokenBlacklist } from "../../infrastructure/cache/TokenBlacklist";
+import { ServiceUnavailableError, UnauthorizedError } from "../../domain/errors/DomainError";
+import type { IUserRepository } from "../../domain/repositories/IUserRepository";
+import prisma from "../../infrastructure/database/prismaClient";
+import { PrismaUserRepository } from "../../infrastructure/repositories/PrismaUserRepository";
+import {
+  identityGatewayClient,
+  type IdentityGatewayClient,
+} from "../../infrastructure/services/PaperlessAuthGatewayClient";
 
 // Extensão do Request para carregar o usuário autenticado
 declare global {
@@ -18,43 +24,22 @@ declare global {
 }
 
 const tokenService = new JwtTokenService();
+const userRepository = new PrismaUserRepository(prisma);
 
-export async function authMiddleware(
-  req: Request,
-  _res: Response,
-  next: NextFunction,
-): Promise<void> {
-  const cookieToken: string | undefined = req.cookies?.adqpal_token;
-  const authHeader = req.headers.authorization;
-  const headerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
-  const token = cookieToken ?? headerToken;
-
-  if (!token) {
-    return next(new UnauthorizedError("Token de acesso não fornecido."));
-  }
-
-  try {
-    const payload = tokenService.verify(token);
-
-    if (await tokenBlacklist.has(payload.jti)) {
-      return next(new UnauthorizedError("Token revogado. Faça login novamente."));
-    }
-
-    if (!payload.isDefinitive) {
-      return next(new UnauthorizedError("Segunda etapa de autenticação pendente."));
-    }
-
-
-    req.userId = payload.sub;
-    req.userEmail = payload.email;
-    req.userRoleId = payload.roleId;
-    req.userJti = payload.jti;
-    req.userExp = payload.exp ?? 0;
-    next();
-  } catch (err) {
-    next(err);
-  }
+export function createAuthMiddleware(
+  identity: IdentityGatewayClient,
+  users: IUserRepository,
+) {
+  return async function delegatedAuthMiddleware(
+    req: Request,
+    _res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    await authenticateIdentity(req, next, identity, users);
+  };
 }
+
+export const authMiddleware = createAuthMiddleware(identityGatewayClient, userRepository);
 
 /**
  * Variante do authMiddleware para SSE.
@@ -68,30 +53,8 @@ export async function authMiddlewareSSE(
   _res: Response,
   next: NextFunction,
 ): Promise<void> {
-  const cookieToken: string | undefined = req.cookies?.adqpal_token;
-  const queryToken = req.query.token as string | undefined;
-  const token = cookieToken ?? queryToken;
-
-  if (!token) {
-    return next(new UnauthorizedError("Token de acesso não fornecido."));
-  }
-
-  try {
-    const payload = tokenService.verify(token);
-
-    if (await tokenBlacklist.has(payload.jti)) {
-      return next(new UnauthorizedError("Token revogado. Faça login novamente."));
-    }
-
-    req.userId = payload.sub;
-    req.userEmail = payload.email;
-    req.userRoleId = payload.roleId;
-    req.userJti = payload.jti;
-    req.userExp = payload.exp ?? 0;
-    next();
-  } catch (err) {
-    next(err);
-  }
+  const queryToken = typeof req.query.token === "string" ? req.query.token : undefined;
+  await authenticateIdentity(req, next, identityGatewayClient, userRepository, queryToken);
 }
 
 
@@ -113,8 +76,7 @@ export async function preAuthMiddleware(
     // passe a chave/configuração correta aqui. Ex: tokenService.verifyPreAuth(token)
     const payload = tokenService.verify(token); 
 
-    // Garanta que um espertinho não tente usar um token definitivo aqui
-    if (payload.isDefinitive) { 
+    if (payload.tokenUse !== "PRE_AUTH") {
       return next(new UnauthorizedError("Ação inválida para este tipo de token."));
     }
 
@@ -139,4 +101,71 @@ export function syncAuth(req: Request, res: Response, next: NextFunction) {
   }
 
   return next();
+}
+
+async function authenticateIdentity(
+  req: Request,
+  next: NextFunction,
+  identity: IdentityGatewayClient,
+  users: IUserRepository,
+  fallbackToken?: string,
+): Promise<void> {
+  const headers = identityHeaders(req, fallbackToken);
+  if (!headers.authorization && !headers.cookie) {
+    next(new UnauthorizedError("Token de acesso não fornecido."));
+    return;
+  }
+
+  try {
+    const response = await identity.request({ method: "GET", path: "/auth/me", headers });
+    if (response.status !== 200) {
+      if (response.status >= 500) {
+        next(new ServiceUnavailableError("Serviço de identidade temporariamente indisponível."));
+        return;
+      }
+      next(new UnauthorizedError("Sessão inválida ou expirada."));
+      return;
+    }
+    const identityUser = readIdentityUser(response.data);
+    const clinicalUser = await users.findById(identityUser.id);
+    if (!clinicalUser) {
+      next(new UnauthorizedError("Perfil clínico não encontrado para esta identidade."));
+      return;
+    }
+
+    req.userId = identityUser.id;
+    req.userEmail = identityUser.email;
+    req.userRoleId = clinicalUser.roleId;
+    req.userJti = "";
+    req.userExp = 0;
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+
+function identityHeaders(req: Request, fallbackToken?: string): Record<string, string> {
+  if (req.headers.authorization) return { authorization: req.headers.authorization };
+  const legacyToken = req.cookies?.adqpal_token;
+  if (typeof legacyToken === "string" && legacyToken) {
+    return { authorization: `Bearer ${legacyToken}` };
+  }
+  if (req.headers.cookie) return { cookie: req.headers.cookie };
+  return fallbackToken ? { authorization: `Bearer ${fallbackToken}` } : {};
+}
+
+function readIdentityUser(body: unknown): { id: string; email: string } {
+  if (!body || typeof body !== "object" || !("user" in body)) {
+    throw new UnauthorizedError("Resposta inválida do serviço de identidade.");
+  }
+  const user = (body as { user: unknown }).user;
+  if (!user || typeof user !== "object") {
+    throw new UnauthorizedError("Resposta inválida do serviço de identidade.");
+  }
+  const id = (user as { id?: unknown }).id;
+  const email = (user as { email?: unknown }).email;
+  if (typeof id !== "string" || typeof email !== "string") {
+    throw new UnauthorizedError("Resposta inválida do serviço de identidade.");
+  }
+  return { id, email };
 }

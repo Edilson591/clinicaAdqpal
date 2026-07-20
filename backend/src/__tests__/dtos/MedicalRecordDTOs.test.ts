@@ -33,9 +33,9 @@ describe("CreateMedicalRecordSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects missing appointmentId", () => {
+  it("accepts missing appointmentId for records created outside an appointment", () => {
     const { appointmentId: _, ...rest } = base;
-    expect(CreateMedicalRecordSchema.safeParse(rest).success).toBe(false);
+    expect(CreateMedicalRecordSchema.safeParse(rest).success).toBe(true);
   });
 
   it("rejects missing patientId", () => {
