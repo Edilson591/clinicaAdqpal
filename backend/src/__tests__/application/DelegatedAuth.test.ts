@@ -85,6 +85,32 @@ describe("delegated authentication", () => {
     expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 401 }));
   });
 
+  it("preserves the upstream failure when login auditing fails", async () => {
+    const identity = mockIdentity(response(500, {
+      error: { code: "INTERNAL_ERROR", message: "Identity service failed" },
+    }));
+    const audit = mockAudit();
+    audit.loginFailed.mockRejectedValue(new Error("Audit database unavailable"));
+    const controller = new DelegatedAuthController(identity, mockUsers(), audit);
+    const { req, res, next } = httpContext({
+      body: { email: "user@example.com", password: "StrongPass1" },
+    });
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+
+    await controller.login(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      error: { code: "INTERNAL_ERROR", message: "Identity service failed" },
+    });
+    expect(next).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith(
+      "[AUDIT] Failed to record rejected login:",
+      expect.any(Error),
+    );
+    consoleError.mockRestore();
+  });
+
   it("moves the legacy bearer challenge into the external verify body", async () => {
     const identity = mockIdentity(response(200, {
       success: true,
