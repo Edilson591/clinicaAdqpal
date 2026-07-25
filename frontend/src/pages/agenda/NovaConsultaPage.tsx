@@ -182,7 +182,7 @@ function NovaConsultaContent() {
                       error={errors.hora?.message}
                       selected={field.value ?? null} // garante null se não houver valor
                       onChange={(date) => field.onChange(date ?? null)} // mantém null se limpar
-                      timeIntervals={15} // intervalo de minutos
+                      timeIntervals={30} // intervalo de minutos
                       timeCaption="Horário" // legenda do seletor
                       showTimeSelectOnly // mostra só horas e minutos
                     />

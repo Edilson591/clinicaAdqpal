@@ -10,7 +10,7 @@ describe("CreateAppointmentSchema", () => {
   const base = {
     userId: validUUID,
     patientId: validUUID,
-    scheduledAt: new Date().toISOString(),
+    scheduledAt: "2026-07-08T08:00",
     roomId: "Sala 01",
   };
 
@@ -41,6 +41,15 @@ describe("CreateAppointmentSchema", () => {
 
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.scheduledAt.toISOString()).toBe("2026-07-08T11:00:00.000Z");
+  });
+
+  it("rejects a time outside the 30-minute grid", () => {
+    const result = CreateAppointmentSchema.safeParse({
+      ...base,
+      scheduledAt: "2026-07-08T08:15",
+    });
+
+    expect(result.success).toBe(false);
   });
 
   it("rejects notes longer than 1000 chars", () => {
@@ -85,5 +94,11 @@ describe("UpdateAppointmentSchema", () => {
     const result = UpdateAppointmentSchema.safeParse({ scheduledAt: "2026-07-08T08:00" });
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.scheduledAt?.toISOString()).toBe("2026-07-08T11:00:00.000Z");
+  });
+
+  it("rejects an updated time outside the 30-minute grid", () => {
+    const result = UpdateAppointmentSchema.safeParse({ scheduledAt: "2026-07-08T08:45" });
+
+    expect(result.success).toBe(false);
   });
 });

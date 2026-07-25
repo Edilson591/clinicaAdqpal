@@ -1,4 +1,4 @@
-import type { Patient, PrismaClient } from "@prisma/client";
+import { Prisma, type Patient, type PrismaClient } from "@prisma/client";
 import type { IAppointmentRepository } from "../../domain/repositories/IAppointmentRepository";
 import type {
   Appointment,
@@ -10,7 +10,7 @@ import type {
   UpdateAppointmentData,
 } from "../../domain/entities/Appointment";
 import type { PaginationQuery } from "../../domain/shared/pagination";
-import { DomainError } from "../../domain/errors/DomainError";
+import { ConflictError, DomainError } from "../../domain/errors/DomainError";
 
 const VALID_STATUSES: AppointmentStatus[] = [
   "SCHEDULED",
@@ -22,6 +22,10 @@ const VALID_STATUSES: AppointmentStatus[] = [
   "CANCELLED",
 ];
 const VALID_TYPES: AppointmentType[] = ["IN_PERSON", "ONLINE", "HOME_CARE"];
+
+function isAppointmentSlotConflict(error: unknown) {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+}
 
 function toStatus(raw: string): AppointmentStatus {
   if ((VALID_STATUSES as string[]).includes(raw))
@@ -283,6 +287,9 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
       const row = await this.prisma.appointment.create({ data });
       return toDomain(row);
     } catch (err) {
+      if (isAppointmentSlotConflict(err)) {
+        throw new ConflictError("Este profissional já possui uma consulta neste horário.");
+      }
       throw new DomainError(`Erro ao criar consulta: ${String(err)}`, 500);
     }
   }
@@ -292,6 +299,9 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
       const row = await this.prisma.appointment.update({ where: { id }, data });
       return toDomain(row);
     } catch (err) {
+      if (isAppointmentSlotConflict(err)) {
+        throw new ConflictError("Este profissional já possui uma consulta neste horário.");
+      }
       throw new DomainError(`Erro ao atualizar consulta: ${String(err)}`, 500);
     }
   }

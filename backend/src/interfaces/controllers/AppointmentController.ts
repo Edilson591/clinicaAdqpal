@@ -47,21 +47,15 @@ export class AppointmentController {
         appointmentRepository,
       ).execute(dto);
 
-      const existPacient = await prisma.medicalRecord.findFirst({
-        where: {
+      // Garante atomicamente um único prontuário por paciente.
+      await prisma.medicalRecord.upsert({
+        where: { patientId: appointment.patientId },
+        create: {
+          appointmentId: appointment.id,
           patientId: appointment.patientId,
         },
+        update: {},
       });
-
-      if (!existPacient) {
-        // Cria prontuário vazio automaticamente vinculado à consulta
-        await prisma.medicalRecord.create({
-          data: {
-            appointmentId: appointment.id,
-            patientId: appointment.patientId,
-          },
-        });
-      }
 
       sseManager.broadcast("appointment_created", appointment);
       auditService.create(req, "APPOINTMENT", appointment.id);
