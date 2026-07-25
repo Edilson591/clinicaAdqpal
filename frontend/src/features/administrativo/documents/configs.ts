@@ -4,8 +4,7 @@ import { AtestadoMedicoPrint } from "./templates/AtestadoMedicoPrint";
 import { DeclaracaoCebasArt7453Print } from "./templates/DeclaracaoCebasArt7453Print";
 import { DeclaracaoCebasPrint } from "./templates/DeclaracaoCebasPrint";
 import { DeclaracaoDesligamentoPrint } from "./templates/DeclaracaoDesligamentoPrint";
-import { DoacaoCestaBasicaPrint } from "./templates/DoacaoCestaBasicaPrint";
-import { DoacaoEnxovalGestantePrint } from "./templates/DoacaoEnxovalGestantePrint";
+import { DoacaoPrint } from "./templates/DoacaoPrint";
 import { EditalConvocacaoAgePrint } from "./templates/EditalConvocacaoAgePrint";
 import { EstatutoAdqpalPrint } from "./templates/EstatutoAdqpalPrint";
 import { ConvitePrint } from "./templates/ConvitePrint";
@@ -206,32 +205,18 @@ export const administrativeDocuments: AdministrativeDocumentConfig[] = [
     ],
   },
   {
-    id: "doacao-cesta-basica",
-    title: "Doacao de Cesta Basica",
-    description: "Termo para registrar entrega de cesta basica.",
+    id: "doacao",
+    title: "Termo de Doacao",
+    description: "Termo para registrar a entrega de qualquer item escolhido pelo usuario.",
     group: "Doacoes e Beneficios",
-    Template: DoacaoCestaBasicaPrint,
+    Template: DoacaoPrint,
     fields: [
+      { name: "itemDoado", label: "Item a ser doado", placeholder: "Ex.: cadeira de rodas, medicamentos, alimentos", required: true, full: true },
       { name: "nome", label: "Beneficiario", placeholder: "Nome completo", required: true },
       { name: "cpf", label: "CPF", placeholder: "000.000.000-00" },
       { name: "endereco", label: "Endereco", placeholder: "Rua, numero, bairro", full: true },
-      { name: "itens", label: "Itens doados", placeholder: "1 kg Arroz\n1 kg Feijao\n1 Oleo de soja", type: "textarea", full: true },
+      { name: "itens", label: "Descricao e quantidade", placeholder: "Informe quantidades, tamanhos ou outros detalhes da doacao", type: "textarea", full: true },
       { name: "observacoes", label: "Observacoes", placeholder: "Informacoes adicionais", type: "textarea", full: true },
-      { name: "data", label: "Data", placeholder: "Sao Miguel dos Campos/AL, 20 de Junho de 2026", full: true },
-    ],
-  },
-  {
-    id: "doacao-enxoval-gestante",
-    title: "Doacao de Enxoval Gestante",
-    description: "Termo para registrar entrega de enxoval a gestante.",
-    group: "Doacoes e Beneficios",
-    Template: DoacaoEnxovalGestantePrint,
-    fields: [
-      { name: "nome", label: "Gestante", placeholder: "Nome completo", required: true },
-      { name: "cpf", label: "CPF", placeholder: "000.000.000-00" },
-      { name: "endereco", label: "Endereco", placeholder: "Rua, numero, bairro", full: true },
-      { name: "previsaoParto", label: "DUM / Previsao do parto", placeholder: "15/08/2026" },
-      { name: "itens", label: "Itens do enxoval", placeholder: "3 bodies manga curta\n2 macacoes\n1 cobertor", type: "textarea", full: true },
       { name: "data", label: "Data", placeholder: "Sao Miguel dos Campos/AL, 20 de Junho de 2026", full: true },
     ],
   },
