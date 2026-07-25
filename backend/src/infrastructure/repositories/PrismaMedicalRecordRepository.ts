@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import type { IMedicalRecordRepository } from "../../domain/repositories/IMedicalRecordRepository";
 import type {
   MedicalRecord,
@@ -7,7 +7,7 @@ import type {
   MedicalRecordFilters,
 } from "../../domain/entities/MedicalRecord";
 import type { PaginationQuery } from "../../domain/shared/pagination";
-import { DomainError } from "../../domain/errors/DomainError";
+import { ConflictError, DomainError } from "../../domain/errors/DomainError";
 import { EncryptionService } from "../services/EncryptionService";
 
 const crypto = new EncryptionService();
@@ -167,6 +167,9 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
       });
       return toDomain(row);
     } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+        throw new ConflictError("Já existe um prontuário para este paciente.");
+      }
       throw new DomainError(`Erro ao criar prontuário: ${String(err)}`, 500);
     }
   }

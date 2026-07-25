@@ -8,7 +8,10 @@ const appointmentDateSchema = z.preprocess((value) => {
   const hasTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value);
 
   return hasTime ? `${value.slice(0, 16)}${SAO_PAULO_OFFSET}` : value;
-}, z.coerce.date());
+}, z.coerce.date()).refine(
+  (date) => date.getMinutes() % 30 === 0 && date.getSeconds() === 0 && date.getMilliseconds() === 0,
+  "O horário da consulta deve respeitar intervalos de 30 minutos",
+);
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 

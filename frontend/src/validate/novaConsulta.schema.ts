@@ -9,6 +9,9 @@ export const novaConsultaSchema = z
       .date({ message: "Hora é obrigatória" })
       .refine((date) => date === null || date instanceof Date, {
         message: "Hora inválida",
+      })
+      .refine((date) => date.getMinutes() % 30 === 0, {
+        message: "Selecione um horário em intervalos de 30 minutos",
       }),
     type: z
       .enum(["IN_PERSON", "ONLINE", "HOME_CARE"])
