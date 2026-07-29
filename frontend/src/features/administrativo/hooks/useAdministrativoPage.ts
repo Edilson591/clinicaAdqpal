@@ -5,7 +5,7 @@ import { createAdministrativeDocumentSchema } from "../../../validate/administra
 
 const ACTIVE_DOCUMENT_STORAGE_KEY = "administrativo_active_document_id";
 
-export const administrativePrintStyles = `@media print { @page { size: A4; margin: 12mm 15mm; } html, body, #root, main { height: auto !important; overflow: visible !important; } body * { visibility: hidden; } .administrativo-print, .administrativo-print * { visibility: visible; } .administrativo-print { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; } .administrativo-print article { min-height: auto !important; overflow: visible !important; } .administrativo-print .print-page-start { break-before: page; page-break-before: always; } }`;
+export const administrativePrintStyles = `@media print { @page { size: A4; margin: 0; } html, body, #root, main { height: auto !important; overflow: visible !important; } body * { visibility: hidden; } .administrativo-print, .administrativo-print * { visibility: visible; } .administrativo-print { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; } .administrativo-print article { min-height: 297mm !important; overflow: visible !important; } .administrativo-print .print-page-start { break-before: page; page-break-before: always; } }`;
 
 function normalizeText(value: string) {
   return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -117,10 +117,10 @@ export function useAdministrativoPage() {
     <title>${activeDocument.title}</title>
     ${getDocumentPrintStyles()}
     <style>
-      @page { size: A4; margin: 12mm 15mm; }
+       @page { size: A4; margin: 0; }
       html, body { margin: 0; background: white; overflow: visible; }
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      article { width: auto !important; min-height: auto !important; margin: 0 auto !important; padding: 0 !important; box-shadow: none !important; overflow: visible !important; }
+       article { box-sizing: border-box !important; width: auto !important; min-height: 297mm !important; margin: 0 auto !important; padding: 12mm 15mm !important; box-shadow: none !important; overflow: visible !important; }
       article + article { margin-top: 0 !important; }
       .print-page-start { break-before: page; page-break-before: always; }
       tr { break-inside: avoid; page-break-inside: avoid; }

@@ -21,7 +21,7 @@ export function RequerimentoPrint({ getValue }: PrintTemplateProps) {
       <section className="mt-8"><h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-[#2D3748]">Fundamentacao</h2><p className="whitespace-pre-line text-justify">{fundamentacao}</p></section>
       <section className="mt-8"><h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-[#2D3748]">Pedido</h2><p className="whitespace-pre-line text-justify">{pedido}</p></section>
       <p className="mt-12 text-center">{data}</p>
-      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" />
+      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" pageEnd />
     </PrintShell>
   );
 }

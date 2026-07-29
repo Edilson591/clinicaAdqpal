@@ -19,7 +19,7 @@ export function AtaAssembleiaGeralPrint({ getValue }: PrintTemplateProps) {
         <p className="whitespace-pre-line text-justify">{texto}</p>
       </section>
       <p className="mt-12 text-center">{data}</p>
-      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" />
+      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" pageEnd />
     </PrintShell>
   );
 }

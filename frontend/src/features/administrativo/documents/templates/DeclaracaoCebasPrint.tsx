@@ -16,7 +16,7 @@ export function DeclaracaoCebasPrint({ getValue }: PrintTemplateProps) {
       {textoIntegral && <p className="mt-8 whitespace-pre-line text-justify">{textoIntegral}</p>}
       <section className="mt-8"><h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-[#2D3748]">Atividades no exercicio de {ano}</h2><p className="whitespace-pre-line text-justify">{atividades}</p></section>
       <p className="mt-12 text-center">{data}</p>
-      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" />
+      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" pageEnd />
     </PrintShell>
   );
 }

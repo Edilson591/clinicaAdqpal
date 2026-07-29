@@ -10,7 +10,7 @@ type PrintShellProps = {
 
 export function PrintShell({ title, subtitle, children }: PrintShellProps) {
   return (
-    <article className="relative mx-auto min-h-[297mm] w-[210mm] overflow-hidden bg-white px-[15mm] py-[12mm] text-[#111827] shadow-sm print:min-h-0 print:w-auto print:overflow-visible print:p-0 print:shadow-none">
+    <article className="relative mx-auto flex min-h-[297mm] w-[210mm] flex-col overflow-hidden bg-white px-[15mm] py-[12mm] text-[#111827] shadow-sm print:min-h-[297mm] print:w-auto print:overflow-visible print:px-[15mm] print:py-[12mm] print:shadow-none">
       <img
         src={MARKWATER}
         alt=""
@@ -28,7 +28,7 @@ export function PrintShell({ title, subtitle, children }: PrintShellProps) {
         </div>
       </header>
 
-      <main className="relative z-10 text-[13px] leading-8">{children}</main>
+      <main className="relative z-10 flex flex-1 flex-col text-[13px] leading-8">{children}</main>
 
       <footer className="relative z-10 mt-12 text-center text-[10px] text-slate-500">
         Praca Dr. Jose Inacio, 173 - Centro - Sao Miguel dos Campos/AL - CNPJ 16.920.069/0001-73
@@ -37,9 +37,17 @@ export function PrintShell({ title, subtitle, children }: PrintShellProps) {
   );
 }
 
-export function SignatureBlock({ name, caption }: { name: string; caption?: string }) {
+export function SignatureBlock({
+  name,
+  caption,
+  pageEnd = false,
+}: {
+  name: string;
+  caption?: string;
+  pageEnd?: boolean;
+}) {
   return (
-    <div className="mt-14 flex justify-center">
+    <div className={`${pageEnd ? "mt-auto pt-14" : "mt-14"} flex justify-center break-inside-avoid`}>
       <div className="w-72 text-center">
         <div className="border-t border-slate-700 pt-2 text-sm font-semibold">{name}</div>
         {caption && <div className="mt-1 text-[11px] text-slate-500">{caption}</div>}

@@ -25,7 +25,7 @@ export function PlanoAcaoPrint({ getValue }: PrintTemplateProps) {
       <h2 className="mt-8 text-xs font-bold uppercase tracking-widest text-[#2D3748]">Metas</h2>{renderTable(metas)}
       <h2 className="mt-8 text-xs font-bold uppercase tracking-widest text-[#2D3748]">Cronograma</h2>{renderTable(cronograma)}
       <p className="mt-12 text-center">{data}</p>
-      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" />
+      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" pageEnd />
     </PrintShell>
   );
 }

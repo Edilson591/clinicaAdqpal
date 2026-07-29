@@ -27,7 +27,7 @@ export function FinancialEditablePrint({ getValue }: PrintTemplateProps) {
       </table>
       {reconhecimento && <p className="mt-8 whitespace-pre-line text-justify">{reconhecimento}</p>}
       <p className="mt-12 text-center">{data}</p>
-      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" />
+      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" pageEnd />
     </PrintShell>
   );
 }
