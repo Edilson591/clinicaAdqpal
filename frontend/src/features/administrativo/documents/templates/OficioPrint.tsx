@@ -22,7 +22,7 @@ export function OficioPrint({ getValue }: PrintTemplateProps) {
       <p className="whitespace-pre-line text-justify">{corpo}</p>
       <p className="mt-8">Na oportunidade, colocamo-nos a disposicao para quaisquer esclarecimentos.</p>
       <p className="mt-10 text-center">{data}</p>
-      <SignatureBlock name="Naedja Silva Melo" caption={`Presidente - Contato/WhatsApp: ${contato}`} />
+      <SignatureBlock name="Naedja Silva Melo" caption={`Presidente - Contato/WhatsApp: ${contato}`} pageEnd />
     </PrintShell>
   );
 }

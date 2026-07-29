@@ -29,7 +29,7 @@ export function RequerimentoCebasPrint({ getValue }: PrintTemplateProps) {
       )}
       <p className="mt-8">Nestes termos, pede deferimento.</p>
       <p className="mt-12 text-center">{data}</p>
-      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" />
+      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" pageEnd />
     </PrintShell>
   );
 }

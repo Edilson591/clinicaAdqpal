@@ -23,7 +23,7 @@ export function EstatutoAdqpalPrint({ getValue }: PrintTemplateProps) {
         {texto}
       </div>
       <p className="mt-12 text-center">{data}</p>
-      <SignatureBlock name="Naedja Silva Melo" caption={`Presidente / ${sigla}`} />
+      <SignatureBlock name="Naedja Silva Melo" caption={`Presidente / ${sigla}`} pageEnd />
     </PrintShell>
   );
 }

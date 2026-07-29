@@ -18,7 +18,7 @@ export function RelatorioAtividadesPrint({ getValue }: PrintTemplateProps) {
       <section className="mt-6"><h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-[#2D3748]">Resumo das atividades</h2><p className="whitespace-pre-line text-justify">{resumo}</p></section>
       <section className="mt-6"><h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-[#2D3748]">Resultados</h2><p className="whitespace-pre-line text-justify">{resultados}</p></section>
       <p className="mt-12 text-center">{data}</p>
-      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" />
+      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" pageEnd />
     </PrintShell>
   );
 }

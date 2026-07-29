@@ -13,7 +13,7 @@ export function GenericEditableTextPrint({ getValue }: PrintTemplateProps) {
       <h1 className="mb-10 text-center text-lg font-bold uppercase tracking-[0.18em] text-[#2D3748]">{titulo}</h1>
       <div className="whitespace-pre-line text-justify text-[12.5px] leading-7">{texto}</div>
       <p className="mt-12 text-center">{data}</p>
-      {incluirAssinatura && <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" />}
+      {incluirAssinatura && <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" pageEnd />}
     </PrintShell>
   );
 }

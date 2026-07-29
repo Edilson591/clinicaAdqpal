@@ -31,7 +31,7 @@ export function DoacaoPrint({ getValue }: PrintTemplateProps) {
         </section>
       )}
       <p className="mt-12 text-center">{data}</p>
-      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" />
+      <SignatureBlock name="Naedja Silva Melo" caption="Presidente / Representante Legal da O.S.C" pageEnd />
     </PrintShell>
   );
 }
