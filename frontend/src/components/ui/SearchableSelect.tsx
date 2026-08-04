@@ -27,6 +27,7 @@ interface SearchableSelectProps {
   className?: string;
   error?: boolean;
   disabled?: boolean;
+  isLoading?: boolean;
   onSearchChange?: (query: string) => void;
 }
 
@@ -60,6 +61,7 @@ export function SearchableSelect({
   placeholder = "Selecionar...",
   error,
   disabled,
+  isLoading,
   className,
   onSearchChange,
 }: SearchableSelectProps) {
@@ -161,17 +163,22 @@ export function SearchableSelect({
 
           {/* Lista de opções */}
           <ul className="max-h-52 overflow-y-auto py-1">
-            {isPending && (
+            {isLoading && (
+              <li className="px-3 py-2 text-sm text-muted-foreground">
+                Carregando...
+              </li>
+            )}
+            {!isLoading && isPending && (
               <li className="px-3 py-2 text-sm text-muted-foreground">
                 Filtrando...
               </li>
             )}
-            {!isPending && filtered.length === 0 && (
+            {!isLoading && !isPending && filtered.length === 0 && (
               <li className="px-3 py-2 text-sm text-muted-foreground">
                 Nenhum resultado encontrado
               </li>
             )}
-            {!isPending &&
+            {!isLoading && !isPending &&
               filtered.map((opt) => (
                 <li
                   key={opt.value}
@@ -230,39 +237,17 @@ export function SearchableSelectGroup({
         </Label>
       )}
 
-      {isLoading && (
-        <div className="divide-y divide-[#F3F4F6] dark:divide-[#334155]">
-          {Array.from({ length: 1 }).map((_, i) => (
-            <div
-              key={i}
-              className="flex flex-col gap-3 px-4 py-4 sm:grid sm:grid-cols-[80px_1fr_120px_4px_140px] sm:items-center sm:px-6"
-            >
-              <div className="h-4 w-14 rounded bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
-              <div className="h-4 w-40 rounded bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
-              <div className="flex justify-center">
-                <div className="h-7 w-24 rounded-full bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
-              </div>
-              <span />
-              <div className="flex justify-center">
-                <div className="h-8 w-28 rounded-lg bg-[#E2E8F0] dark:bg-[#334155] animate-pulse" />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!isLoading && options.length > 0 &&(
-        <SearchableSelect
-          options={options}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          error={!!error}
-          className={classNameChildren}
-          disabled={disabled}
-          onSearchChange={onSearchChange}
-        />
-      )}
+      <SearchableSelect
+        options={options}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        error={!!error}
+        className={classNameChildren}
+        disabled={disabled}
+        isLoading={isLoading}
+        onSearchChange={onSearchChange}
+      />
       {(error || helperText) && (
         <p
           className={twMerge(

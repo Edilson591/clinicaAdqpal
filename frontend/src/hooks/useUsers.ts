@@ -43,8 +43,10 @@ export function useUsersPaginated(
 export function useDoctors() {
   const query = useQuery({
     queryKey: USER_KEYS.byRole(USER_ROLES.DOCTOR),
-    queryFn: userService.getAll,
-    select: (users) => users.filter((u) => u.roleId === USER_ROLES.DOCTOR),
+    queryFn: () =>
+      userService.getAllPaginated(1, 100, undefined, USER_ROLES.DOCTOR),
+    select: (response) =>
+      response.data.filter((user) => user.roleId === USER_ROLES.DOCTOR),
   });
 
   return query;
