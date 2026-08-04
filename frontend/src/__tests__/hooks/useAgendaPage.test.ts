@@ -35,10 +35,10 @@ const makeAuthResult = (user: typeof adminUser | typeof doctorUser | null) => ({
 });
 
 const emptyQuery = { data: undefined, isLoading: false };
-const makeQuery = (data: unknown[] = []) => ({
-  data: { data, pagination: { total: data.length, totalPages: 1 } },
-  isLoading: false,
-});
+// const makeQuery = (data: unknown[] = []) => ({
+//   data: { data, pagination: { total: data.length, totalPages: 1 } },
+//   isLoading: false,
+// });
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -114,7 +114,7 @@ describe('useAgendaPage — search behaviour', () => {
   it('passes date string when search is empty', () => {
     // Use local-time constructor to avoid UTC-offset shifting the date
     const date = new Date(2026, 3, 10); // month is 0-indexed: 3 = April
-    const { result: _r } = renderHook(() => useAgendaPage(1, vi.fn(), date));
+    renderHook(() => useAgendaPage(1, vi.fn(), date));
 
     const [, , , dateArg] = mockUseAppointmentsPaginatedSearch.mock.lastCall!;
     expect(dateArg).toBe('2026-04-10');

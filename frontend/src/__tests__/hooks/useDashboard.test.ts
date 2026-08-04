@@ -27,7 +27,7 @@ const adminUser = { id: 'user-1', roleId: USER_ROLES.ADMIN };
 const doctorUser = { id: 'user-2', roleId: USER_ROLES.DOCTOR };
 const nurseUser = { id: 'user-3', roleId: USER_ROLES.NURSE };
 
-const makeAuthResult = (user: typeof adminUser | null) => ({
+const makeAuthResult = (user: (typeof adminUser | typeof doctorUser | typeof nurseUser) | null) => ({
   user,
   token: user ? 'tok' : null,
   isAuthenticated: !!user,

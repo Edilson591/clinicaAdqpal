@@ -24,7 +24,6 @@ function ProtectedRoute() {
       .then((freshUser) => dispatch(setUser(freshUser)))
       .catch((err) => {
         console.error(err);
-        setIsVerifying(false);
         dispatch(logoutAction());
         disabledTheme();
       })

@@ -67,6 +67,7 @@ function NovoPacienteContent() {
 
     try {
       
+
       createPatient(prevData);
       // TODO: replace with useMutation(patientService.create) when API is ready
       setTimeout(() => {
