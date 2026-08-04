@@ -4,7 +4,7 @@
 
 export interface Patient {
   id: string;
-  registrationNumber?: string;
+  registrationNumber: string;
   name: string;
   email: string | null;
   phone: string | null;

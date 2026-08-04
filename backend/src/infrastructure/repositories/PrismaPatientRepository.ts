@@ -23,6 +23,7 @@ function toDomain(row: any): Patient {
     email: crypto.decrypt(get("email", "email") ?? null),
     phone: crypto.decrypt(get("phone", "phone") ?? null),
     cpf: crypto.decrypt(get("cpf", "cpf") ?? null),
+    registrationNumber: get("registration_number", "registrationNumber"),
     dateOfBirth: get("date_of_birth", "dateOfBirth") ?? null,
     gender: get("gender", "gender") ?? null,
     agreement: crypto.decrypt(get("agreement", "agreement") ?? null),
@@ -105,7 +106,9 @@ export class PrismaPatientRepository implements IPatientRepository {
       const row = await this.prisma.patient.create({
         data: {
           name: data.name,
-          registration_number: crypto.encrypt(data.registrationNumber ?? "") ?? "",
+          ...(data.registrationNumber && {
+            registration_number: data.registrationNumber,
+          }),
           email: crypto.encrypt(data.email ?? null),
           phone: crypto.encrypt(data.phone ?? null),
           cpf: crypto.encrypt(data.cpf ?? null),
@@ -144,7 +147,9 @@ export class PrismaPatientRepository implements IPatientRepository {
           ...(data.zipCode !== undefined && { zipCode: crypto.encrypt(data.zipCode) }),
           ...(data.additionalInfo !== undefined && { additionalInfo: crypto.encrypt(data.additionalInfo) }),
           ...(data.dateOfBirth !== undefined && { dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null }),
-          ...(data.registrationNumber !== undefined && { registration_number: crypto.encrypt(data.registrationNumber ?? "") ?? "" }),
+          ...(data.registrationNumber !== undefined && {
+            registration_number: data.registrationNumber,
+          }),
         },
       });
       return toDomain(row);

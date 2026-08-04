@@ -5,6 +5,7 @@ const now = new Date("2026-04-10T12:00:00Z");
 
 const mockPatient: Patient = {
   id: "pat-1",
+  registrationNumber: "000001",
   name: "Maria Silva",
   email: "maria@email.com",
   phone: "11999999999",
