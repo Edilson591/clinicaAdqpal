@@ -12,6 +12,11 @@ export class CreatePatient {
       if (existing) throw new ConflictError("Já existe um paciente com este CPF.");
     }
 
+    if (dto.email) {
+      const existing = await this.patientRepository.findByEmail(dto.email);
+      if (existing) throw new ConflictError("Já existe um paciente com este e-mail.");
+    }
+
     const patient = await this.patientRepository.create({
       name: dto.name,
       email: dto.email ?? null,

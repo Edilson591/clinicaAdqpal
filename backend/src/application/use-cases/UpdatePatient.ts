@@ -16,6 +16,11 @@ export class UpdatePatient {
       if (existing) throw new ConflictError("CPF já pertence a outro paciente.");
     }
 
+    if (dto.email && dto.email !== patient.email) {
+      const existing = await this.patientRepository.findByEmail(dto.email);
+      if (existing) throw new ConflictError("E-mail já pertence a outro paciente.");
+    }
+
     const { dateOfBirth, ...rest } = dto;
     const data: UpdatePatientData = { ...rest };
     if (dateOfBirth !== undefined) {

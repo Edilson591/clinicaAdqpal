@@ -1,4 +1,5 @@
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
+import { ConflictError } from "../../domain/errors/DomainError";
 import { PrismaPatientRepository } from "../../infrastructure/repositories/PrismaPatientRepository";
 
 describe("PrismaPatientRepository", () => {
@@ -36,5 +37,33 @@ describe("PrismaPatientRepository", () => {
       data: expect.not.objectContaining({ registration_number: expect.anything() }),
     });
     expect(result.registrationNumber).toBe("000007");
+  });
+
+  it("returns ConflictError when concurrent requests use the same email", async () => {
+    const error = new Prisma.PrismaClientKnownRequestError(
+      "Unique constraint failed",
+      {
+        code: "P2002",
+        clientVersion: "5.22.0",
+        meta: { target: ["email"] },
+      },
+    );
+    const prisma = {
+      patient: { create: jest.fn().mockRejectedValue(error) },
+    } as unknown as PrismaClient;
+    const repository = new PrismaPatientRepository(prisma);
+
+    const creation = repository.create({
+      name: "Maria Silva",
+      email: "maria@email.com",
+      gender: "Feminino",
+      agreement: "SUS",
+    });
+
+    await expect(creation).rejects.toBeInstanceOf(ConflictError);
+    await expect(creation).rejects.toMatchObject({
+      message: "Já existe um paciente com este e-mail.",
+      statusCode: 409,
+    });
   });
 });

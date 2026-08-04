@@ -1,5 +1,5 @@
 
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import type { IPatientRepository } from "../../domain/repositories/IPatientRepository";
 import type {
   Patient,
@@ -8,10 +8,26 @@ import type {
   PacientFilters,
 } from "../../domain/entities/Patient";
 import type { PaginationQuery } from "../../domain/shared/pagination";
-import { DomainError } from "../../domain/errors/DomainError";
+import { ConflictError, DomainError } from "../../domain/errors/DomainError";
 import { EncryptionService } from "../services/EncryptionService";
 
 const crypto = new EncryptionService();
+
+function patientConflictMessage(error: unknown): string | null {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") {
+    return null;
+  }
+
+  const target = error.meta?.target;
+  const fields = Array.isArray(target) ? target.map(String) : [String(target ?? "")];
+  if (fields.some((field) => field.includes("email"))) {
+    return "Já existe um paciente com este e-mail.";
+  }
+  if (fields.some((field) => field.includes("cpf"))) {
+    return "Já existe um paciente com este CPF.";
+  }
+  return "Já existe um paciente com estes dados.";
+}
 
 function toDomain(row: any): Patient {
   // support both snake_case (DB) and camelCase (already-mapped) shapes
@@ -53,6 +69,17 @@ export class PrismaPatientRepository implements IPatientRepository {
   async findByCpf(cpf: string): Promise<Patient | null> {
     try {
       const row = await this.prisma.patient.findUnique({ where: { cpf: crypto.encrypt(cpf) ?? "" } });
+      return row ? toDomain(row) : null;
+    } catch (err) {
+      throw new DomainError(`Erro ao buscar paciente: ${String(err)}`, 500);
+    }
+  }
+
+  async findByEmail(email: string): Promise<Patient | null> {
+    try {
+      const row = await this.prisma.patient.findUnique({
+        where: { email: crypto.encrypt(email) ?? "" },
+      });
       return row ? toDomain(row) : null;
     } catch (err) {
       throw new DomainError(`Erro ao buscar paciente: ${String(err)}`, 500);
@@ -125,6 +152,8 @@ export class PrismaPatientRepository implements IPatientRepository {
       });
       return toDomain(row);
     } catch (err) {
+      const conflictMessage = patientConflictMessage(err);
+      if (conflictMessage) throw new ConflictError(conflictMessage);
       throw new DomainError(`Erro ao criar paciente: ${String(err)}`, 500);
     }
   }
@@ -154,6 +183,8 @@ export class PrismaPatientRepository implements IPatientRepository {
       });
       return toDomain(row);
     } catch (err) {
+      const conflictMessage = patientConflictMessage(err);
+      if (conflictMessage) throw new ConflictError(conflictMessage);
       throw new DomainError(`Erro ao atualizar paciente: ${String(err)}`, 500);
     }
   }
