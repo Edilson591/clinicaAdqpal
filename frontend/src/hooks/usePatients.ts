@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { patientService } from "../services/Patient";
 import type { CreatePatientInput, UpdatePatientInput } from "../types/api";
 
@@ -46,6 +51,7 @@ export function usePatientsPaginated(
   return useQuery({
     queryKey: PATIENT_KEYS.paginated(page, limit, search),
     queryFn: () => patientService.getAllPaginated(page, limit, search ?? ""),
+    placeholderData: keepPreviousData,
   });
 }
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { isAxiosError } from "axios";
 import { Save } from "lucide-react";
 import { useZodForm } from "../../hooks/useZodForm";
 import {
@@ -19,13 +20,14 @@ import { InformacoesAdicionais } from "../../components/NewPacient/InformacoesAd
 import { FormHeader } from "../../components/Form/FormHeader";
 import { FormContent } from "../../components/Form/FormContent";
 import { Button } from "../../components/ui/Button";
+import ErrorAlert from "../../components/ui/ErrorAlert";
 import { ESTADOS } from "../../data/state";
 
 function NovoPacienteContent() {
   const navigate = useNavigate();
-  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const { mutate: createPatient } = useCreatePatient();
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const { mutate: createPatient, isPending: saving } = useCreatePatient();
 
   const {
     register,
@@ -53,10 +55,12 @@ function NovoPacienteContent() {
   });
 
   function onSubmit(_data: NewPacientInput) {
-    setSaving(true);
+    setGeneralError(null);
+    setSaved(false);
 
     const prevData = {
       ..._data,
+      email: _data.email || null,
       cpf: _data.cpf.replace(/\D/g, ""),
       phone: _data.phone.replace(/\D/g, ""),
       gender: _data.gender || "feminino",
@@ -65,20 +69,19 @@ function NovoPacienteContent() {
         : null,
     };
 
-    try {
-      
-
-      createPatient(prevData);
-      // TODO: replace with useMutation(patientService.create) when API is ready
-      setTimeout(() => {
-        setSaving(false);
+    createPatient(prevData, {
+      onSuccess: () => {
         setSaved(true);
         setTimeout(() => navigate("/pacientes"), 1200);
-      }, 800);
-    } catch (error) {
-      console.error("erro na requisição", error);
-      setSaving(false);
-    }
+      },
+      onError: (error) => {
+        setGeneralError(
+          isAxiosError(error)
+            ? (error.response?.data?.message ?? "Erro ao cadastrar paciente.")
+            : "Erro ao conectar com o servidor.",
+        );
+      },
+    });
   }
 
   function handleCancel() {
@@ -98,6 +101,8 @@ function NovoPacienteContent() {
         />
 
         <div className="mb-6"></div>
+
+        {generalError && <ErrorAlert message={generalError} />}
 
         {/* ── Form card ── */}
         <div className="bg-white dark:bg-[#1E293B] border border-[#E2E8F0] dark:border-[#334155] rounded-xl p-6 flex flex-col gap-6 transition-colors duration-200">

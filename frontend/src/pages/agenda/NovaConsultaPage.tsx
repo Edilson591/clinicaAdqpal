@@ -49,11 +49,15 @@ function NovaConsultaContent() {
   const selectedType = watch("type");
   const selectedPacient = watch("patientId");
 
-  const { options: patientOptions, setQuery: setPatientQuery } =
-    usePatientSearch();
+  const {
+    options: patientOptions,
+    setQuery: setPatientQuery,
+    isLoading: isLoadingPatients,
+  } = usePatientSearch();
   const { data: patient } = usePatient(selectedPacient);
-  const { data: users } = useDoctors();
-  const { data: specialties } = useSpecialtiesByDoctor(selectedDoctorId);
+  const { data: users, isLoading: isLoadingDoctors } = useDoctors();
+  const { data: specialties, isLoading: isLoadingSpecialties } =
+    useSpecialtiesByDoctor(selectedDoctorId);
 
   const doctorOptions =
     users?.map((u) => ({ value: u.id, label: u.username })) ?? [];
@@ -107,6 +111,7 @@ function NovaConsultaContent() {
                   error={errors.doctorId?.message}
                   placeholder="Buscar médico pelo nome..."
                   options={doctorOptions}
+                  isLoading={isLoadingDoctors}
                   value={field.value}
                   onChange={field.onChange}
                 />
@@ -124,6 +129,7 @@ function NovaConsultaContent() {
                   error={errors.patientId?.message}
                   placeholder="Buscar paciente pelo nome..."
                   options={patientOptions}
+                  isLoading={isLoadingPatients}
                   value={field.value}
                   onChange={field.onChange}
                   onSearchChange={setPatientQuery}
@@ -146,6 +152,8 @@ function NovaConsultaContent() {
                       : "Selecione um médico primeiro"
                   }
                   options={specialtyOptions}
+                  disabled={!selectedDoctorId}
+                  isLoading={isLoadingSpecialties}
                   value={field.value}
                   onChange={field.onChange}
                 />
