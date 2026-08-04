@@ -4,6 +4,7 @@ import type { PaginationQuery } from "../shared/pagination";
 export interface IPatientRepository {
   findById(id: string): Promise<Patient | null>;
   findByCpf(cpf: string): Promise<Patient | null>;
+  findByEmail(email: string): Promise<Patient | null>;
   findAll(pagination?: PaginationQuery, filters?: PacientFilters): Promise<Patient[]>;
   count(filters?: PacientFilters): Promise<number>;
   create(data: CreatePatientData): Promise<Patient>;

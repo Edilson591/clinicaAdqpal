@@ -34,6 +34,7 @@ function makeRepo(): jest.Mocked<IPatientRepository> {
   return {
     findById: jest.fn(),
     findByCpf: jest.fn(),
+    findByEmail: jest.fn(),
     findAll: jest.fn(),
     count: jest.fn(),
     create: jest.fn(),
@@ -70,6 +71,35 @@ describe("CreatePatient", () => {
     await useCase.execute({ name: "Maria Silva", gender: "Feminino", agreement: "Unimed" });
 
     expect(repo.findByCpf).not.toHaveBeenCalled();
+  });
+
+  it("throws ConflictError when email is already taken", async () => {
+    const repo = makeRepo();
+    repo.findByEmail.mockResolvedValue(mockPatient);
+
+    const useCase = new CreatePatient(repo);
+    await expect(
+      useCase.execute({
+        name: "João",
+        gender: "Masculino",
+        agreement: "SUS",
+        email: "maria@email.com",
+      }),
+    ).rejects.toMatchObject({
+      message: "Já existe um paciente com este e-mail.",
+      statusCode: 409,
+    });
+    expect(repo.create).not.toHaveBeenCalled();
+  });
+
+  it("does not check email when email is not provided", async () => {
+    const repo = makeRepo();
+    repo.create.mockResolvedValue(mockPatient);
+
+    const useCase = new CreatePatient(repo);
+    await useCase.execute({ name: "Maria Silva", gender: "Feminino", agreement: "Unimed" });
+
+    expect(repo.findByEmail).not.toHaveBeenCalled();
   });
 
   it("throws ConflictError when CPF is already taken", async () => {
@@ -195,6 +225,32 @@ describe("UpdatePatient", () => {
     await useCase.execute("pat-1", { cpf: "12345678901" });
 
     expect(repo.findByCpf).not.toHaveBeenCalled();
+  });
+
+  it("throws ConflictError when new email belongs to another patient", async () => {
+    const repo = makeRepo();
+    repo.findById.mockResolvedValue(mockPatient);
+    repo.findByEmail.mockResolvedValue({ ...mockPatient, id: "other-patient" });
+
+    const useCase = new UpdatePatient(repo);
+    await expect(
+      useCase.execute("pat-1", { email: "outra@email.com" }),
+    ).rejects.toMatchObject({
+      message: "E-mail já pertence a outro paciente.",
+      statusCode: 409,
+    });
+    expect(repo.update).not.toHaveBeenCalled();
+  });
+
+  it("does not check email when new email equals existing email", async () => {
+    const repo = makeRepo();
+    repo.findById.mockResolvedValue(mockPatient);
+    repo.update.mockResolvedValue(mockPatient);
+
+    const useCase = new UpdatePatient(repo);
+    await useCase.execute("pat-1", { email: "maria@email.com" });
+
+    expect(repo.findByEmail).not.toHaveBeenCalled();
   });
 });
 

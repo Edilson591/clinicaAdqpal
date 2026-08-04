@@ -189,4 +189,8 @@ export class CachedPatientRepository implements IPatientRepository {
       this.repo.findByCpf(cpf),
     );
   }
+
+  async findByEmail(email: string): Promise<Patient | null> {
+    return this.repo.findByEmail(email);
+  }
 }
