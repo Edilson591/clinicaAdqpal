@@ -20,14 +20,26 @@ vi.mock('../../services/User', () => ({
 }));
 
 import { useAuth } from '../../context/AuthContext';
+import type { UserResponse } from '../../types/api';
 
+interface User {
+  id: string;
+}
+
+
+interface MockUseAuthReturn {
+  isAuthenticated: boolean;
+  user: User | null;
+  token: string | null | undefined;
+  logout: () => void;
+}
 function renderRoute(isAuthenticated: boolean, user: { id: string } | null = null) {
   vi.mocked(useAuth).mockReturnValue({
     isAuthenticated,
-    user: user as any,
-    token: isAuthenticated ? 'tok' : null,
+    user: (user as UserResponse ) || null,
+    token: isAuthenticated ? 'token' : null,
     logout: vi.fn(),
-  });
+  } satisfies MockUseAuthReturn);
 
   return render(
     <Provider store={store}>

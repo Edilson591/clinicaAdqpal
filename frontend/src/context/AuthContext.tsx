@@ -1,6 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
 import { logout as logoutAction } from "../store/authSlice";
 import type { AppDispatch, RootState } from "../store";
+import type { UserResponse } from "../types/api";
+import { useNavigate } from "react-router-dom";
 
 // =============================================================================
 // useAuth
@@ -9,16 +11,27 @@ import type { AppDispatch, RootState } from "../store";
 // Loading e error do login ficam no useMutation (useLoginForm).
 // =============================================================================
 
-export function useAuth() {
+interface UseAuthReturn {
+  user: UserResponse | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  logout: () => void;
+}
+
+export function useAuth(): UseAuthReturn {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
 
   const logout = () => {
     // Limpa o cookie httpOnly no servidor, depois limpa Redux
     fetch(`${import.meta.env.VITE_API_URL}/users/logout`, {
       method: "POST",
       credentials: "include",
-    }).finally(() => dispatch(logoutAction()));
+    }).finally(() => {
+      dispatch(logoutAction());
+      navigate("/login", { replace: true });
+    });
   };
 
   return {
