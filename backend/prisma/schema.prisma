@@ -64,7 +64,7 @@ model Patient {
   zipCode             String?          @map("zip_code")
   agreement           String?
   gender              String?
-  registration_number String?          @unique
+  registration_number String           @unique @default(dbgenerated("LPAD(nextval('patient_registration_seq'::regclass)::text, 6, '0'::text)"))
   appointments        Appointment[]
   medicalRecords      MedicalRecord[]
   notasFiscais        NotaFiscal[]

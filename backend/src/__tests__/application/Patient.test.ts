@@ -12,6 +12,7 @@ const now = new Date("2026-04-10T12:00:00Z");
 
 const mockPatient: Patient = {
   id: "pat-1",
+  registrationNumber: "000001",
   name: "Maria Silva",
   email: "maria@email.com",
   phone: "11999999999",
@@ -57,6 +58,7 @@ describe("CreatePatient", () => {
 
     expect(repo.create).toHaveBeenCalledTimes(1);
     expect(result.id).toBe("pat-1");
+    expect(result.registrationNumber).toBe("000001");
     expect(result.name).toBe("Maria Silva");
   });
 

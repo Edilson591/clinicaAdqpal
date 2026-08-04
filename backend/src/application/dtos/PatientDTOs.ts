@@ -79,7 +79,7 @@ export type UpdatePatientDTO = z.infer<typeof UpdatePatientSchema>;
 
 export interface PatientResponseDTO {
   id: string;
-  registrationNumber?: string;
+  registrationNumber: string;
   name: string;
   email: string | null;
   phone: string | null;
