@@ -3,8 +3,8 @@ import { DomainError } from "../../domain/errors/DomainError";
 import { INotificationService } from "../../domain/services/INotificationService";
 
 // =============================================================================
-// WHATSAPP CLOUD API SERVICE
-// Docs: https://developers.facebook.com/docs/whatsapp/cloud-api
+// EVOLUTION API SERVICE
+// Docs: https://doc.evolution-api.com
 // =============================================================================
 
 export interface WhatsAppMessage {
@@ -36,13 +36,21 @@ export class WhatsAppService implements INotificationService {
    * Accepts: +5511999999999, 5511999999999, 011999999999
    */
   static normalizePhone(phone: string): string {
-    // Remove all non-digit characters
     const digits = phone.replace(/\D/g, "");
-    // If starts with 0, replace leading 0 with Brazil country code 55
-    if (digits.startsWith("0")) return `55${digits.slice(1)}`;
-    // If doesn't have country code (less than 12 digits for BR), prepend 55
-    if (digits.length <= 11) return `55${digits}`;
-    return digits;
+    const nationalNumber =
+      digits.startsWith("55") && (digits.length === 12 || digits.length === 13)
+        ? digits.slice(2)
+        : digits;
+    const withoutTrunkPrefix = nationalNumber.startsWith("0")
+      ? nationalNumber.slice(1)
+      : nationalNumber;
+    const normalized = `55${withoutTrunkPrefix}`;
+
+    if (!/^55\d{10,11}$/.test(normalized)) {
+      throw new DomainError("Telefone inválido para envio pelo WhatsApp.", 400);
+    }
+
+    return normalized;
   }
 
   async sendTextMessage(message: WhatsAppMessage): Promise<void> {
@@ -54,10 +62,8 @@ export class WhatsAppService implements INotificationService {
         {
           number: normalizedPhone,
           text: message.text,
-          options: {
-            delay: 1200,
-            presence: "composing",
-          },
+          delay: 1200,
+          linkPreview: false,
         },
         {
           headers: {
@@ -76,7 +82,7 @@ export class WhatsAppService implements INotificationService {
         const data =
           typeof axiosErr.response.data === "string"
             ? axiosErr.response.data
-            : JSON.stringify(axiosErr.response.data);
+            : JSON.stringify(axiosErr.response.data, null, 2);
         apiMessage = `HTTP ${axiosErr.response.status}: ${data}`;
         console.error(
           `[WhatsApp] falha ao enviar para ${normalizedPhone}:

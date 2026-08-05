@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatPhone } from '../../utils/formatPhone';
+import { formatPhone, formatToInternationalPhone } from '../../utils/formatPhone';
 
 describe('formatPhone', () => {
   it('formats 11-digit mobile number', () => {
@@ -21,5 +21,15 @@ describe('formatPhone', () => {
 
   it('returns empty string for empty input', () => {
     expect(formatPhone('')).toBe('');
+  });
+});
+
+describe('formatToInternationalPhone', () => {
+  it.each([
+    ['(82) 99999-1234', '+5582999991234'],
+    ['+55 (82) 99999-1234', '+5582999991234'],
+    ['082999991234', '+5582999991234'],
+  ])('formats %s as an international number', (phone, expected) => {
+    expect(formatToInternationalPhone(phone)).toBe(expected);
   });
 });

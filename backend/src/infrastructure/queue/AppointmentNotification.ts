@@ -10,12 +10,6 @@ const STATUS_LABELS: Record<AppointmentStatus, string> = {
   NO_SHOW: "Não compareceu",
 };
 
-const AUTOMATIC_NOTIFICATION_STATUSES = new Set<AppointmentStatus>([
-  "COMPLETED",
-  "CANCELLED",
-  "CANCELED",
-]);
-
 function formatDate(date: Date): string {
   return date.toLocaleDateString("pt-BR", {
     timeZone: "America/Sao_Paulo",
@@ -39,17 +33,6 @@ interface AppointmentMessageData {
   scheduledAt: Date;
   status: AppointmentStatus;
   notes: string | null;
-}
-
-export function shouldSendAutomaticAppointmentNotification(
-  previousStatus: AppointmentStatus,
-  nextStatus?: AppointmentStatus,
-): boolean {
-  return (
-    nextStatus !== undefined &&
-    previousStatus !== nextStatus &&
-    AUTOMATIC_NOTIFICATION_STATUSES.has(nextStatus)
-  );
 }
 
 export function buildAppointmentMessage(data: AppointmentMessageData): string {

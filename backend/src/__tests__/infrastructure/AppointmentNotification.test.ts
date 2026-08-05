@@ -1,6 +1,5 @@
 import {
   buildAppointmentMessage,
-  shouldSendAutomaticAppointmentNotification,
 } from "../../infrastructure/queue/AppointmentNotification";
 
 const baseMessageData = {
@@ -45,23 +44,5 @@ describe("AppointmentNotification", () => {
     expect(message).toContain("consulta está confirmada");
     expect(message).toContain("*Status:* Confirmada");
     expect(message).toContain("Levar documento");
-  });
-
-  it("notifies only on a real transition to completed or cancelled", () => {
-    expect(
-      shouldSendAutomaticAppointmentNotification("CONFIRMED", "COMPLETED"),
-    ).toBe(true);
-    expect(
-      shouldSendAutomaticAppointmentNotification("SCHEDULED", "CANCELED"),
-    ).toBe(true);
-    expect(
-      shouldSendAutomaticAppointmentNotification("COMPLETED", "COMPLETED"),
-    ).toBe(false);
-    expect(
-      shouldSendAutomaticAppointmentNotification("SCHEDULED", "CONFIRMED"),
-    ).toBe(false);
-    expect(
-      shouldSendAutomaticAppointmentNotification("SCHEDULED", undefined),
-    ).toBe(false);
   });
 });

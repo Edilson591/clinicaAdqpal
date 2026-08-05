@@ -24,10 +24,7 @@ import {
 } from "../../application/use-cases/GetAppointment";
 import { UpdateAppointment } from "../../application/use-cases/UpdateAppointment";
 import { DeleteAppointment } from "../../application/use-cases/DeleteAppointment";
-import {
-  getNotificationQueue,
-  type NotificationJobData,
-} from "../../infrastructure/queue/NotificationQueue";
+import { getNotificationQueue } from "../../infrastructure/queue/NotificationQueue";
 import { sendNotification } from "../../infrastructure/queue/NotificationWorker";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaAppointmentRepository } from "../../infrastructure/repositories/PrismaAppointmentRepository";
@@ -35,7 +32,6 @@ import { PrismaAuditLogRepository } from "../../infrastructure/repositories/Pris
 import { AuditService } from "../../application/services/AuditService";
 import { CachedAppointmentRepository } from "../../infrastructure/cache/CachedAppointmentRepository";
 import { getRedisClient } from "../../infrastructure/cache/RedisClient";
-import { shouldSendAutomaticAppointmentNotification } from "../../infrastructure/queue/AppointmentNotification";
 
 const appointmentRepository = new CachedAppointmentRepository(
   new PrismaAppointmentRepository(prisma),
@@ -160,38 +156,6 @@ export class AppointmentController {
       const appointment = await new UpdateAppointment(
         appointmentRepository,
       ).execute(id, dto);
-
-      if (
-        shouldSendAutomaticAppointmentNotification(existing.status, dto.status)
-      ) {
-        try {
-          const appointmentWithPatient =
-            await appointmentRepository.findByIdWithRelations(id);
-          const telefone = appointmentWithPatient?.patient.phone?.trim();
-
-          if (telefone) {
-            const notification: NotificationJobData = {
-              appointmentId: id,
-              telefone,
-              channels: ["whatsapp"],
-            };
-
-            if (process.env.VERCEL === "1") {
-              await sendNotification(notification);
-            } else {
-              await getNotificationQueue().add(
-                "send-notification",
-                notification,
-              );
-            }
-          }
-        } catch (err) {
-          console.error(
-            `[Appointment] status atualizado, mas a notificação da consulta ${id} falhou:`,
-            err,
-          );
-        }
-      }
 
       sseManager.broadcast("appointment_updated", appointment);
       auditService.update(req, "APPOINTMENT", appointment.id);
