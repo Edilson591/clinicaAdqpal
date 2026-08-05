@@ -11,6 +11,7 @@ import type {
 } from "../../domain/entities/Appointment";
 import type { PaginationQuery } from "../../domain/shared/pagination";
 import { ConflictError, DomainError } from "../../domain/errors/DomainError";
+import { toPatientDomain } from "../mappers/patientPersistenceMapper";
 
 const VALID_STATUSES: AppointmentStatus[] = [
   "SCHEDULED",
@@ -64,7 +65,7 @@ function toDomain(row: {
     medico: row.medico,
     status: toStatus(row.status),
     type: toType(row.type),
-    pacient: row.pacient || null,
+    pacient: row.pacient ? toPatientDomain(row.pacient) : null,
     specialtyId: row.specialtyId,
     roomId: row.roomId,
     meetingLink: row.meetingLink,
@@ -195,16 +196,20 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
       const row = await this.prisma.appointment.findUnique({
         where: { id },
         include: {
-          patient: {
-            select: { id: true, name: true, phone: true, email: true },
-          },
+          patient: true,
           user: { select: { id: true, username: true, email: true } },
         },
       });
       if (!row) return null;
+      const patient = toPatientDomain(row.patient);
       return {
         ...toDomain(row),
-        patient: row.patient,
+        patient: {
+          id: patient.id,
+          name: patient.name,
+          phone: patient.phone,
+          email: patient.email,
+        },
         user: row.user,
       };
     } catch (err) {

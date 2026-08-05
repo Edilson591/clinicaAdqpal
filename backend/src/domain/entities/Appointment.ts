@@ -2,7 +2,7 @@
 // DOMAIN ENTITY: Appointment
 // =============================================================================
 
-import { Patient } from "@prisma/client";
+import type { Patient } from "./Patient";
 
 export type AppointmentStatus =
   | "SCHEDULED"

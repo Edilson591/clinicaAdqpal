@@ -8,6 +8,7 @@ import {
 } from "./NotificationQueue";
 import { getBullMQRedis } from "../cache/RedisBullMQ";
 import { buildAppointmentMessage } from "./AppointmentNotification";
+import { toPatientDomain } from "../mappers/patientPersistenceMapper";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -33,9 +34,11 @@ export async function sendNotification(data: NotificationJobData): Promise<void>
     throw new Error(`Consulta ${appointmentId} não encontrada`);
   }
 
+  const patient = toPatientDomain(appointment.patient);
+  const recipientPhone = patient.phone ?? telefone;
   const doctorName = appointment.medico ?? appointment.user.username;
   const richMessage = buildAppointmentMessage({
-    patientName: appointment.patient.name,
+    patientName: patient.name,
     doctorName,
     scheduledAt: appointment.scheduledAt,
     status: appointment.status,
@@ -47,7 +50,7 @@ export async function sendNotification(data: NotificationJobData): Promise<void>
   if (channels.includes("whatsapp")) {
     try {
       await new WhatsAppService().sendTextMessage({
-        number: telefone,
+        number: recipientPhone,
         text: richMessage,
       });
     } catch (err) {
@@ -57,7 +60,7 @@ export async function sendNotification(data: NotificationJobData): Promise<void>
 
   if (channels.includes("sms")) {
     try {
-      await new SmsService().sendSms(telefone, toSmsText(richMessage));
+      await new SmsService().sendSms(recipientPhone, toSmsText(richMessage));
     } catch (err) {
       errors.push(`SMS: ${err instanceof Error ? err.message : String(err)}`);
     }
