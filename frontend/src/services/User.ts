@@ -37,7 +37,7 @@ export const userService = {
 
   getAll: async (): Promise<UserResponse[]> => {
     const res =
-      await api.get<PaginatedResponse<UserResponse>>("/users?limit=9999");
+      await api.get<PaginatedResponse<UserResponse>>("/users?limit=100");
     return res.data.data;
   },
 

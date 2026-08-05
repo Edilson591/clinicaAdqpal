@@ -163,6 +163,7 @@ export function ScheduleList({
             const showDoctor = canSeeDoctor(appt);
             const timeStr = formatTime(appt.scheduledAt);
 
+            console.log(users)
             return (
               <div
                 key={appt.id}

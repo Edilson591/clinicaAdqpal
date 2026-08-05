@@ -92,7 +92,7 @@ export interface PatientResponse {
   state: string | null;
   zipCode: string | null;
   additionalInfo: string | null;
-
+  registrationNumber: string | null;
   address: string | null;
 
   createdAt: string;
@@ -259,7 +259,12 @@ export interface CreatePatientHistoryInput {
 
 // ─── Financial ────────────────────────────────────────────────────────────────
 
-export type AccountType = "CHECKING" | "SAVINGS" | "CASH" | "CREDIT_CARD" | "INVESTMENT";
+export type AccountType =
+  | "CHECKING"
+  | "SAVINGS"
+  | "CASH"
+  | "CREDIT_CARD"
+  | "INVESTMENT";
 export type CategoryType = "INCOME" | "EXPENSE" | "BOTH";
 export type TransactionType = "INCOME" | "EXPENSE" | "TRANSFER";
 export type TransactionStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
@@ -361,7 +366,6 @@ export interface CreateNotaFiscalInput {
   transactionId?: string | null;
 }
 
-
 export interface SendWhatsAppInput {
   telefone: string;
   channels: ("whatsapp" | "sms")[];
@@ -371,7 +375,6 @@ export interface WhatsAppResponse {
   jobId: string;
   channels: ("whatsapp" | "sms")[];
 }
-
 
 export interface SusProcedureResponse {
   id: string;

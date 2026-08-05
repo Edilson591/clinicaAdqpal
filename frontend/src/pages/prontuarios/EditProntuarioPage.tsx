@@ -49,6 +49,8 @@ function EditProntuarioContent() {
 
   const { data: patient } = usePatient(record?.patientId ?? "");
 
+  console.log(patient)
+
   const createdAt = record?.createdAt
     ? new Date(record.createdAt).toLocaleDateString("pt-BR")
     : "—";
@@ -119,10 +121,10 @@ function EditProntuarioContent() {
                 <div className="flex flex-col gap-1.5">
                   <span className="text-xs font-semibold text-[#64748B] flex items-center gap-1.5">
                     <Hash size={12} />
-                    ID do prontuário
+                    Numero do Registro
                   </span>
                   <div className="h-14 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] dark:bg-[#263548] dark:border-[#334155] dark:text-muted-foreground px-4 flex items-center text-sm text-[#94A3B8] font-mono truncate">
-                    {id}
+                    {patient?.registrationNumber ?? "desconhecido"}
                   </div>
                 </div>
               </div>

@@ -7,61 +7,9 @@ import {
   type NotificationJobData,
 } from "./NotificationQueue";
 import { getBullMQRedis } from "../cache/RedisBullMQ";
+import { buildAppointmentMessage } from "./AppointmentNotification";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const STATUS_LABELS: Record<string, string> = {
-  SCHEDULED: "Agendada",
-  CONFIRMED: "Confirmada",
-  IN_PROGRESS: "Em andamento",
-  COMPLETED: "Concluída",
-  CANCELLED: "Cancelada",
-  CANCELED: "Cancelada",
-  NO_SHOW: "Não compareceu",
-};
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function buildMessage(
-  patientName: string,
-  doctorName: string,
-  scheduledAt: Date,
-  status: string,
-  notes: string | null
-): string {
-  return [
-    `Olá, ${patientName}! 👋`,
-    "",
-    "Sua consulta está confirmada no *Instituto ADQPAL – Associação dos Dependentes Químicos e Portadores de Doenças Psiquiátricas de São Miguel dos Campos – Alagoas",
-    "",
-    `📅 *Data:* ${formatDate(scheduledAt)}`,
-    `🕐 *Horário:* ${formatTime(scheduledAt)}`,
-    `👨‍⚕️ *Médico:* ${doctorName}`,
-    `📋 *Status:* ${STATUS_LABELS[status] ?? status}`,
-    notes ? `📝 *Observações:* ${notes}` : null,
-    "",
-    "Caso precise reagendar ou cancelar, entre em contato conosco.",
-    "",
-    "Instituto ADQPAL 🏥",
-  ]
-    .filter((line) => line !== null)
-    .join("\n");
-}
 
 // Strips markdown (*bold*) and most emojis for plain SMS text
 function toSmsText(message: string): string {
@@ -86,13 +34,13 @@ export async function sendNotification(data: NotificationJobData): Promise<void>
   }
 
   const doctorName = appointment.medico ?? appointment.user.username;
-  const richMessage = buildMessage(
-    appointment.patient.name,
+  const richMessage = buildAppointmentMessage({
+    patientName: appointment.patient.name,
     doctorName,
-    appointment.scheduledAt,
-    appointment.status,
-    appointment.notes ?? null
-  );
+    scheduledAt: appointment.scheduledAt,
+    status: appointment.status,
+    notes: appointment.notes ?? null,
+  });
 
   const errors: string[] = [];
 
