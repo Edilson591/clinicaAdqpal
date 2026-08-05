@@ -6,9 +6,13 @@ import type {
   PatientResponse,
   UserResponse,
 } from "../../types/api";
-import { useUpdateAppointment } from "../../hooks/useAppointments";
+import {
+  useSendWhatsApp,
+  useUpdateAppointment,
+} from "../../hooks/useAppointments";
 import { Button } from "../ui/Button";
 import { formatTime } from "../../utils/formatTime";
+import { formatToInternationalPhone } from "../../utils/formatPhone";
 
 interface Props {
   appointment: AppointmentResponse;
@@ -60,7 +64,11 @@ export function AppointmentDetailModal({
   const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>(
     appointment.status,
   );
+  const [notificationError, setNotificationError] = useState<string | null>(
+    null,
+  );
   const updateMutation = useUpdateAppointment();
+  const sendWhatsAppMutation = useSendWhatsApp();
 
   const scheduledDate = new Date(appointment.scheduledAt);
 
@@ -78,17 +86,57 @@ export function AppointmentDetailModal({
 
   // console.log(appointment);
   // console.log(STATUS_OPTIONS);
-  const handleSave = () => {
+  const handleSave = async () => {
+    setNotificationError(null);
+
     if (selectedStatus === appointment.status) {
       onClose();
       return;
     }
 
-    updateMutation.mutate(
-      { id: appointment.id, data: { status: selectedStatus } },
-      { onSuccess: onClose },
-    );
+    let statusUpdated = false;
+
+    try {
+      await updateMutation.mutateAsync({
+        id: appointment.id,
+        data: { status: selectedStatus },
+      });
+      statusUpdated = true;
+
+      const shouldNotify = ["COMPLETED", "CANCELLED", "CANCELED"].includes(
+        selectedStatus,
+      );
+      if (!shouldNotify) {
+        onClose();
+        return;
+      }
+
+      if (!patient?.phone) {
+        setNotificationError(
+          "Status alterado, mas o paciente não possui telefone cadastrado.",
+        );
+        return;
+      }
+
+      await sendWhatsAppMutation.mutateAsync({
+        id: appointment.id,
+        data: {
+          telefone: formatToInternationalPhone(patient.phone),
+          channels: ["whatsapp"],
+        },
+      });
+      onClose();
+    } catch {
+      setNotificationError(
+        statusUpdated
+          ? "Status alterado, mas não foi possível enviar a mensagem pelo WhatsApp."
+          : "Não foi possível alterar o status do agendamento.",
+      );
+    }
   };
+
+  const isSaving =
+    updateMutation.isPending || sendWhatsAppMutation.isPending;
 
   return (
     <div
@@ -214,6 +262,15 @@ export function AppointmentDetailModal({
               ))}
             </div>
           </div>
+
+          {notificationError && (
+            <p
+              role="alert"
+              className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300"
+            >
+              {notificationError}
+            </p>
+          )}
         </div>
 
         {/* Footer */}
@@ -230,10 +287,10 @@ export function AppointmentDetailModal({
             type="submit"
             variant="primary"
             onClick={handleSave}
-            disabled={updateMutation.isPending}
+            disabled={isSaving}
             className="bg-[#38A169] flex-1 from-[#38A169] to-[#38A169] hover:from-[#2F9259] hover:to-[#2F9259] h-11 px-5"
           >
-            {updateMutation.isPending ? "Salvando..." : "Confirmar"}
+            {isSaving ? "Salvando e enviando..." : "Confirmar"}
           </Button>
           {/* <button
             onClick={handleSave}
