@@ -24,7 +24,10 @@ import {
 } from "../../application/use-cases/GetAppointment";
 import { UpdateAppointment } from "../../application/use-cases/UpdateAppointment";
 import { DeleteAppointment } from "../../application/use-cases/DeleteAppointment";
-import { getNotificationQueue } from "../../infrastructure/queue/NotificationQueue";
+import {
+  getNotificationQueue,
+  type NotificationJobData,
+} from "../../infrastructure/queue/NotificationQueue";
 import { sendNotification } from "../../infrastructure/queue/NotificationWorker";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaAppointmentRepository } from "../../infrastructure/repositories/PrismaAppointmentRepository";
@@ -32,6 +35,7 @@ import { PrismaAuditLogRepository } from "../../infrastructure/repositories/Pris
 import { AuditService } from "../../application/services/AuditService";
 import { CachedAppointmentRepository } from "../../infrastructure/cache/CachedAppointmentRepository";
 import { getRedisClient } from "../../infrastructure/cache/RedisClient";
+import { shouldSendAutomaticAppointmentNotification } from "../../infrastructure/queue/AppointmentNotification";
 
 const appointmentRepository = new CachedAppointmentRepository(
   new PrismaAppointmentRepository(prisma),
@@ -144,19 +148,51 @@ export class AppointmentController {
 
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      if (req.userRoleId === ROLE_DOCTOR) {
-        const existing = await new GetAppointment(
-          appointmentRepository,
-        ).execute(req.params.id as string);
-        if (existing.userId !== req.userId) {
-          throw new NotFoundError("Consulta");
-        }
+      const id = req.params.id as string;
+      const existing = await new GetAppointment(
+        appointmentRepository,
+      ).execute(id);
+      if (req.userRoleId === ROLE_DOCTOR && existing.userId !== req.userId) {
+        throw new NotFoundError("Consulta");
       }
 
       const dto = req.body as UpdateAppointmentDTO;
       const appointment = await new UpdateAppointment(
         appointmentRepository,
-      ).execute(req.params.id as string, dto);
+      ).execute(id, dto);
+
+      if (
+        shouldSendAutomaticAppointmentNotification(existing.status, dto.status)
+      ) {
+        try {
+          const appointmentWithPatient =
+            await appointmentRepository.findByIdWithRelations(id);
+          const telefone = appointmentWithPatient?.patient.phone?.trim();
+
+          if (telefone) {
+            const notification: NotificationJobData = {
+              appointmentId: id,
+              telefone,
+              channels: ["whatsapp"],
+            };
+
+            if (process.env.VERCEL === "1") {
+              await sendNotification(notification);
+            } else {
+              await getNotificationQueue().add(
+                "send-notification",
+                notification,
+              );
+            }
+          }
+        } catch (err) {
+          console.error(
+            `[Appointment] status atualizado, mas a notificação da consulta ${id} falhou:`,
+            err,
+          );
+        }
+      }
+
       sseManager.broadcast("appointment_updated", appointment);
       auditService.update(req, "APPOINTMENT", appointment.id);
       res.status(200).json({
