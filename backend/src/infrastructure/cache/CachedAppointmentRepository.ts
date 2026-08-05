@@ -15,7 +15,7 @@ const TTL_LIST = 120; // 2 min — listas por paciente/usuário
 
 const key = {
   byId: (id: string) => `appt:id:${id}`,
-  byIdRel: (id: string) => `appt:id-rel:${id}`,
+  byIdRel: (id: string) => `appt:v2:id-rel:${id}`,
   byPatient: (pid: string) => `appt:patient:${pid}`,
   byUser: (uid: string) => `appt:user:${uid}`,
   lockSlot: (doctorId: string, scheduledAt: string) =>
