@@ -10,8 +10,10 @@ export const auth2faService = {
     return res.data.data!;
   },
 
-  resend: async (): Promise<ApiResponse> => {
-    const res = await api.post<ApiResponse>("users/verify-2fa/resend");
-    return res.data;
+  resend: async (): Promise<{ resendAvailableInSeconds: number }> => {
+    const res = await api.post<ApiResponse<{ resendAvailableInSeconds: number }>>(
+      "users/verify-2fa/resend",
+    );
+    return res.data.data ?? { resendAvailableInSeconds: 60 };
   },
 };

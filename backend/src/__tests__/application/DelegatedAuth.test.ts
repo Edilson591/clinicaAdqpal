@@ -32,7 +32,11 @@ describe("delegated authentication", () => {
     }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-      data: { requires2fa: true, tempToken: "challenge.secret" },
+      data: {
+        requires2fa: true,
+        tempToken: "challenge.secret",
+        resendAvailableInSeconds: 60,
+      },
     }));
     expect(next).not.toHaveBeenCalled();
   });

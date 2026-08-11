@@ -16,6 +16,7 @@ interface Auth2faCardProps {
   email: string;
   isLoading: boolean;
   isResending: boolean;
+  resendSeconds: number;
   onSubmit: (e: FormEvent) => void;
   onResend: () => void;
   onBackToLogin: () => void;
@@ -29,6 +30,7 @@ function Auth2faCard({
   email,
   isLoading,
   isResending,
+  resendSeconds,
   onSubmit,
   onResend,
   onBackToLogin,
@@ -113,11 +115,15 @@ function Auth2faCard({
         <button
           type="button"
           onClick={onResend}
-          disabled={isResending}
+          disabled={isResending || resendSeconds > 0}
           className="text-sm font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ color: "#38A169" }}
         >
-          {isResending ? "Reenviando..." : "Não recebeu o código? Reenviar"}
+          {isResending
+            ? "Reenviando..."
+            : resendSeconds > 0
+              ? `Reenviar em ${resendSeconds}s`
+              : "Não recebeu o código? Reenviar"}
         </button>
 
         <button

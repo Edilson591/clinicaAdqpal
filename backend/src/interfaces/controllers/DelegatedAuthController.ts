@@ -121,12 +121,20 @@ export class DelegatedAuthController {
       const data = readEnvelopeData(upstream.data);
       if (data.requires2fa === true) {
         const challengeToken = requireString(data.challengeToken, "challengeToken");
+        const resendAvailableInSeconds = optionalPositiveNumber(
+          data.resendAvailableInSeconds,
+          60,
+        );
         relayMetadata(res, upstream);
         clearLegacyTrustedDevice(res);
         res.status(200).json({
           success: true,
           message: "Código de verificação enviado para o e-mail.",
-          data: { requires2fa: true, tempToken: challengeToken },
+          data: {
+            requires2fa: true,
+            tempToken: challengeToken,
+            resendAvailableInSeconds,
+          },
         });
         return;
       }
@@ -195,9 +203,16 @@ export class DelegatedAuthController {
       });
       if (!isSuccess(upstream)) return relayFailure(res, upstream);
       relayMetadata(res, upstream);
+      const data = readEnvelopeData(upstream.data);
       res.status(200).json({
         success: true,
         message: "Novo código de segurança enviado para o seu e-mail.",
+        data: {
+          resendAvailableInSeconds: optionalPositiveNumber(
+            data.resendAvailableInSeconds,
+            60,
+          ),
+        },
       });
     } catch (error) {
       next(error);
@@ -419,6 +434,12 @@ function requireString(value: unknown, field: string): string {
     throw new UnauthorizedError(`Resposta de identidade sem ${field}.`);
   }
   return value;
+}
+
+function optionalPositiveNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? Math.ceil(value)
+    : fallback;
 }
 
 function bearerToken(req: Request): string | undefined {

@@ -28,6 +28,10 @@ function useLoginForm() {
       if (result.requires2fa && result.tempToken) {
         dispatch(setTempToken(result.tempToken));
         sessionStorage.setItem("adqpal_2fa_email", variables.email);
+        sessionStorage.setItem(
+          "adqpal_2fa_resend_at",
+          String(Date.now() + (result.resendAvailableInSeconds ?? 60) * 1000),
+        );
         navigate("/auth2fa", { state: { email: variables.email } });
       } else {
         dispatch(

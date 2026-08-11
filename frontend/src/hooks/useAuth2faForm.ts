@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,6 +16,14 @@ export function useAuth2faForm() {
   const tempToken = useSelector((state: RootState) => state.auth.tempToken);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [resendSeconds, setResendSeconds] = useState(readResendSeconds);
+
+  useEffect(() => {
+    const updateCountdown = () => setResendSeconds(readResendSeconds());
+    updateCountdown();
+    const timer = window.setInterval(updateCountdown, 1_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const email =
     (location.state as { email?: string } | null)?.email ??
@@ -41,6 +49,7 @@ export function useAuth2faForm() {
 
       dispatch(clearTempToken());
       sessionStorage.removeItem("adqpal_2fa_email");
+      sessionStorage.removeItem("adqpal_2fa_resend_at");
       dispatch(setCredentials({ user: result.user, token: result.token }));
       navigate("/dashboard");
     },
@@ -64,7 +73,13 @@ export function useAuth2faForm() {
 
   const resendMutation = useMutation({
     mutationFn: () => auth2faService.resend(),
-    onSuccess: () => {
+    onSuccess: (result) => {
+      const seconds = result.resendAvailableInSeconds ?? 60;
+      sessionStorage.setItem(
+        "adqpal_2fa_resend_at",
+        String(Date.now() + seconds * 1000),
+      );
+      setResendSeconds(seconds);
       setResendMessage("Código reenviado com sucesso!");
       setGeneralError(null);
     },
@@ -86,6 +101,7 @@ export function useAuth2faForm() {
   });
 
   const onResend = () => {
+    if (resendSeconds > 0) return;
     setResendMessage(null);
     setGeneralError(null);
     resendMutation.mutate();
@@ -94,6 +110,7 @@ export function useAuth2faForm() {
   const onBackToLogin = () => {
     dispatch(clearTempToken());
     sessionStorage.removeItem("adqpal_2fa_email");
+    sessionStorage.removeItem("adqpal_2fa_resend_at");
     navigate("/login");
   };
 
@@ -105,9 +122,15 @@ export function useAuth2faForm() {
     email,
     isLoading: verifyMutation.isPending,
     isResending: resendMutation.isPending,
+    resendSeconds,
     onSubmit,
     onResend,
     onBackToLogin,
     hasTempToken: !!tempToken,
   };
+}
+
+function readResendSeconds(): number {
+  const resendAt = Number(sessionStorage.getItem("adqpal_2fa_resend_at") ?? 0);
+  return Math.max(0, Math.ceil((resendAt - Date.now()) / 1000));
 }

@@ -15,6 +15,7 @@ export function Auth2faPage() {
     email,
     isLoading,
     isResending,
+    resendSeconds,
     onSubmit,
     onResend,
     onBackToLogin,
@@ -51,6 +52,7 @@ export function Auth2faPage() {
         email={email}
         isLoading={isLoading}
         isResending={isResending}
+        resendSeconds={resendSeconds}
         onSubmit={onSubmit}
         onResend={onResend}
         onBackToLogin={onBackToLogin}

@@ -39,6 +39,7 @@ export interface LoginResponse {
   user?: UserResponse;
   requires2fa?: boolean;
   tempToken?: string;
+  resendAvailableInSeconds?: number;
 }
 
 export interface Auth2faVerifyInput {
