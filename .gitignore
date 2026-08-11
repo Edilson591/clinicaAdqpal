@@ -2,3 +2,5 @@
 .qodo/
 .vscode/
 design/
+backup.sql
+**/backup.sql
