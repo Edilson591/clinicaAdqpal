@@ -71,13 +71,68 @@ export async function sendNotification(data: NotificationJobData): Promise<void>
   }
 }
 
+type NotificationSender = (data: NotificationJobData) => Promise<void>;
+
+export async function processNotificationJob(
+  job: Job<NotificationJobData>,
+  sender: NotificationSender = sendNotification,
+): Promise<void> {
+  const { outboxId } = job.data;
+  const attemptNumber = job.attemptsMade + 1;
+  const maxAttempts = job.opts.attempts ?? 1;
+
+  try {
+    if (outboxId) {
+      const outbox = await prisma.notificationOutbox.findUnique({
+        where: { id: outboxId },
+        select: { status: true },
+      });
+      if (outbox?.status === "SENT") return;
+
+      await prisma.notificationOutbox.updateMany({
+        where: { id: outboxId },
+        data: {
+          status: "PROCESSING",
+          attemptCount: attemptNumber,
+          lastAttemptAt: new Date(),
+          lastError: null,
+        },
+      });
+    }
+
+    await sender(job.data);
+
+    if (outboxId) {
+      await prisma.notificationOutbox.updateMany({
+        where: { id: outboxId },
+        data: { status: "SENT", sentAt: new Date(), lastError: null },
+      });
+    }
+  } catch (err) {
+    if (outboxId) {
+      try {
+        await prisma.notificationOutbox.updateMany({
+          where: { id: outboxId },
+          data: {
+            status: attemptNumber >= maxAttempts ? "FAILED" : "PUBLISHED",
+            lastError: err instanceof Error ? err.message : String(err),
+          },
+        });
+      } catch (statusErr) {
+        console.error("[Worker] erro ao atualizar outbox:", statusErr);
+      }
+    }
+    throw err;
+  }
+}
+
 // ─── Worker ───────────────────────────────────────────────────────────────────
 
 export function startNotificationWorker(): Worker<NotificationJobData> {
   const worker = new Worker<NotificationJobData>(
     NOTIFICATION_QUEUE,
     async (job: Job<NotificationJobData>) => {
-      await sendNotification(job.data);
+      await processNotificationJob(job);
     },
     {
       connection: getBullMQRedis(),
@@ -95,6 +150,18 @@ export function startNotificationWorker(): Worker<NotificationJobData> {
     console.error(
       `[Worker] Job ${job?.id} falhou (tentativa ${job?.attemptsMade}/${job?.opts.attempts}): ${err.message}`
     );
+
+    if (
+      job?.data.outboxId &&
+      job.attemptsMade >= (job.opts.attempts ?? 1)
+    ) {
+      void prisma.notificationOutbox.updateMany({
+        where: { id: job.data.outboxId },
+        data: { status: "FAILED", lastError: err.message },
+      }).catch((statusErr: unknown) => {
+        console.error("[Worker] erro ao marcar outbox como FAILED:", statusErr);
+      });
+    }
   });
 
   console.info("[Worker] NotificationWorker iniciado");

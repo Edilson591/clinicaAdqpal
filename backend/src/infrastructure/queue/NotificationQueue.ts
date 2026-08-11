@@ -4,6 +4,7 @@ import { getBullMQRedis } from "../cache/RedisBullMQ";
 export type NotificationChannel = "whatsapp" | "sms";
 
 export interface NotificationJobData {
+  outboxId?: string;
   appointmentId: string;
   telefone: string;
   channels: NotificationChannel[];
@@ -34,5 +35,3 @@ export function getNotificationQueue(): Queue<NotificationJobData> {
   }
   return queue;
 }
-
-

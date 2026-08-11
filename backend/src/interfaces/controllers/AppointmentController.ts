@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { createHash } from "node:crypto";
 import type {
   CreateAppointmentDTO,
   UpdateAppointmentDTO,
@@ -24,7 +25,6 @@ import {
 } from "../../application/use-cases/GetAppointment";
 import { UpdateAppointment } from "../../application/use-cases/UpdateAppointment";
 import { DeleteAppointment } from "../../application/use-cases/DeleteAppointment";
-import { getNotificationQueue } from "../../infrastructure/queue/NotificationQueue";
 import { sendNotification } from "../../infrastructure/queue/NotificationWorker";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaAppointmentRepository } from "../../infrastructure/repositories/PrismaAppointmentRepository";
@@ -203,13 +203,19 @@ export class AppointmentController {
       const { id } = req.params as { id: string };
 
       // Verify appointment exists
-      await new GetAppointment(appointmentRepository).execute(id);
+      const appointment = await new GetAppointment(
+        appointmentRepository,
+      ).execute(id);
 
       auditService.export(req, "APPOINTMENT", id);
 
       if (process.env.VERCEL === "1") {
         // Vercel: send immediately (no Redis available for BullMQ)
-        await sendNotification({ appointmentId: id, telefone, channels });
+        await sendNotification({
+          appointmentId: id,
+          telefone,
+          channels,
+        });
 
         res.status(200).json({
           success: true,
@@ -217,17 +223,39 @@ export class AppointmentController {
           data: { channels },
         });
       } else {
-        // Local: enqueue for async processing via BullMQ
-        const job = await getNotificationQueue().add("send-notification", {
-          appointmentId: id,
-          telefone,
-          channels,
-        });
+        // PostgreSQL is the source of truth; the local dispatcher publishes
+        // each channel independently to BullMQ after this transaction commits.
+        const requestKey =
+          req.get("idempotency-key") ??
+          req.get("x-idempotency-key") ??
+          appointment.updatedAt;
+        const requests = await prisma.$transaction(
+          channels.map((channel) => {
+            const idempotencyKey = createHash("sha256")
+              .update(`${id}:${telefone}:${channel}:${requestKey}`)
+              .digest("hex");
+
+            return prisma.notificationOutbox.upsert({
+              where: { idempotencyKey },
+              create: {
+                appointmentId: id,
+                idempotencyKey,
+                telefone,
+                channel,
+              },
+              update: {},
+            });
+          }),
+        );
 
         res.status(202).json({
           success: true,
-          message: "Notificação enfileirada com sucesso.",
-          data: { jobId: job.id, channels },
+          message: "Notificação registrada para envio.",
+          data: {
+            jobId: `notification-${requests[0].id}`,
+            requestIds: requests.map(({ id: requestId }) => requestId),
+            channels,
+          },
         });
       }
     } catch (err) {

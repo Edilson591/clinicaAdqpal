@@ -976,7 +976,16 @@ export const swaggerSpec: swaggerUi.JsonObject = {
         tags: ["Consultas"],
         summary: "Enviar notificação WhatsApp/SMS da consulta",
         security: [{ bearerAuth: [] }],
-        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+        parameters: [
+          { name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          {
+            name: "Idempotency-Key",
+            in: "header",
+            required: false,
+            description: "Reutilize a mesma chave ao repetir a mesma solicitação para evitar envios duplicados.",
+            schema: { type: "string" },
+          },
+        ],
         requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/SendWhatsAppInput" } } } },
         responses: { "200": { description: "Notificação enviada/enfileirada." } },
       },

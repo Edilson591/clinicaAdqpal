@@ -1,6 +1,7 @@
 import "dotenv/config";
 import app from "./src/interfaces/http/app";
 import { startNotificationWorker } from "./src/infrastructure/queue/NotificationWorker";
+import { startNotificationOutboxDispatcher } from "./src/infrastructure/queue/NotificationOutboxDispatcher";
 import { startSusSyncCron } from "./src/infrastructure/cron/SusSyncCron";
 import { getRedisClient } from "./src/infrastructure/cache/RedisClient";
 // import { startNotaFiscalWorker } from "./src/infrastructure/queue/NotasFiscalWorker";
@@ -10,6 +11,7 @@ const PORT = Number(process.env.PORT) || 3333;
 // Workers e cron só rodam localmente (Vercel não tem Redis)
 if (process.env.VERCEL !== "1") {
   startNotificationWorker();
+  startNotificationOutboxDispatcher();
   startSusSyncCron();
 }
 // startNotaFiscalWorker();

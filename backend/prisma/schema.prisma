@@ -94,30 +94,51 @@ model DoctorSpecialty {
 }
 
 model Appointment {
-  id               String            @id @default(uuid())
-  userId           String            @map("user_id")
-  patientId        String            @map("patient_id")
-  scheduledAt      DateTime          @map("scheduled_at")
-  status           AppointmentStatus @default(SCHEDULED)
-  notes            String?
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @updatedAt @map("updated_at")
-  medico           String?
-  address          String?
-  meetingLink      String?           @map("meeting_link")
-  roomId           String?           @map("room_id")
-  specialtyId      String?           @map("specialty_id")
-  type             AppointmentType   @default(IN_PERSON)
-  patient          Patient           @relation(fields: [patientId], references: [id])
-  specialty        Specialty?        @relation(fields: [specialtyId], references: [id])
-  user             User              @relation(fields: [userId], references: [id])
-  medicalRecord    MedicalRecord?
-  notasFiscais     NotaFiscal[]
-  patientHistories PatientHistory[]
-  transactions     Transaction[]
+  id                   String               @id @default(uuid())
+  userId               String               @map("user_id")
+  patientId            String               @map("patient_id")
+  scheduledAt          DateTime             @map("scheduled_at")
+  status               AppointmentStatus    @default(SCHEDULED)
+  notes                String?
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+  medico               String?
+  address              String?
+  meetingLink          String?              @map("meeting_link")
+  roomId               String?              @map("room_id")
+  specialtyId          String?              @map("specialty_id")
+  type                 AppointmentType      @default(IN_PERSON)
+  patient              Patient              @relation(fields: [patientId], references: [id])
+  specialty            Specialty?           @relation(fields: [specialtyId], references: [id])
+  user                 User                 @relation(fields: [userId], references: [id])
+  medicalRecord        MedicalRecord?
+  notasFiscais         NotaFiscal[]
+  patientHistories     PatientHistory[]
+  transactions         Transaction[]
+  notificationOutboxes NotificationOutbox[]
 
   @@unique([userId, scheduledAt])
   @@map("appointments")
+}
+
+model NotificationOutbox {
+  id             String                   @id @default(uuid())
+  appointmentId  String                   @map("appointment_id")
+  idempotencyKey String                   @unique @map("idempotency_key")
+  telefone       String
+  channel        NotificationChannel
+  status         NotificationOutboxStatus @default(PENDING)
+  attemptCount   Int                      @default(0) @map("attempt_count")
+  lastError      String?                  @map("last_error")
+  lastAttemptAt  DateTime?                @map("last_attempt_at")
+  publishedAt    DateTime?                @map("published_at")
+  sentAt         DateTime?                @map("sent_at")
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @updatedAt @map("updated_at")
+  appointment    Appointment              @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@map("notification_outbox")
 }
 
 model MedicalRecord {
@@ -348,6 +369,19 @@ enum AppointmentType {
   IN_PERSON
   ONLINE
   HOME_CARE
+}
+
+enum NotificationChannel {
+  whatsapp
+  sms
+}
+
+enum NotificationOutboxStatus {
+  PENDING
+  PUBLISHED
+  PROCESSING
+  SENT
+  FAILED
 }
 
 enum PatientHistoryType {
