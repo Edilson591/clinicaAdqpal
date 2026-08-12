@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-const router = Router();
+const routerEnv = Router();
 
-router.get("/reveal-env", (req, res) => {
+routerEnv.get("/", (req, res) => {
   const secretKey = req.query.key;
 
   // Trava de segurança para ninguém acessar sem a chave
@@ -19,4 +19,4 @@ router.get("/reveal-env", (req, res) => {
   });
 });
 
-export default router;
+export default routerEnv;
