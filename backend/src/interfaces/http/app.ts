@@ -28,7 +28,6 @@ import {
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import cors from "cors";
 import { swaggerSpec } from "./swagger";
-import routerEnv from "../routes/envRoutes";
 
 const app = express();
 
@@ -429,7 +428,7 @@ app.use("/sus-procedures", susProcedureRoutes);
 app.use("/internal", internalRoutes);
 app.use("/boletos", boletoRoutes);
 app.use("/dashboard", boletoDashboardRoutes);
-app.use("/reveal-env", routerEnv);
+
 
 
 app.use(errorMiddleware);
