@@ -44,7 +44,6 @@ export function useEditUserForm(userId: string) {
   const { data: specialtiesData = [] } = useSpecialtiesByDoctor(user?.id ?? "");
   const { data: allSpecialties = [] } = useSpecialties();
 
-  console.log(specialtiesData);
 
   const linkedEmployee = user
     ? (allEmployees.find((e) => e.email === user.email) ?? null)

@@ -1,7 +1,7 @@
 import { Lock, Eye, EyeOff, Check, X } from "lucide-react";
 import { useState, forwardRef } from "react";
 import { useZodForm } from "../../hooks/useZodForm";
-import { segurancaSchema, type SegurancaInput } from "../../validate/seguranca.schema";
+import { segurancaSchema } from "../../validate/seguranca.schema";
 
 const inputCls =
   "w-full h-10 px-3 rounded-lg text-sm border bg-[#F8FAFC] dark:bg-[#263548] border-[#E2E8F0] dark:border-[#334155] text-[#1E293B] dark:text-[#F1F5F9] placeholder:text-[#94A3B8] dark:placeholder:text-[#64748B] focus:outline-none focus:ring-1 focus:ring-[#38A169] focus:border-[#38A169] transition-colors";
@@ -46,10 +46,10 @@ export function SegurancaSection() {
     defaultValues: { atual: "", nova: "", confirma: "" },
   });
 
-  function onSubmit(_data: SegurancaInput) {
+  function onSubmit() {
     setSuccess(true);
     reset();
-    console.log(_data)
+        
     setTimeout(() => setSuccess(false), 2500);
   }
 

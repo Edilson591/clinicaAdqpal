@@ -34,7 +34,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // console.log(cids)
+
   useEffect(() => {
     const token = getCookie("adqpal_token");
     if (token || user) {

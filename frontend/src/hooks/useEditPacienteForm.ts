@@ -72,7 +72,7 @@ export function useEditPacienteForm(id: string) {
         : null,
     };
 
-    console.log(prevData)
+
     updatePatient(
       {
         id,

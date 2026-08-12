@@ -21,7 +21,10 @@ import notaFiscalRoutes from "../routes/notaFiscalRoutes";
 import patientNotaFiscalRoutes from "../routes/patientNotaFiscalRoutes";
 import susProcedureRoutes from "../routes/susProcedureRoutes";
 import internalRoutes from "../routes/internalRoutes";
-import { boletoRoutes, dashboardRoutes as boletoDashboardRoutes } from "../routes/boletoRoutes";
+import {
+  boletoRoutes,
+  dashboardRoutes as boletoDashboardRoutes,
+} from "../routes/boletoRoutes";
 import { errorMiddleware } from "../middlewares/errorMiddleware";
 import cors from "cors";
 import { swaggerSpec } from "./swagger";
@@ -51,17 +54,30 @@ app.use(
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",")
-  : ["http://localhost:5174","http://localhost:8080","http://localhost:3000","http://localhost","https://lightgoldenrodyellow-mole-188248.hostingersite.com"];
+  : [
+      "http://localhost:5174",
+      "http://localhost:8080",
+      "http://localhost:3000",
+      "http://localhost",
+      "https://lightgoldenrodyellow-mole-188248.hostingersite.com",
+    ];
 
+app.use((req, res, next) => {
+  const origin = req.get("Origin");
+
+  // Requisições sem Origin: servidor-servidor, curl, mesmo contexto etc.
+  if (!origin || allowedOrigins.includes(origin)) {
+    return next();
+  }
+
+  return res.status(403).json({
+    success: false,
+    message: "Origem não autorizada",
+  });
+});
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: allowedOrigins,
     credentials: true,
     allowedHeaders: [
       "Content-Type",
@@ -98,7 +114,9 @@ const authLimiter = rateLimit({
   max: 10, // 10 tentativas de login por IP a cada 15 min
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Muitas tentativas de login, tente novamente em 15 minutos." },
+  message: {
+    message: "Muitas tentativas de login, tente novamente em 15 minutos.",
+  },
   skip: () => process.env.NODE_ENV === "test",
 });
 
@@ -112,7 +130,9 @@ if (process.env.NODE_ENV !== "test") {
   // expor tokens SSE (?token=...) ou dados de pacientes em query params
   morgan.token("path-only", (req) => (req as { path?: string }).path ?? "/");
   app.use(
-    morgan(":method :path-only :status :res[content-length] - :response-time ms"),
+    morgan(
+      ":method :path-only :status :res[content-length] - :response-time ms",
+    ),
   );
 }
 
@@ -121,7 +141,9 @@ app.get("/health", (_req, res) => {
 });
 
 // ── Swagger UI — documentação interativa ─────────────────────────────────────
-const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+const isProduction =
+  process.env.NODE_ENV === "production" ||
+  process.env.VERCEL_ENV === "production";
 
 const productionLandingHtml = `<!DOCTYPE html>
 <html lang="pt-BR">

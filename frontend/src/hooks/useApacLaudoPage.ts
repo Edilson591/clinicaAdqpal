@@ -257,7 +257,7 @@ export function useApacLaudoPage() {
 
       if (saved) {
         const parsed = JSON.parse(saved);
-        console.log(parsed)
+
         if (!parsed._selectedPatientId) parsed._selectedPatientId = "";
         if (!parsed._selectedDoctorId) parsed._selectedDoctorId = "";
         return parsed;

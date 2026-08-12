@@ -56,7 +56,6 @@ export const employeeService = {
         "/employees",
         data,
       );
-      console.log(res);
       return res.data.data!;
     } catch (error) {
       console.error(error);

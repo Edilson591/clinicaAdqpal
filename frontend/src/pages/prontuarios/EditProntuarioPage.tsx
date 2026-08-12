@@ -49,7 +49,6 @@ function EditProntuarioContent() {
 
   const { data: patient } = usePatient(record?.patientId ?? "");
 
-  console.log(patient)
 
   const createdAt = record?.createdAt
     ? new Date(record.createdAt).toLocaleDateString("pt-BR")
