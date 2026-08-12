@@ -4,3 +4,6 @@
 design/
 backup.sql
 **/backup.sql
+
+.vercel
+.env*
