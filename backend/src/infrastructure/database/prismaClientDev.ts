@@ -4,22 +4,28 @@ const globalForPrisma = globalThis as {
   prismaDev?: PrismaClient;
 };
 
-const databaseUrl = process.env.DATABASE_URL_DEV ?? process.env.DATABASE_URL;
+let prismaDev = globalForPrisma.prismaDev;
 
-export const prismaDev =
-  globalForPrisma.prismaDev ??
-  new PrismaClient(
-    databaseUrl
-      ? {
-          datasources: {
-            db: { url: databaseUrl },
-          },
-        }
-      : undefined,
-  );
+export function getPrismaDev(): PrismaClient {
+  const databaseUrl = process.env.DATABASE_URL_DEV;
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prismaDev = prismaDev;
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL_DEV is not configured");
+  }
+
+  if (!prismaDev) {
+    prismaDev = new PrismaClient({
+      datasources: {
+        db: { url: databaseUrl },
+      },
+    });
+
+    if (process.env.NODE_ENV !== "production") {
+      globalForPrisma.prismaDev = prismaDev;
+    }
+  }
+
+  return prismaDev;
 }
 
-export default prismaDev;
+export default getPrismaDev;

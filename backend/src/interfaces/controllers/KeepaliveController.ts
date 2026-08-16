@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import prisma from "../../infrastructure/database/prismaClient";
-import prismaDev from "../../infrastructure/database/prismaClientDev";
+import getPrismaDev from "../../infrastructure/database/prismaClientDev";
 
 export default class KeepaliveController {
   async keepalive(req: Request, res: Response): Promise<void> {
@@ -11,16 +11,27 @@ export default class KeepaliveController {
         return;
       }
 
-      await prisma.$queryRaw`SELECT 1`;
+      const databaseUrl = process.env.DATABASE_URL;
+      const databaseUrlDev = process.env.DATABASE_URL_DEV;
 
-      await prismaDev.$queryRaw`SELECT 1`;
-  
+      if (!databaseUrl || !databaseUrlDev) {
+        throw new Error("DATABASE_URL and DATABASE_URL_DEV must be configured");
+      }
+
+      if (databaseUrl === databaseUrlDev) {
+        throw new Error("DATABASE_URL and DATABASE_URL_DEV must be different");
+      }
+
+      await Promise.all([
+        prisma.$queryRaw`SELECT 1`,
+        getPrismaDev().$queryRaw`SELECT 1`,
+      ]);
 
       res.status(200).send("ok");
       return;
     } catch (err) {
+      console.error("Keepalive error:", err);
       res.status(500).send("error");
-      return;
     }
   }
 }
