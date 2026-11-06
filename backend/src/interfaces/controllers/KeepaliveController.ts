@@ -23,8 +23,8 @@ export default class KeepaliveController {
       }
 
       await Promise.all([
-        prisma.$queryRaw`SELECT 1`,
-        getPrismaDev().$queryRaw`SELECT 1`,
+        prisma.$queryRaw`SELECT id FROM "users" LIMIT 1`,
+        getPrismaDev().$queryRaw`SELECT id FROM "users" LIMIT 1`,
       ]);
 
       res.status(200).send("ok");

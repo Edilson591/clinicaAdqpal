@@ -2,7 +2,9 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    - cron: "17 3 */3 * *" # a cada 3 dias, fora do pico de agendamentos do GitHub
+    # O Supabase Free considera a atividade dos últimos 7 dias e recomenda
+    # algumas consultas por dia para evitar a pausa por inatividade.
+    - cron: "17 3,11,19 * * *"
   workflow_dispatch:
 
 jobs:
@@ -11,6 +13,7 @@ jobs:
     steps:
       - name: Ping API
         run: |
-          curl --fail --retry 3 --retry-all-errors --connect-timeout 15 --max-time 120 \
+          curl --fail-with-body --retry 5 --retry-all-errors --retry-delay 30 \
+            --retry-max-time 300 --connect-timeout 15 --max-time 120 \
             -X GET "${{ secrets.VERCEL_URL }}/internal/keepalive" \
             -H "Authorization: Bearer ${{ secrets.SYNC_SECRET }}"
