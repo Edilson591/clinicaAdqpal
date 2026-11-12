@@ -17,7 +17,8 @@ export function LgpdLayout({ title, lastUpdated, sections }: LgpdLayoutProps) {
   const navigate = useNavigate();
 
   return (
-    <div
+    <main
+      id="main-content"
       className="min-h-screen flex flex-col items-center justify-start p-4 sm:p-8"
       style={{
         background:
@@ -86,6 +87,6 @@ export function LgpdLayout({ title, lastUpdated, sections }: LgpdLayoutProps) {
 
         <LgpdFooter />
       </div>
-    </div>
+    </main>
   );
 }

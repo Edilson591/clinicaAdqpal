@@ -31,11 +31,6 @@ const mockNF = {
   updatedAt: '2026-04-16T00:00:00.000Z',
 };
 
-const mockPaginated = {
-  data: [mockNF],
-  pagination: { total: 1, page: 1, limit: 10, totalPages: 1 },
-};
-
 vi.mock('../../services/NotaFiscal', () => {
   const nf = {
     id: 'nf-1',

@@ -4,14 +4,6 @@ import { useAppointmentSSE } from '../../hooks/useAppointmentSSE';
 
 const mockInvalidateQueries = vi.fn();
 
-vi.mock('../../store/authSlice', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../store/authSlice')>();
-  return {
-    ...actual,
-    getCookie: vi.fn().mockReturnValue('mock-token'),
-  };
-});
-
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: vi.fn(() => ({
     invalidateQueries: mockInvalidateQueries,
@@ -24,7 +16,7 @@ class MockEventSource {
   closed = false;
   onerror: unknown = null;
 
-  constructor(public url: string) {
+  constructor(public url: string, public options?: EventSourceInit) {
     MockEventSource.instances.push(this);
   }
 
@@ -53,10 +45,11 @@ afterEach(() => {
 });
 
 describe('useAppointmentSSE', () => {
-  it('creates an EventSource with the token in the URL', () => {
+  it('creates a credentialed EventSource without token in the URL', () => {
     renderHook(() => useAppointmentSSE());
     expect(MockEventSource.instances).toHaveLength(1);
-    expect(MockEventSource.instances[0].url).toContain('mock-token');
+    expect(MockEventSource.instances[0].url).not.toContain('token=');
+    expect(MockEventSource.instances[0].options).toEqual({ withCredentials: true });
   });
 
   it('closes the EventSource on unmount', () => {
@@ -83,10 +76,4 @@ describe('useAppointmentSSE', () => {
     expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
   });
 
-  it('does nothing when no token is available', async () => {
-    const { getCookie } = await import('../../store/authSlice');
-    vi.mocked(getCookie).mockReturnValueOnce(null);
-    renderHook(() => useAppointmentSSE());
-    expect(MockEventSource.instances).toHaveLength(0);
-  });
 });

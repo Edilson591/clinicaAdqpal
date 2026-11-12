@@ -10,9 +10,9 @@ export default function AppLayout() {
         <div className="flex h-[100dvh] overflow-hidden">
           {/* Sidebar — segue o tema global */}
           <Sidebar />
-          <div className="flex min-w-0 flex-1 overflow-hidden">
+          <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 overflow-hidden">
             <Outlet />
-          </div>
+          </main>
         </div>
       </SidebarProvider>
     </PermissionsProvider>

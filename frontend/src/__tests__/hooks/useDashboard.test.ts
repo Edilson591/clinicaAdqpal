@@ -71,7 +71,7 @@ describe('useDashboard — agendaDoDia mapping', () => {
 
     expect(result.current.agendaDoDia).toHaveLength(1);
     expect(result.current.agendaDoDia[0].paciente).toBe('Maria Silva');
-    expect(result.current.agendaDoDia[0].status).toBe('Confirmada');
+    expect(result.current.agendaDoDia[0].status).toBe('Agendada');
     expect(result.current.agendaDoDia[0].horario).toBe('09:00');
   });
 
@@ -105,12 +105,12 @@ describe('useDashboard — agendaDoDia mapping', () => {
 
 describe('useDashboard — statusMap', () => {
   const statusCases: Array<[string, string]> = [
-    ['SCHEDULED', 'Confirmada'],
+    ['SCHEDULED', 'Agendada'],
     ['CONFIRMED', 'Confirmada'],
-    ['COMPLETED', 'Concluido'],
+    ['COMPLETED', 'Concluído'],
     ['CANCELLED', 'Cancelado'],
     ['CANCELED', 'Cancelado'],
-    ['NO_SHOW', 'Cancelado'],
+    ['NO_SHOW', 'Não Compareceu'],
     ['IN_PROGRESS', 'Em Andamento'],
   ];
 

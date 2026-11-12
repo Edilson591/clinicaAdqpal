@@ -56,7 +56,8 @@ describe('newPacientSchema', () => {
   });
 
   it('rejects missing name', () => {
-    const { name: _, ...rest } = basePatient;
+    const rest = { ...basePatient } as Partial<typeof basePatient>;
+    delete rest.name;
     expect(newPacientSchema.safeParse(rest).success).toBe(false);
   });
 

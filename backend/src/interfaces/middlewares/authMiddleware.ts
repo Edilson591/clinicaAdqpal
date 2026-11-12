@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
-import { ServiceUnavailableError, UnauthorizedError } from "../../domain/errors/DomainError";
+import { ForbiddenError, ServiceUnavailableError, UnauthorizedError } from "../../domain/errors/DomainError";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository";
 import prisma from "../../infrastructure/database/prismaClient";
 import { PrismaUserRepository } from "../../infrastructure/repositories/PrismaUserRepository";
@@ -44,17 +44,14 @@ export const authMiddleware = createAuthMiddleware(identityGatewayClient, userRe
 /**
  * Variante do authMiddleware para SSE.
  * Cookies são enviados automaticamente pelo browser em conexões SSE same-origin,
- * portanto tentamos o cookie primeiro. O query param ?token= é mantido apenas
- * como fallback para clientes que não suportam cookies (ex: apps mobile/Postman).
- * ATENÇÃO: tokens em query params ficam visíveis em logs de servidor.
+ * portanto a conexão usa exclusivamente a sessão enviada por cookie.
  */
 export async function authMiddlewareSSE(
   req: Request,
   _res: Response,
   next: NextFunction,
 ): Promise<void> {
-  const queryToken = typeof req.query.token === "string" ? req.query.token : undefined;
-  await authenticateIdentity(req, next, identityGatewayClient, userRepository, queryToken);
+  await authenticateIdentity(req, next, identityGatewayClient, userRepository);
 }
 
 
@@ -95,8 +92,9 @@ export async function preAuthMiddleware(
 
 export function syncAuth(req: Request, res: Response, next: NextFunction) {
   const auth = req.headers.authorization;
+  const syncSecret = process.env.SYNC_SECRET;
 
-  if (auth !== `Bearer ${process.env.SYNC_SECRET}`) {
+  if (!syncSecret || auth !== `Bearer ${syncSecret}`) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
@@ -127,6 +125,7 @@ async function authenticateIdentity(
       return;
     }
     const identityUser = readIdentityUser(response.data);
+    validateCookieCsrf(req);
     const completeProfile = hasCompleteProfile(identityUser);
     const clinicalUser = completeProfile ? null : await users.findById(identityUser.id);
     if (!completeProfile && !clinicalUser) {
@@ -143,6 +142,16 @@ async function authenticateIdentity(
     next();
   } catch (error) {
     next(error);
+  }
+}
+
+function validateCookieCsrf(req: Request): void {
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) return;
+  if (req.headers.authorization) return;
+  const expected = req.cookies?.pb_csrf ?? req.cookies?.adqpal_csrf;
+  const supplied = req.get("x-csrf-token");
+  if (typeof expected !== "string" || !expected || !supplied || supplied !== expected) {
+    throw new ForbiddenError("Token CSRF ausente ou inválido.");
   }
 }
 

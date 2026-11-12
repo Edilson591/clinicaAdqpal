@@ -108,7 +108,7 @@ describe("auth security", () => {
       passwordHash: "hash",
       cpf: "12345678909",
       nested: { token: "secret-token", name: "Usuario" },
-    })).toEqual({ id: "user-1", nested: { name: "Usuario" } });
+    })).toEqual({ id: "user-1", nested: {} });
   });
 });
 

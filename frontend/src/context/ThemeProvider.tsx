@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ThemeContext } from "./ThemeContext";
+import { hasConsent } from "../privacy/consent";
 
 
 // const theme = {
@@ -81,14 +82,15 @@ export interface ThemeContextValue {
 }
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isDark, setIsDark] = useState<boolean>(() => {
-    const saved = localStorage.getItem("adqpal_theme");
+    const saved = hasConsent("personalization") ? localStorage.getItem("adqpal_theme") : null;
     return saved !== null ? saved === "dark" : false;
   });
 
   // Aplica/remove classe "dark" no <html> — ativa dark: do Tailwind v4
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
-    localStorage.setItem("adqpal_theme", isDark ? "dark" : "light");
+    if (hasConsent("personalization")) localStorage.setItem("adqpal_theme", isDark ? "dark" : "light");
+    else localStorage.removeItem("adqpal_theme");
   }, [isDark]);
 
   const toggleTheme = () => setIsDark((prev) => !prev);

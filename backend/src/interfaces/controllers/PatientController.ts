@@ -17,6 +17,7 @@ import { EncryptionService } from "../../infrastructure/services/EncryptionServi
 import { CreateMedicalRecord } from "../../application/use-cases/CreateMedicalRecord";
 import { CachedPatientRepository } from "../../infrastructure/cache/CachedPatientRepository";
 import { getRedisClient } from "../../infrastructure/cache/RedisClient";
+import { NotFoundError } from "../../domain/errors/DomainError";
 
 const patientRepository = new CachedPatientRepository(
   new PrismaPatientRepository(prisma),
@@ -88,6 +89,7 @@ export class PatientController {
       const createdToday = req.query.createdToday === "true";
 
       const where: Record<string, unknown> = {};
+      if (req.userRoleId === 3) where.appointments = { some: { userId: req.userId } };
       if (search) where.name = { contains: search, mode: "insensitive" };
       if (createdToday) {
         const start = new Date();
@@ -153,6 +155,10 @@ export class PatientController {
     next: NextFunction,
   ): Promise<void> {
     try {
+      if (req.userRoleId === 3) {
+        const linked = await prisma.appointment.findFirst({ where: { patientId: req.params.id as string, userId: req.userId }, select: { id: true } });
+        if (!linked) throw new NotFoundError("Paciente");
+      }
       const patient = await new GetPatient(patientRepository).execute(
         req.params.id as string,
       );

@@ -24,6 +24,7 @@ import RhPage from "../pages/rh/RhPage";
 import NewEmployeePage from "../pages/rh/NewEmployeePage";
 import EditEmployeePage from "../pages/rh/EditEmployeePage";
 import ApacLaudoPage from "../pages/documentos/ApacLaudoPage";
+import AihLaudoPage from "../pages/documentos/AihLaudoPage";
 import ReceituarioPage from "../pages/documentos/ReceituarioPage";
 import AdministrativoPage from "../features/administrativo/AdministrativoPage";
 // import NotasFiscaisPage from "../pages/notasfiscais/NotasFiscaisPage";
@@ -51,6 +52,7 @@ export const privateRoutes = (
       <Route path="/prontuarios/:id/editar" element={<EditProntuarioPage />} />
       <Route element={<DocumentosGuard />}>
         <Route path="/documentos/apac" element={<ApacLaudoPage />} />
+        <Route path="/documentos/aih" element={<AihLaudoPage />} />
         <Route path="/documentos/receituario" element={<ReceituarioPage />} />
         <Route path="/documentos/administrativo" element={<AdministrativoPage />} />
       </Route>

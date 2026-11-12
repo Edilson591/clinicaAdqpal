@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useReactToPrint } from "react-to-print";
 import { apacPrintSchema } from "../validate/apac.schema";
 import { z } from "zod";
 import { useSusProcedure } from "./useSusProcedure";
+import { sanitizeGeneratedHtml } from "../utils/sanitizeGeneratedHtml";
 
 export const CNS_LENGTH = 15;
 export const PROC_LENGTH = 8;
@@ -251,22 +252,7 @@ function validateApacData(data: ApacData): string[] {
 }
 
 export function useApacLaudoPage() {
-  const [data, setData] = useState<ApacData>(() => {
-    try {
-      const saved = localStorage.getItem("apac_laudo");
-
-      if (saved) {
-        const parsed = JSON.parse(saved);
-
-        if (!parsed._selectedPatientId) parsed._selectedPatientId = "";
-        if (!parsed._selectedDoctorId) parsed._selectedDoctorId = "";
-        return parsed;
-      }
-    } catch {
-      /* ignore */
-    }
-    return emptyApacData();
-  });
+  const [data, setData] = useState<ApacData>(emptyApacData);
 
   const {data: susProcedures} = useSusProcedure();
   const [errors, setErrors] = useState<string[]>([]);
@@ -287,10 +273,6 @@ export function useApacLaudoPage() {
     }
     handlePrintBase();
   }, [data, handlePrintBase]);
-
-  useEffect(() => {
-    localStorage.setItem("apac_laudo", JSON.stringify(data));
-  }, [data]);
 
   const update = useCallback(
     <K extends keyof ApacData>(key: K, value: ApacData[K]) => {
@@ -322,8 +304,7 @@ export function useApacLaudoPage() {
       setErrors(validationErrors);
       return;
     }
-    localStorage.setItem("apac_laudo", JSON.stringify(data));
-    const html = generateApacHtml(data);
+    const html = sanitizeGeneratedHtml(generateApacHtml(data));
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -341,7 +322,6 @@ export function useApacLaudoPage() {
 
   const handleClear = useCallback(() => {
     if (confirm("Deseja limpar todos os campos?")) {
-      localStorage.removeItem("apac_laudo");
       setData(emptyApacData());
       setErrors([]);
     }

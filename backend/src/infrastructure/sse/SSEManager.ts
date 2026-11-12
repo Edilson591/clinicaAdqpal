@@ -6,21 +6,25 @@ import type { Response } from "express";
  * O controller chama broadcast() após create/update/delete.
  */
 class SSEManager {
-  private clients: Set<Response> = new Set();
+  private clients = new Set<{ response: Response; userId: string; roleId: number }>();
 
-  addClient(res: Response): void {
-    this.clients.add(res);
+  addClient(response: Response, userId = "legacy", roleId = 1): void {
+    this.clients.add({ response, userId, roleId });
   }
 
   removeClient(res: Response): void {
-    this.clients.delete(res);
+    for (const client of this.clients) {
+      if (client.response === res) this.clients.delete(client);
+    }
   }
 
-  broadcast(event: string, data: unknown): void {
+  broadcast(event: string, data: unknown, responsibleUserId?: string): void {
     const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
     for (const client of this.clients) {
+      const mayViewAllAppointments = [1, 2, 5].includes(client.roleId);
+      if (responsibleUserId && !mayViewAllAppointments && client.userId !== responsibleUserId) continue;
       try {
-        client.write(payload);
+        client.response.write(payload);
       } catch {
         // cliente desconectado sem disparar "close" — limpa da lista
         this.clients.delete(client);

@@ -50,10 +50,8 @@ export const BoletoService = {
     payload: CreateBoletoRequest,
     idempotencyKey: string,
   ): Promise<CreateBoletoResponse> {
-    const csrfResponse = await api.get<{ csrfToken: string }>("/users/csrf");
     const response = await api.post<CreateBoletoResponse>("/boletos", payload, {
       headers: {
-        "X-CSRF-Token": csrfResponse.data.csrfToken,
         "X-Idempotency-Key": idempotencyKey,
       },
     });
@@ -61,13 +59,20 @@ export const BoletoService = {
   },
 
   async cancel(payload: CancelBoletoRequest): Promise<CancelBoletoResponse> {
-    const csrfResponse = await api.get<{ csrfToken: string }>("/users/csrf");
     const response = await api.post<CancelBoletoResponse>("/boletos/cancellations", payload, {
-      headers: { "X-CSRF-Token": csrfResponse.data.csrfToken },
+      headers: {
+        "X-Idempotency-Key": boletoCancellationIdempotencyKey(payload),
+      },
     });
     return response.data;
   },
 };
+
+export function boletoCancellationIdempotencyKey(payload: CancelBoletoRequest): string {
+  if (payload.scope === "BOLETO") return `cancel-boleto-${payload.boletoId}`;
+  if (payload.scope === "CARNET") return `cancel-carnet-${payload.seriesId}`;
+  return `cancel-installment-${payload.seriesId}-${payload.installmentNumber}`;
+}
 
 export function boletoErrorMessage(error: unknown): string {
   if (!isAxiosError(error)) return "Não foi possível concluir a emissão. Tente novamente.";

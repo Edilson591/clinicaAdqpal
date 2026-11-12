@@ -60,7 +60,7 @@ describe('receituarioExamesSchema', () => {
   it('rejects no exam selected', () => {
     const result = receituarioExamesSchema.safeParse({ ...baseExames, examSelected: [] });
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.issues[0].message).toBe('Selecione pelo menos um exame.');
+    if (!result.success) expect(result.error.issues[0].message).toBe('Selecione pelo menos um exame ou informe um exame não listado.');
   });
 });
 

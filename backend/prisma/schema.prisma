@@ -344,6 +344,114 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+model PrivacyRequest {
+  id                 String                 @id @default(uuid())
+  protocol           String                 @unique
+  accessTokenHash    String                 @map("access_token_hash")
+  requesterName      String                 @map("requester_name")
+  requesterEmail     String                 @map("requester_email")
+  subjectType        PrivacySubjectType     @map("subject_type")
+  requestType        PrivacyRequestType     @map("request_type")
+  description        String?
+  status             PrivacyRequestStatus  @default(RECEIVED)
+  identityVerifiedAt DateTime?              @map("identity_verified_at")
+  decisionReason     String?                @map("decision_reason")
+  assignedTo         String?                @map("assigned_to")
+  completedAt        DateTime?              @map("completed_at")
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+  events             PrivacyRequestEvent[]
+
+  @@index([status, createdAt])
+  @@index([requesterEmail])
+  @@map("privacy_requests")
+}
+
+model PrivacyRequestEvent {
+  id        String         @id @default(uuid())
+  requestId String         @map("request_id")
+  actorId   String?        @map("actor_id")
+  action    String
+  details   Json?
+  createdAt DateTime       @default(now()) @map("created_at")
+  request   PrivacyRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt])
+  @@map("privacy_request_events")
+}
+
+model RetentionPolicy {
+  id            String          @id @default(uuid())
+  category      RetentionCategory @unique
+  retentionDays Int?            @map("retention_days")
+  legalBasis    String          @map("legal_basis")
+  criteria      String
+  action        RetentionAction
+  enabled       Boolean         @default(false)
+  lastRunAt     DateTime?       @map("last_run_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  runs          RetentionRun[]
+
+  @@map("retention_policies")
+}
+
+model RetentionRun {
+  id            String          @id @default(uuid())
+  policyId      String          @map("policy_id")
+  executedBy    String          @map("executed_by")
+  dryRun        Boolean         @map("dry_run")
+  cutoffAt      DateTime        @map("cutoff_at")
+  affectedCount Int             @map("affected_count")
+  result        String
+  createdAt     DateTime        @default(now()) @map("created_at")
+  policy        RetentionPolicy @relation(fields: [policyId], references: [id], onDelete: Restrict)
+
+  @@index([policyId, createdAt])
+  @@map("retention_runs")
+}
+
+model SecurityIncident {
+  id                    String                 @id @default(uuid())
+  title                 String
+  summary               String
+  severity              IncidentSeverity
+  status                IncidentStatus         @default(OPEN)
+  occurredAt            DateTime?               @map("occurred_at")
+  discoveredAt          DateTime                @map("discovered_at")
+  notificationDeadline  DateTime                @map("notification_deadline")
+  dataCategories        String[]                @default([]) @map("data_categories")
+  affectedSubjects      Int?                    @map("affected_subjects")
+  containmentMeasures   String?                 @map("containment_measures")
+  remediationMeasures   String?                 @map("remediation_measures")
+  evidenceReferences    String[]                @default([]) @map("evidence_references")
+  requiresAnpdReview    Boolean                 @default(true) @map("requires_anpd_review")
+  requiresSubjectReview Boolean                 @default(true) @map("requires_subject_review")
+  reviewedBy            String?                 @map("reviewed_by")
+  reviewedAt            DateTime?               @map("reviewed_at")
+  createdBy             String                  @map("created_by")
+  createdAt             DateTime                @default(now()) @map("created_at")
+  updatedAt             DateTime                @updatedAt @map("updated_at")
+  events                SecurityIncidentEvent[]
+
+  @@index([status, severity])
+  @@index([notificationDeadline])
+  @@map("security_incidents")
+}
+
+model SecurityIncidentEvent {
+  id         String           @id @default(uuid())
+  incidentId String           @map("incident_id")
+  actorId    String           @map("actor_id")
+  action     String
+  details    Json?
+  createdAt  DateTime         @default(now()) @map("created_at")
+  incident   SecurityIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId, createdAt])
+  @@map("security_incident_events")
+}
+
 model SusProcedure {
   id         String   @id @default(uuid())
   codigo     String   @unique
@@ -441,4 +549,60 @@ enum NotaFiscalStatus {
   CANCELADA
   PROCESSANDO
   ERRO
+}
+
+enum PrivacySubjectType {
+  PATIENT
+  USER
+  EMPLOYEE
+  OTHER
+}
+
+enum PrivacyRequestType {
+  ACCESS
+  CORRECTION
+  PORTABILITY
+  DELETION
+  ANONYMIZATION
+  CONSENT_REVOCATION
+  SHARING_INFORMATION
+  OTHER
+}
+
+enum PrivacyRequestStatus {
+  RECEIVED
+  IDENTITY_PENDING
+  IN_REVIEW
+  LEGAL_HOLD
+  APPROVED
+  PARTIALLY_APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum RetentionCategory {
+  PASSWORD_RESET_TOKENS
+  NOTIFICATION_OUTBOX
+  AUDIT_LOGS
+}
+
+enum RetentionAction {
+  DELETE
+  ANONYMIZE
+  REVIEW
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  CONTAINED
+  UNDER_REVIEW
+  CLOSED
 }

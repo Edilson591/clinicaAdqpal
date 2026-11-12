@@ -2,28 +2,11 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { UserResponse } from "../types/api";
 
 // =============================================================================
-// COOKIE HELPERS
-// Apenas para o cookie de dados do usuário (display).
-// O token JWT fica em cookie httpOnly gerenciado pelo servidor.
+// SESSION HELPERS
+// Tokens de sessão permanecem exclusivamente em cookies HttpOnly do servidor.
 // =============================================================================
 
-const USER_COOKIE = "adqpal_user";
-const COOKIE_OPTS = "path=/; SameSite=Strict";
-const COOKIE_DAYS = 7;
-
-export function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-function setUserCookie(user: UserResponse): void {
-  const expires = new Date(Date.now() + COOKIE_DAYS * 864e5).toUTCString();
-  document.cookie = `${USER_COOKIE}=${encodeURIComponent(JSON.stringify(user))}; expires=${expires}; ${COOKIE_OPTS}`;
-}
-
-function deleteUserCookie(): void {
-  document.cookie = `${USER_COOKIE}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; ${COOKIE_OPTS}`;
-}
+const SESSION_USER_KEY = "adqpal_session_user";
 
 // =============================================================================
 // STATE
@@ -37,11 +20,11 @@ interface AuthState {
 
 function loadInitialState(): AuthState {
   try {
-    const raw = getCookie(USER_COOKIE);
+    const raw = sessionStorage.getItem(SESSION_USER_KEY);
     const user = raw ? (JSON.parse(raw) as UserResponse) : null;
-    const token = localStorage.getItem("adqpal_token");
     const tempToken = sessionStorage.getItem("adqpal_temp_token");
-    return { user, token, tempToken };
+    localStorage.removeItem("adqpal_token");
+    return { user, token: null, tempToken };
   } catch {
     return { user: null, token: null, tempToken: null };
   }
@@ -57,22 +40,22 @@ const authSlice = createSlice({
   name: "auth",
   initialState: loadInitialState(),
   reducers: {
-    setCredentials(state, action: PayloadAction<{ user: UserResponse; token: string }>) {
+    setCredentials(state, action: PayloadAction<{ user: UserResponse; token?: string }>) {
       state.user = action.payload.user ?? null;
-      state.token = action.payload.token;
-      setUserCookie(action.payload.user);
-      localStorage.setItem("adqpal_token", action.payload.token);
+      state.token = null;
+      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(action.payload.user));
+      localStorage.removeItem("adqpal_token");
     },
     setUser(state, action: PayloadAction<UserResponse>) {
       state.user = action.payload;
-      setUserCookie(action.payload);
+      sessionStorage.setItem(SESSION_USER_KEY, JSON.stringify(action.payload));
     },
     setTempToken(state, action: PayloadAction<string>) {
       state.tempToken = action.payload;
       state.token = null;
       state.user = null;
       sessionStorage.setItem("adqpal_temp_token", action.payload);
-      deleteUserCookie();
+      sessionStorage.removeItem(SESSION_USER_KEY);
       localStorage.removeItem("adqpal_token");
     },
     clearTempToken(state) {
@@ -83,9 +66,12 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.tempToken = null;
-      deleteUserCookie();
+      sessionStorage.removeItem(SESSION_USER_KEY);
       localStorage.removeItem("adqpal_token");
       sessionStorage.removeItem("adqpal_temp_token");
+      localStorage.removeItem("apac_laudo");
+      localStorage.removeItem("aih_laudo");
+      localStorage.removeItem("receituario");
     },
   },
 });

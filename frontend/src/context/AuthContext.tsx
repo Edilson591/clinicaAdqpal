@@ -3,6 +3,8 @@ import { logout as logoutAction } from "../store/authSlice";
 import type { AppDispatch, RootState } from "../store";
 import type { UserResponse } from "../types/api";
 import { useNavigate } from "react-router-dom";
+import { queryClient } from "../main";
+import api from "../services/api";
 
 // =============================================================================
 // useAuth
@@ -25,10 +27,8 @@ export function useAuth(): UseAuthReturn {
 
   const logout = () => {
     // Limpa o cookie httpOnly no servidor, depois limpa Redux
-    fetch(`${import.meta.env.VITE_API_URL}/users/logout`, {
-      method: "POST",
-      credentials: "include",
-    }).finally(() => {
+    api.post("/users/logout").finally(() => {
+      queryClient.clear();
       dispatch(logoutAction());
       navigate("/login", { replace: true });
     });

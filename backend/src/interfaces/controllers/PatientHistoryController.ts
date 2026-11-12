@@ -11,15 +11,24 @@ import { PrismaPatientRepository } from "../../infrastructure/repositories/Prism
 import type { PatientHistoryType } from "../../domain/entities/PatientHistory";
 import { PrismaAuditLogRepository } from "../../infrastructure/repositories/PrismaAuditLogRepository";
 import { AuditService } from "../../application/services/AuditService";
+import { NotFoundError } from "../../domain/errors/DomainError";
 
 const historyRepository = new PrismaPatientHistoryRepository(prisma);
 const userRepository = new PrismaUserRepository(prisma);
 const patientRepository = new PrismaPatientRepository(prisma);
 const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
+const ROLE_DOCTOR = 3;
+
+async function assertHistoryAccess(req: Request, patientId: string): Promise<void> {
+  if (req.userRoleId !== ROLE_DOCTOR) return;
+  const linked = await prisma.appointment.findFirst({ where: { patientId, userId: req.userId }, select: { id: true } });
+  if (!linked) throw new NotFoundError("Histórico do paciente");
+}
 
 export class PatientHistoryController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      await assertHistoryAccess(req, req.params.patientId as string);
       const parsed = CreatePatientHistorySchema.safeParse(req.body);
       if (!parsed.success) {
         res
@@ -50,6 +59,7 @@ export class PatientHistoryController {
 
   async list(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      await assertHistoryAccess(req, req.params.patientId as string);
       const pagination = parsePagination(req.query);
       const type = req.query.type as PatientHistoryType | undefined;
       const search = req.query.search as string | undefined;

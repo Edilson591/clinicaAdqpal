@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { APPOINTMENT_KEYS } from "./useAppointments";
-import { getCookie } from "../store/authSlice";
 
 /**
  * Conecta ao endpoint SSE do backend e invalida o cache do React Query
@@ -13,13 +12,8 @@ export function useAppointmentSSE(): void {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const token = getCookie("adqpal_token");
-    if (!token) return;
-
     const apiUrl = import.meta.env.VITE_API_URL as string;
-    const es = new EventSource(
-      `${apiUrl}/appointments/events?token=${encodeURIComponent(token)}`,
-    );
+    const es = new EventSource(`${apiUrl}/appointments/events`, { withCredentials: true });
 
     const invalidateAll = () => {
       queryClient.invalidateQueries({ queryKey: APPOINTMENT_KEYS.all });

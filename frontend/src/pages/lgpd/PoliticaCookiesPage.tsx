@@ -9,35 +9,35 @@ const sections = [
   {
     title: "Cookies que utilizamos",
     content: [
-      "adqpal_token (sessão) — Armazena o token de autenticação JWT para manter você conectado durante a sessão. Essencial para o funcionamento do sistema. Expiração: conforme configuração da instituição (padrão: 7 dias). Não pode ser desativado.",
-      "adqpal_theme (preferência) — Armazena sua preferência de tema claro ou escuro. Expiração: 1 ano. Pode ser redefinido nas configurações do sistema.",
+      "Cookies de sessão HttpOnly — Mantêm a autenticação e não podem ser lidos por scripts da página. São estritamente necessários para acessar a área restrita.",
+      "adqpal_consent — Registra categorias escolhidas, versão da política e data da decisão. É necessário para respeitar e comprovar suas preferências.",
+      "adqpal_theme — Armazena a preferência de tema apenas quando a categoria Personalização foi autorizada.",
     ],
   },
   {
     title: "Cookies de terceiros",
     content:
-      "A plataforma ADQPAL não utiliza cookies de rastreamento de terceiros, pixels de publicidade, ferramentas de analytics externas nem redes sociais. Todo o processamento de dados ocorre exclusivamente em nossa infraestrutura.",
+      "A plataforma não possui rastreadores de publicidade ou análise ativos nesta versão. Se uma tecnologia opcional for adicionada, seu script permanecerá bloqueado até a autorização da categoria correspondente. Integrações operacionais descritas na Política de Privacidade não são ativadas por cookies de marketing.",
   },
   {
     title: "Cookies essenciais x opcionais",
     content: [
-      "Cookies essenciais (adqpal_token): necessários para o funcionamento básico da autenticação. Sem eles, não é possível acessar o sistema. Base legal: execução de contrato (LGPD, art. 7º, V).",
-      "Cookies de preferência (adqpal_theme): melhoram a experiência do usuário, mas não são obrigatórios. Base legal: legítimo interesse (LGPD, art. 7º, IX).",
+      "Necessários: sessão, segurança, prevenção a fraude e registro das escolhas. Não dependem de consentimento quando indispensáveis à prestação e segurança do serviço.",
+      "Análise, marketing e personalização: permanecem desativados até uma escolha afirmativa e podem ser retirados a qualquer momento.",
     ],
   },
   {
     title: "Como gerenciar cookies",
     content: [
-      "Você pode limpar os cookies a qualquer momento pelas configurações do seu navegador.",
-      "A exclusão do cookie adqpal_token encerrará sua sessão imediatamente.",
-      "A maioria dos navegadores permite configurar alertas antes de aceitar cookies — consulte a ajuda do seu navegador para instruções específicas.",
-      "Em dispositivos móveis, as configurações de cookies estão disponíveis nos menus de privacidade do navegador instalado.",
+      "Use o link Preferências de privacidade no rodapé para aceitar, rejeitar ou alterar categorias opcionais.",
+      "A retirada da autorização não afeta tratamentos realizados de forma válida antes da mudança.",
+      "A limpeza de cookies de sessão encerrará o acesso à área restrita.",
     ],
   },
   {
     title: "Local Storage",
     content:
-      "Além de cookies, utilizamos o Local Storage do navegador para armazenar preferências de interface (como filtros de página e configurações de exibição). Essas informações ficam armazenadas apenas no seu dispositivo e nunca são transmitidas a terceiros.",
+      "O Local Storage é usado para registrar as preferências de consentimento e, quando autorizado, o tema visual. Tokens de acesso e rascunhos clínicos não são armazenados permanentemente no navegador.",
   },
   {
     title: "Atualizações desta política",
@@ -50,7 +50,7 @@ export default function PoliticaCookiesPage() {
   return (
     <LgpdLayout
       title="Política de Cookies"
-      lastUpdated="09 de abril de 2026"
+      lastUpdated="12 de novembro de 2026"
       sections={sections}
     />
   );

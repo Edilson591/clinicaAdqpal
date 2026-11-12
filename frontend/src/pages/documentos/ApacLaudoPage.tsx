@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Header } from "../../components/Dashboard/Header";
-import { useApacLaudoPage, type ApacData } from "../../hooks/useApacLaudoPage";
+import { useApacLaudoPage } from "../../hooks/useApacLaudoPage";
 import { usePatient } from "../../hooks/usePatients";
 import { usePatientSearch } from "../../hooks/usePatientSearch";
 import { useDoctors } from "../../hooks/useUsers";
@@ -31,21 +31,14 @@ function parsePhone(phone: string | null): { ddd: string; number: string } {
 
 function fillFromPatient(p: PatientResponse) {
   const phone = parsePhone(p.phone);
-  const saved = localStorage.getItem("apac_laudo");
-  let parsed: Partial<ApacData> = {};
-  try {
-    parsed = saved ? (JSON.parse(saved) as Partial<ApacData>) : {};
-  } catch {
-    parsed = {};
-  }
   return {
     f3_nome_paciente: p.name ?? "",
     f4_sexo: (p.gender === "M" ? "mas" : p.gender === "F" ? "fem" : null) as
       | "mas"
       | "fem"
       | null,
-    f5_prontuario: parsed.f5_prontuario ?? "",
-    f6_cns: parsed.f6_cns ?? Array(15).fill(""),
+    f5_prontuario: "",
+    f6_cns: Array(15).fill(""),
     dn: parseDateToBoxes(p.dateOfBirth),
     f8_raca: "",
     f8_etnia: "",

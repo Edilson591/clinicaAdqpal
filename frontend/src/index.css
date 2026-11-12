@@ -104,6 +104,49 @@ body {
   font-family: var(--font-sans);
 }
 
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+input[type="checkbox"]:not(:disabled),
+label:has(input[type="checkbox"]:not(:disabled)) {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+input[type="checkbox"]:disabled,
+label:has(input[type="checkbox"]:disabled) {
+  cursor: not-allowed;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 200;
+  transform: translateY(-200%);
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #14532d;
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+  box-shadow: 0 10px 25px rgb(15 23 42 / 0.25);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 3px solid #15803d;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 input[type="date"] {
   @apply text-foreground;
 }

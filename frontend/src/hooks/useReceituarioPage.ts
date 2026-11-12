@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { LOGO_B64, ASSIN_B64, MARKWATER } from "./receituarioImages";
 import {
   receituarioExamesSchema,
@@ -9,6 +9,7 @@ import {
 } from "../validate/receituario.schema";
 import { z } from "zod";
 import { formatDateBr } from "../utils/formatDate";
+import { sanitizeGeneratedHtml } from "../utils/sanitizeGeneratedHtml";
 
 export const EXAMS = [
   { cat: "Bioquímica Geral", items: ["Ácido Úrico","Fosfatase Alcalina","Gama GT","Proteína C Reativa","Muco-Proteína","Proteínas: Total e Frações","Ureia","Creatinina","Bilirrubinas","Bilirrubinas Totais e Frações","Cálcio","Magnésio","Fósforo","Albumina","Amilase"] },
@@ -383,19 +384,9 @@ function validateTab(data: ReceituarioData): string[] {
 }
 
 export function useReceituarioPage() {
-  const [data, setData] = useState<ReceituarioData>(() => {
-    try {
-      const saved = localStorage.getItem("receituario");
-      if (saved) return JSON.parse(saved);
-    } catch { /* ignore */ }
-    return emptyData();
-  });
+  const [data, setData] = useState<ReceituarioData>(emptyData);
 
   const [errors, setErrors] = useState<string[]>([]);
-
-  useEffect(() => {
-    localStorage.setItem("receituario", JSON.stringify(data));
-  }, [data]);
 
   const update = useCallback(<K extends keyof ReceituarioData>(key: K, value: ReceituarioData[K]) => {
     setData((prev) => ({ ...prev, [key]: value }));
@@ -442,8 +433,7 @@ export function useReceituarioPage() {
       setErrors(validationErrors);
       return;
     }
-    localStorage.setItem("receituario", JSON.stringify(data));
-    const html = generateRecHtml(data);
+    const html = sanitizeGeneratedHtml(generateRecHtml(data));
     const printWindow = window.open("", "_blank", "width=800,height=900");
     if (!printWindow) {
       setErrors(["Pop-up bloqueado. Permita pop-ups para imprimir."]);
@@ -463,8 +453,7 @@ export function useReceituarioPage() {
       setErrors(validationErrors);
       return;
     }
-    localStorage.setItem("receituario", JSON.stringify(data));
-    const html = generateRecHtml(data);
+    const html = sanitizeGeneratedHtml(generateRecHtml(data));
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -478,7 +467,6 @@ export function useReceituarioPage() {
 
   const handleClear = useCallback(() => {
     if (confirm("Deseja limpar todos os campos?")) {
-      localStorage.removeItem("receituario");
       setData(emptyData());
       setErrors([]);
     }

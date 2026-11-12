@@ -1,72 +1,48 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { store } from '../../store';
-import { setCredentials, logout, getCookie, setCookie, deleteCookie } from '../../store/authSlice';
+import { beforeEach, describe, expect, it } from "vitest";
+import { store } from "../../store";
+import { logout, setCredentials } from "../../store/authSlice";
 
-// jsdom suporta document.cookie
+const user = {
+  id: "user-1",
+  username: "Dr. Silva",
+  email: "dr@clinic.com",
+  roleId: 3,
+  cpf: null,
+  cnpj: null,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
+};
+
 beforeEach(() => {
-  // limpa cookies entre testes
-  document.cookie = 'adqpal_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
-  document.cookie = 'adqpal_user=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  localStorage.clear();
+  sessionStorage.clear();
   store.dispatch(logout());
 });
 
-const mockLoginResponse = {
-  token: 'jwt-token-abc',
-  user: { id: 'user-1', name: 'Dr. Silva', email: 'dr@clinic.com', username: 'drsilva', role: 'ADMIN' as const },
-};
-
-// ── Cookie helpers ────────────────────────────────────────────────────────────
-
-describe('cookie helpers', () => {
-  it('setCookie / getCookie round-trip', () => {
-    setCookie('test_key', 'hello world');
-    expect(getCookie('test_key')).toBe('hello world');
+describe("authSlice", () => {
+  it("mantém o token fora do Redux e dos armazenamentos JavaScript", () => {
+    store.dispatch(setCredentials({ user, token: "jwt-token-abc" }));
+    expect(store.getState().auth.token).toBeNull();
+    expect(localStorage.getItem("adqpal_token")).toBeNull();
+    expect(sessionStorage.getItem("adqpal_temp_token")).toBeNull();
   });
 
-  it('getCookie returns null for missing cookie', () => {
-    expect(getCookie('non_existent')).toBeNull();
+  it("mantém apenas o perfil na sessão da aba", () => {
+    store.dispatch(setCredentials({ user, token: "ignored" }));
+    expect(store.getState().auth.user?.email).toBe(user.email);
+    expect(JSON.parse(sessionStorage.getItem("adqpal_session_user") ?? "null").id).toBe(user.id);
   });
 
-  it('deleteCookie removes the cookie', () => {
-    setCookie('del_key', 'value');
-    deleteCookie('del_key');
-    expect(getCookie('del_key')).toBeNull();
-  });
-});
-
-// ── Redux slice ───────────────────────────────────────────────────────────────
-
-describe('authSlice', () => {
-  it('initial state has no token or user', () => {
-    const state = store.getState().auth;
-    expect(state.token).toBeNull();
-    expect(state.user).toBeNull();
-  });
-
-  it('setCredentials stores token and user in Redux', () => {
-    store.dispatch(setCredentials(mockLoginResponse));
-    const state = store.getState().auth;
-    expect(state.token).toBe('jwt-token-abc');
-    expect(state.user?.email).toBe('dr@clinic.com');
-  });
-
-  it('setCredentials persists token in cookie', () => {
-    store.dispatch(setCredentials(mockLoginResponse));
-    expect(getCookie('adqpal_token')).toBe('jwt-token-abc');
-  });
-
-  it('logout clears Redux state', () => {
-    store.dispatch(setCredentials(mockLoginResponse));
+  it("limpa perfil e rascunhos clínicos no logout", () => {
+    localStorage.setItem("apac_laudo", "sensitive");
+    localStorage.setItem("aih_laudo", "sensitive");
+    localStorage.setItem("receituario", "sensitive");
+    store.dispatch(setCredentials({ user }));
     store.dispatch(logout());
-    const state = store.getState().auth;
-    expect(state.token).toBeNull();
-    expect(state.user).toBeNull();
-  });
-
-  it('logout removes cookies', () => {
-    store.dispatch(setCredentials(mockLoginResponse));
-    store.dispatch(logout());
-    expect(getCookie('adqpal_token')).toBeNull();
-    expect(getCookie('adqpal_user')).toBeNull();
+    expect(store.getState().auth.user).toBeNull();
+    expect(sessionStorage.getItem("adqpal_session_user")).toBeNull();
+    expect(localStorage.getItem("apac_laudo")).toBeNull();
+    expect(localStorage.getItem("aih_laudo")).toBeNull();
+    expect(localStorage.getItem("receituario")).toBeNull();
   });
 });

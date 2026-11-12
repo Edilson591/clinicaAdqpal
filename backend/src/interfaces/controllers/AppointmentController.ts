@@ -57,7 +57,7 @@ export class AppointmentController {
         update: {},
       });
 
-      sseManager.broadcast("appointment_created", appointment);
+      sseManager.broadcast("appointment_created", appointment, appointment.userId);
       auditService.create(req, "APPOINTMENT", appointment.id);
       res.status(201).json({
         success: true,
@@ -157,7 +157,7 @@ export class AppointmentController {
         appointmentRepository,
       ).execute(id, dto);
 
-      sseManager.broadcast("appointment_updated", appointment);
+      sseManager.broadcast("appointment_updated", appointment, appointment.userId);
       auditService.update(req, "APPOINTMENT", appointment.id);
       res.status(200).json({
         success: true,
@@ -171,10 +171,10 @@ export class AppointmentController {
 
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const existing = await new GetAppointment(
+        appointmentRepository,
+      ).execute(req.params.id as string);
       if (req.userRoleId === ROLE_DOCTOR) {
-        const existing = await new GetAppointment(
-          appointmentRepository,
-        ).execute(req.params.id as string);
         if (existing.userId !== req.userId) {
           throw new NotFoundError("Consulta");
         }
@@ -183,7 +183,7 @@ export class AppointmentController {
       await new DeleteAppointment(appointmentRepository).execute(
         req.params.id as string,
       );
-      sseManager.broadcast("appointment_deleted", { id: req.params.id });
+      sseManager.broadcast("appointment_deleted", { id: req.params.id }, existing.userId);
       auditService.delete(req, "APPOINTMENT", req.params.id);
       res
         .status(200)
@@ -206,6 +206,9 @@ export class AppointmentController {
       const appointment = await new GetAppointment(
         appointmentRepository,
       ).execute(id);
+      if (req.userRoleId === ROLE_DOCTOR && appointment.userId !== req.userId) {
+        throw new NotFoundError("Consulta");
+      }
 
       auditService.export(req, "APPOINTMENT", id);
 
@@ -269,7 +272,7 @@ export class AppointmentController {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    sseManager.addClient(res);
+    sseManager.addClient(res, req.userId, req.userRoleId);
 
     // Ping inicial para confirmar conexão
     res.write("event: connected\ndata: {}\n\n");

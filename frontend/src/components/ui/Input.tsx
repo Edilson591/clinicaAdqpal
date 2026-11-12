@@ -28,7 +28,7 @@ const inputVariants = tv({
     "focus:invalid:text-foreground",
     // Placeholder styling
     "placeholder:text-muted-foreground",
-    "dark:bg-[#263548] border-red-400 dark:border-red-500",
+    "dark:bg-[#263548] dark:border-[#475569]",
     // Focus states
     "focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent",
     // Disabled states
@@ -229,7 +229,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm cursor-pointer"
-                tabIndex={-1}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                aria-pressed={showPassword}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -343,6 +344,8 @@ const InputGroup = forwardRef<HTMLDivElement, InputGroupProps>(
     const uniqueId = useId();
     const fieldId =
       (textarea ? textareaProps?.id : inputProps?.id) || `input-${uniqueId}`;
+    const messageId = `${fieldId}-message`;
+    const describedBy = (helperText || error) ? messageId : undefined;
 
     return (
       <div
@@ -363,12 +366,16 @@ const InputGroup = forwardRef<HTMLDivElement, InputGroupProps>(
           <Textarea
             id={fieldId}
             variant={error ? "error" : textareaProps?.variant}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
             {...textareaProps}
           />
         ) : (
           <Input
             id={fieldId}
             variant={error ? "error" : inputProps?.variant}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
             {...inputProps}
           />
         )}
@@ -376,6 +383,8 @@ const InputGroup = forwardRef<HTMLDivElement, InputGroupProps>(
         {/* Helper Text / Error Message */}
         {(helperText || error) && (
           <p
+            id={messageId}
+            role={error ? "alert" : undefined}
             className={twMerge(
               "text-sm",
               error ? "text-destructive" : "text-muted-foreground",

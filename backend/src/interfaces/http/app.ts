@@ -21,6 +21,7 @@ import notaFiscalRoutes from "../routes/notaFiscalRoutes";
 import patientNotaFiscalRoutes from "../routes/patientNotaFiscalRoutes";
 import susProcedureRoutes from "../routes/susProcedureRoutes";
 import internalRoutes from "../routes/internalRoutes";
+import privacyRoutes from "../routes/privacyRoutes";
 import {
   boletoRoutes,
   dashboardRoutes as boletoDashboardRoutes,
@@ -87,6 +88,7 @@ app.use(
       "X-Correlation-Id",
       "Idempotency-Key",
       "X-Idempotency-Key",
+      "X-Request-Access-Token",
     ],
   }),
 );
@@ -426,6 +428,7 @@ app.use("/password", passwordRoutes);
 app.use("/patients/:patientId/notas-fiscais", patientNotaFiscalRoutes);
 app.use("/sus-procedures", susProcedureRoutes);
 app.use("/internal", internalRoutes);
+app.use("/privacy", privacyRoutes);
 app.use("/boletos", boletoRoutes);
 app.use("/dashboard", boletoDashboardRoutes);
 

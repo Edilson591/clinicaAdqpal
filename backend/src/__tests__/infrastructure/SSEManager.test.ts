@@ -41,6 +41,16 @@ describe("SSEManager", () => {
     expect(res2.write).toHaveBeenCalledWith(expected);
   });
 
+  it("não envia evento de outro médico para cliente clínico", () => {
+    const doctor = makeRes();
+    const admin = makeRes();
+    sseManager.addClient(doctor, "doctor-a", 3);
+    sseManager.addClient(admin, "admin", 1);
+    sseManager.broadcast("appointment_created", { id: "123" }, "doctor-b");
+    expect(doctor.write).not.toHaveBeenCalled();
+    expect(admin.write).toHaveBeenCalledTimes(1);
+  });
+
   it("broadcast removes a client that throws on write", () => {
     const broken = { write: jest.fn().mockImplementation(() => { throw new Error("broken pipe"); }) } as unknown as Response;
     sseManager.addClient(broken);

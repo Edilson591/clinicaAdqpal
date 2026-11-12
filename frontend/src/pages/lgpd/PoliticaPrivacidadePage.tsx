@@ -18,11 +18,11 @@ const sections = [
   {
     title: "Finalidade e base legal",
     content: [
-      "Gestão de pacientes e consultas — execução de contrato (LGPD, art. 7º, V).",
-      "Registro de prontuários eletrônicos — cumprimento de obrigação legal (LGPD, art. 7º, II; CFM Res. 1.821/2007).",
+       "Gestão de pacientes e consultas — execução de contrato, procedimentos preliminares e, conforme o contexto, tutela da saúde.",
+       "Registro de prontuários eletrônicos — tutela da saúde e cumprimento de obrigações legais e regulatórias aplicáveis.",
       "Autenticação e controle de acesso — legítimo interesse do controlador (LGPD, art. 7º, IX).",
       "Envio de notificações de consultas via WhatsApp — consentimento do paciente (LGPD, art. 7º, I).",
-      "Análise de uso e melhoria do sistema — legítimo interesse (LGPD, art. 7º, IX).",
+       "Tecnologias opcionais de análise, marketing ou personalização — somente após escolha específica quando o consentimento for a base aplicável.",
     ],
   },
   {
@@ -34,21 +34,23 @@ const sections = [
     title: "Compartilhamento de dados",
     content: [
       "Não vendemos nem compartilhamos dados pessoais para fins comerciais.",
-      "Dados podem ser compartilhados com prestadores de infraestrutura (hospedagem em nuvem) sob obrigações contratuais de confidencialidade.",
+       "Dados podem ser compartilhados com prestadores de infraestrutura (hospedagem em nuvem) sob obrigações contratuais de confidencialidade.",
+       "Integrações operacionais podem envolver Supabase/PostgreSQL, Vercel ou infraestrutura contratada, serviço de identidade, provedores de WhatsApp/SMS, SMTP, transcrição de áudio, emissão fiscal, boletos, ViaCEP e bases públicas de procedimentos/CID, conforme a funcionalidade utilizada.",
+       "Áudio clínico só deve ser enviado ao provedor de transcrição após informação contextual ao usuário e observância da finalidade assistencial definida pela instituição.",
       "Dados podem ser divulgados a autoridades competentes quando exigido por lei ou ordem judicial.",
     ],
   },
   {
     title: "Retenção de dados",
     content:
-      "Dados de prontuários são retidos pelo mínimo de 20 anos após a última consulta, conforme Resolução CFM 1.821/2007. Dados de acesso e logs são retidos por 6 meses. Após o encerramento do contrato, os dados podem ser exportados pelo titular em formato padrão por até 90 dias.",
+      "Os prazos são definidos por categoria, finalidade e fundamento jurídico, considerando obrigações sanitárias, profissionais, fiscais, trabalhistas e de defesa de direitos. Políticas automáticas permanecem desabilitadas até aprovação documentada. Dados sujeitos a obrigação de conservação ou bloqueio jurídico não são eliminados apenas por solicitação; a decisão e sua justificativa são registradas.",
   },
   {
     title: "Segurança",
     content: [
       "Senhas armazenadas com hash bcrypt (12 rounds) — nunca em texto claro.",
       "Comunicação protegida por HTTPS/TLS.",
-      "Autenticação via JWT com expiração configurável.",
+       "Sessão mantida em cookies HttpOnly, sem persistência do token em armazenamento acessível a JavaScript.",
       "Controle de acesso baseado em perfis (RBAC).",
       "Rate limiting para prevenção de ataques de força bruta.",
     ],
@@ -63,7 +65,7 @@ const sections = [
       "Eliminação dos dados tratados com consentimento.",
       "Informação sobre entidades com as quais os dados foram compartilhados.",
       "Revogação do consentimento a qualquer momento.",
-      "Para exercer seus direitos, entre em contato: privacidade@adqpal.com.br.",
+       "Para exercer seus direitos, use a página /privacidade/solicitacao ou escreva para privacidade@adqpal.com.br. A identidade será verificada antes da entrega ou alteração de dados.",
     ],
   },
   {
@@ -77,7 +79,7 @@ export default function PoliticaPrivacidadePage() {
   return (
     <LgpdLayout
       title="Política de Privacidade"
-      lastUpdated="09 de abril de 2026"
+      lastUpdated="12 de novembro de 2026"
       sections={sections}
     />
   );

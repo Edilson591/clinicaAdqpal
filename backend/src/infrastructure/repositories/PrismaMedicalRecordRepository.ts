@@ -56,6 +56,12 @@ export class PrismaMedicalRecordRepository implements IMedicalRecordRepository {
       end.setHours(23, 59, 59, 999);
       where.createdAt = { gte: start, lte: end };
     }
+    if (filters?.doctorId) {
+      where.OR = [
+        { appointment: { userId: filters.doctorId } },
+        { patient: { appointments: { some: { userId: filters.doctorId } } } },
+      ];
+    }
     return where;
   }
   async findById(id: string): Promise<MedicalRecord | null> {

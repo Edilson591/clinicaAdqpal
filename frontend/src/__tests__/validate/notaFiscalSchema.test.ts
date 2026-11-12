@@ -21,7 +21,8 @@ describe('notaFiscalSchema', () => {
     });
 
     it('rejects missing field', () => {
-      const { patientId: _omit, ...rest } = valid;
+      const rest = { ...valid } as Partial<typeof valid>;
+      delete rest.patientId;
       const result = notaFiscalSchema.safeParse(rest);
       expect(result.success).toBe(false);
     });

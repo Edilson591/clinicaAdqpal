@@ -49,6 +49,7 @@ export const navItems: NavItem[] = [
     adminOnly: true,
     children: [
       { label: "Laudo APAC", icon: FilePlus, path: "/documentos/apac" },
+      { label: "Laudo AIH", icon: FilePlus, path: "/documentos/aih" },
       { label: "Receituário", icon: FileSignature, path: "/documentos/receituario" },
       { label: "Administrativo", icon: Files, path: "/documentos/administrativo" },
     ],

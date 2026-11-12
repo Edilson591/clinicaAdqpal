@@ -9,6 +9,7 @@ import TokenExpiredPage from "../pages/auth/TokenExpiredPage";
 import PoliticaPrivacidadePage from "../pages/lgpd/PoliticaPrivacidadePage";
 import TermosDeUsoPage from "../pages/lgpd/TermosDeUsoPage";
 import PoliticaCookiesPage from "../pages/lgpd/PoliticaCookiesPage";
+import PrivacyRequestPage from "../pages/lgpd/PrivacyRequestPage";
 
 export const publicRoutes = (
   <>
@@ -22,5 +23,6 @@ export const publicRoutes = (
     <Route path="/politica-de-privacidade" element={<PoliticaPrivacidadePage />} />
     <Route path="/termos-de-uso" element={<TermosDeUsoPage />} />
     <Route path="/politica-de-cookies" element={<PoliticaCookiesPage />} />
+    <Route path="/privacidade/solicitacao" element={<PrivacyRequestPage />} />
   </>
 );

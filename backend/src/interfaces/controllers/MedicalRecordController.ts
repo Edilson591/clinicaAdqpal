@@ -18,6 +18,7 @@ import { PrismaAuditLogRepository } from "../../infrastructure/repositories/Pris
 import { AuditService } from "../../application/services/AuditService";
 import { getRedisClient } from "../../infrastructure/cache/RedisClient";
 import { CacheMedicalRecord } from "../../infrastructure/cache/CacheMedicalRecord";
+import { NotFoundError } from "../../domain/errors/DomainError";
 
 // const medicalRecordRepository = new PrismaMedicalRecordRepository(prisma);
 const auditService = new AuditService(new PrismaAuditLogRepository(prisma));
@@ -26,10 +27,18 @@ const medicalRecordRepository = new CacheMedicalRecord(
   new PrismaMedicalRecordRepository(prisma),
   getRedisClient(),
 );
+const ROLE_DOCTOR = 3;
+
+async function assertClinicalAccess(req: Request, patientId: string): Promise<void> {
+  if (req.userRoleId !== ROLE_DOCTOR) return;
+  const linked = await prisma.appointment.findFirst({ where: { patientId, userId: req.userId }, select: { id: true } });
+  if (!linked) throw new NotFoundError("Prontuário");
+}
 export class MedicalRecordController {
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const dto = req.body as CreateMedicalRecordDTO;
+      await assertClinicalAccess(req, dto.patientId);
       const record = await new CreateMedicalRecord(
         medicalRecordRepository,
       ).execute(dto);
@@ -55,6 +64,7 @@ export class MedicalRecordController {
       ).execute(pagination, {
         search,
         createdToday,
+        ...(req.userRoleId === ROLE_DOCTOR ? { doctorId: req.userId } : {}),
       });
       res.status(200).json({ success: true, ...result });
     } catch (err) {
@@ -71,6 +81,7 @@ export class MedicalRecordController {
       const record = await new GetMedicalRecord(
         medicalRecordRepository,
       ).execute(req.params.id as string);
+      await assertClinicalAccess(req, record.patientId);
       auditService.view(req, "MEDICAL_RECORD", record.id);
       res.status(200).json({ success: true, data: record });
     } catch (err) {
@@ -84,6 +95,7 @@ export class MedicalRecordController {
     next: NextFunction,
   ): Promise<void> {
     try {
+      await assertClinicalAccess(req, req.params.patientId as string);
       const records = await new ListMedicalRecordsByPatient(
         medicalRecordRepository,
       ).execute(req.params.patientId as string);
@@ -101,6 +113,8 @@ export class MedicalRecordController {
       const oldMedicalRecord = await medicalRecordRepository.findById(
         req.params.id as string,
       );
+      if (!oldMedicalRecord) throw new NotFoundError("Prontuário");
+      await assertClinicalAccess(req, oldMedicalRecord.patientId);
       const record = await new UpdateMedicalRecord(
         medicalRecordRepository,
       ).execute(req.params.id as string, dto);

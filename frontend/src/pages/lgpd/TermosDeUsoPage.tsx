@@ -50,27 +50,27 @@ const sections = [
   {
     title: "Disponibilidade e atualizações",
     content:
-      "O Instituto ADQPAL envidará esforços razoáveis para manter a plataforma disponível 24/7, mas não garante disponibilidade ininterrupta. Manutenções programadas serão comunicadas com antecedência mínima de 24 horas. Reservamo-nos o direito de atualizar, modificar ou descontinuar funcionalidades mediante aviso prévio.",
+      "O Instituto ADQPAL adotará medidas razoáveis para manter a disponibilidade e segurança da plataforma. Níveis de serviço, janelas de manutenção e condições para alteração de funcionalidades serão os definidos no contrato aplicável e comunicados de forma clara.",
   },
   {
     title: "Propriedade intelectual",
     content:
-      "Todo o conteúdo da plataforma (código-fonte, interface, logotipos, metodologias) é propriedade do Instituto ADQPAL e protegido por direitos autorais. Os dados inseridos pelos usuários e pacientes pertencem à instituição contratante, que concede ao ADQPAL licença limitada para processá-los conforme a Política de Privacidade.",
+      "O conteúdo próprio da plataforma é protegido pela legislação aplicável. Dados pessoais não são tratados como propriedade comercial: seu tratamento ocorre conforme as funções de controlador e operador, as finalidades informadas, o contrato e a legislação.",
   },
   {
-    title: "Limitação de responsabilidade",
+    title: "Responsabilidades",
     content:
-      "O Instituto ADQPAL não se responsabiliza por danos decorrentes de: (i) uso inadequado da plataforma pelo usuário; (ii) decisões clínicas baseadas em dados incorretos inseridos pelo próprio usuário; (iii) falhas de conectividade de terceiros; (iv) eventos de força maior. Nossa responsabilidade máxima é limitada ao valor pago pelo serviço nos últimos 3 meses.",
+      "As responsabilidades serão apuradas conforme a legislação e o contrato aplicáveis. Nenhuma disposição destes Termos exclui direitos obrigatórios do consumidor, deveres de segurança, proteção de dados ou responsabilidade que não possa ser afastada por contrato.",
   },
   {
     title: "Rescisão",
     content:
-      "A instituição contratante pode rescindir o contrato a qualquer momento com aviso de 30 dias. Após a rescisão, os dados poderão ser exportados por 90 dias e serão eliminados após esse prazo, respeitadas as obrigações legais de retenção de prontuários.",
+      "As condições de rescisão, cancelamento, eventual restituição e transição de dados devem constar de forma destacada no contrato aplicável. Solicitações não eliminam registros sujeitos a conservação legal, regulatória ou necessária ao exercício de direitos.",
   },
   {
     title: "Lei aplicável e foro",
     content:
-      "Estes Termos são regidos pelas leis brasileiras. Para dirimir controvérsias, fica eleito o foro da comarca de São Paulo/SP, com renúncia expressa a qualquer outro, por mais privilegiado que seja.",
+      "Estes Termos são regidos pelas leis brasileiras. O foro e os meios de solução de controvérsias observarão as regras legais aplicáveis, inclusive as garantias do consumidor e de acesso à Justiça.",
   },
 ];
 
@@ -78,7 +78,7 @@ export default function TermosDeUsoPage() {
   return (
     <LgpdLayout
       title="Termos de Uso"
-      lastUpdated="09 de abril de 2026"
+      lastUpdated="12 de novembro de 2026"
       sections={sections}
     />
   );

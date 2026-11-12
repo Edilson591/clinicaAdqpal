@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { X, Printer, CheckCircle } from "lucide-react";
 import type { NotaFiscalResponse } from "../../types/api";
 import { Button } from "../../components/ui/Button";
+import { sanitizeGeneratedHtml } from "../../utils/sanitizeGeneratedHtml";
 
 interface PatientInfo {
   name: string;
@@ -76,7 +77,7 @@ export function NotaFiscalViewer({
     const printWindow = window.open("", "_blank", "width=800,height=900");
     if (!printWindow) return;
 
-    printWindow.document.write(`
+    const printableHtml = sanitizeGeneratedHtml(`
       <!DOCTYPE html>
       <html lang="pt-BR">
       <head>
@@ -112,6 +113,7 @@ export function NotaFiscalViewer({
       <body>${content.innerHTML}</body>
       </html>
     `);
+    printWindow.document.write(printableHtml);
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => {

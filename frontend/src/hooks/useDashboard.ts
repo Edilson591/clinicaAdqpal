@@ -69,8 +69,9 @@ export function useDashboard(
 
     if (
       user.roleId !== USER_ROLES.ADMIN &&
-      user.roleId !== USER_ROLES.IT_SUPPORT &&
+      user.roleId !== USER_ROLES.USER &&
       user.roleId !== USER_ROLES.DOCTOR
+      && user.roleId !== USER_ROLES.RECEPTIONIST
     ) {
       return [];
     }
@@ -91,7 +92,7 @@ export function useDashboard(
 
 
   const proximoAtendimento = useMemo(
-    () => agendaDoDia.find((a) => a.status === "Confirmada") ?? null,
+    () => agendaDoDia.find((a) => a.status === "Agendada" || a.status === "Confirmada") ?? null,
     [agendaDoDia],
   );
   // console.log(agendaDoDia);

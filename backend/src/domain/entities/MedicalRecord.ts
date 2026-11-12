@@ -33,4 +33,6 @@ export interface MedicalRecordFilters {
   search?: string;
   /** Retorna apenas pacientes criados hoje */
   createdToday?: boolean;
+  /** Restringe prontuários a pacientes vinculados ao médico. */
+  doctorId?: string;
 }

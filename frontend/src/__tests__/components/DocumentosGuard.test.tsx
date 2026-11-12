@@ -16,6 +16,10 @@ vi.mock('../../context/AuthContext', () => ({
   }),
 }));
 
+vi.mock('../../hooks/useUsers', () => ({
+  useCheckAdmin: () => ({ data: { isAdmin: true }, isLoading: false }),
+}));
+
 import { usePermissions } from '../../context/PermissionsContext';
 
 function renderGuard(canAccess: boolean) {

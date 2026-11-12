@@ -42,7 +42,7 @@ describe('MEDICAL_RECORD_KEYS', () => {
   });
 
   it('paginated key includes page', () => {
-    expect(MEDICAL_RECORD_KEYS.paginated(3)).toEqual(['medical-records', 'page', 3]);
+    expect(MEDICAL_RECORD_KEYS.paginated(3)).toEqual(['medical-records', 'page', 3, undefined, undefined]);
   });
 
   it('detail key includes id', () => {
@@ -112,7 +112,7 @@ describe('useCreateMedicalRecord', () => {
       wrapper: makeWrapper(),
     });
 
-    const input = { patientId: 'pat-1', diagnosis: 'Gripe' } as any;
+    const input = { patientId: 'pat-1', appointmentId: null, diagnosis: 'Gripe' };
     result.current.mutate(input);
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));

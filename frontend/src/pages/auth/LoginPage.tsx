@@ -18,7 +18,6 @@ import { useNavigate } from "react-router-dom";
 import LoginCard from "../../components/ui/LoginCard";
 import useLoginForm from "../../hooks/useLoginForm";
 import { useAuth } from "../../context/AuthContext";
-import { getCookie } from "../../store/authSlice";
 // import cids from "../../../public/cid10.json";
 
 export function LoginPage() {
@@ -36,8 +35,7 @@ export function LoginPage() {
 
 
   useEffect(() => {
-    const token = getCookie("adqpal_token");
-    if (token || user) {
+    if (user) {
       navigate("/dashboard");
     }
   }, [navigate, user]);

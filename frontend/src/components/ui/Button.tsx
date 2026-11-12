@@ -5,7 +5,7 @@ import type { ComponentProps } from "react";
 const buttonVariants = tv({
   base: [
     "inline-flex cursor-pointer items-center justify-center font-semibold transition-all rounded-lg shadow-sm all 150ms ease-in-out",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
     "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
   ],
   variants: {
@@ -41,8 +41,8 @@ const buttonVariants = tv({
       ],
     },
     size: {
-      sm: "h-8 px-3 gap-1.5 text-sm [&_svg]:size-4",
-      md: "h-9 px-4 gap-2 text-sm [&_svg]:size-4",
+      sm: "min-h-9 px-3 gap-1.5 text-sm [&_svg]:size-4",
+      md: "min-h-11 px-4 gap-2 text-sm [&_svg]:size-4",
       lg: "h-14 px-6 gap-2.5 text-base [&_svg]:size-5",
     },
   },
